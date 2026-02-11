@@ -1,19 +1,10 @@
-items.forEach(name => {
-    // Klasör ismini güvenli hale getiriyoruz (parantezler için şart)
-    const encName = encodeURIComponent(name);
-    
-    // Senin yapında klasör adı = dosya adı olduğu için:
-    const imgPath = `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}/vectors/${encName}/${encName}.jpg`;
-    const epsPath = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/vectors/${encName}/${encName}.eps`;
-
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-        <div class="img-box">
-            <img src="${imgPath}" onerror="this.src='https://via.placeholder.com/300x200/111/f39c12?text=Image+Not+Ready'">
-        </div>
-        <div class="card-title">${name.replace(/-/g, ' ')}</div>
-        <button class="btn" onclick="downloadEps('${epsPath}', '${name}.eps')">DOWNLOAD EPS</button>
-    `;
-    gal.appendChild(card);
-});
+[
+  "fast-food--(1)", "fast-food--(2)", "fast-food--(3)", "fast-food--(4)",
+  "fast-food--(5)", "fast-food--(6)", "fast-food--(7)", "fast-food--(8)",
+  "fast-food--(9)", "fast-food--(10)", "fast-food--(11)", "fast-food--(12)",
+  "fast-food--(13)", "fast-food--(14)", "fast-food--(15)", "fast-food--(16)",
+  "fast-food--(17)", "fast-food--(18)", "fast-food--(19)", "fast-food--(20)",
+  "fast-food--(21)", "fast-food--(22)", "fast-food--(23)", "fast-food--(24)",
+  "fast-food--(25)", "fast-food--(26)", "fast-food--(27)", "fast-food--(28)",
+  "fast-food--(29)"
+]
