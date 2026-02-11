@@ -4,19 +4,44 @@
     <meta charset="UTF-8">
     <title>Free Vector Stock</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
-        /* ARAMA BARI TASARIMI */
-        .search-box { margin: 20px auto; width: 80%; max-width: 500px; }
-        #searchInput { width: 100%; padding: 15px; border-radius: 25px; border: 2px solid #f39c12; background: #111; color: #fff; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 20px; }
-        .card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 10px; }
-        .card img { width: 100%; height: 150px; object-fit: cover; }
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
+        h1 { color: #f39c12; margin-top: 30px; text-transform: uppercase; }
+        
+        /* ARAMA BARI */
+        .search-container { margin: 20px auto; max-width: 500px; }
+        #searchInput { 
+            width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid #f39c12; 
+            background: #111; color: #fff; outline: none; box-sizing: border-box;
+        }
+
+        /* GALERİ */
+        .gallery { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 25px; padding: 20px; max-width: 1200px; margin: 0 auto; 
+        }
+        .card { 
+            background: #111; border: 1px solid #333; padding: 15px; border-radius: 12px; 
+            transition: 0.3s; position: relative;
+        }
+        .card:hover { border-color: #f39c12; transform: translateY(-5px); }
+        .card img { width: 100%; border-radius: 8px; height: 160px; object-fit: cover; display: block; }
+        
+        .card-title { margin: 12px 0; font-size: 14px; font-weight: bold; color: #ccc; }
+
+        /* İNDİRME BUTONU */
+        .download-btn { 
+            background: #f39c12; color: #000; padding: 10px; text-decoration: none; 
+            display: block; font-weight: bold; border-radius: 6px; font-size: 13px;
+            transition: 0.2s; border: none; width: 100%; cursor: pointer;
+        }
+        .download-btn:hover { background: #e67e22; }
     </style>
 </head>
 <body>
-    <h1 style="color:#f39c12">FREE VECTOR STOCK</h1>
+
+    <h1>FREE VECTOR STOCK</h1>
     
-    <div class="search-box">
+    <div class="search-container">
         <input type="text" id="searchInput" placeholder="Vektörlerde ara..." onkeyup="search()">
     </div>
 
@@ -28,22 +53,48 @@
 
         async function load() {
             const gallery = document.getElementById('gallery');
-            const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/vectors`);
-            const dirs = await res.json();
-            gallery.innerHTML = '';
-            dirs.forEach(async d => {
-                if(d.type === 'dir') {
-                    const fRes = await fetch(d.url);
-                    const files = await fRes.json();
-                    const jpg = files.find(f => f.name.endsWith('.jpg'));
-                    if(jpg) {
-                        gallery.innerHTML += `<div class="card" data-name="${d.name.toLowerCase()}">
-                            <img src="${jpg.download_url}"><p>${d.name.toUpperCase()}</p></div>`;
+            try {
+                const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/vectors`);
+                const dirs = await res.json();
+                gallery.innerHTML = '';
+                
+                for(let d of dirs) {
+                    if(d.type === 'dir') {
+                        const fRes = await fetch(d.url);
+                        const files = await fRes.json();
+                        
+                        // Klasör içindeki JPG ve EPS dosyalarını bul
+                        const jpg = files.find(f => f.name.toLowerCase().endsWith('.jpg') || f.name.toLowerCase().endsWith('.jpeg'));
+                        const eps = files.find(f => f.name.toLowerCase().endsWith('.eps'));
+
+                        if(jpg && eps) {
+                            gallery.innerHTML += `
+                                <div class="card" data-name="${d.name.toLowerCase()}">
+                                    <img src="${jpg.download_url}" alt="${d.name}">
+                                    <div class="card-title">${d.name.replace(/-/g, ' ').toUpperCase()}</div>
+                                    <button class="download-btn" onclick="downloadFile('${eps.download_url}', '${d.name}.eps')">
+                                        EPS İNDİR
+                                    </button>
+                                </div>`;
+                        }
                     }
                 }
-            });
+            } catch(e) { gallery.innerHTML = 'Hata: Vektörler yüklenemedi.'; }
         }
 
+        // Güvenli İndirme Fonksiyonu
+        function downloadFile(url, filename) {
+            fetch(url).then(res => res.blob()).then(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }).catch(() => alert('İndirme başarısız oldu.'));
+        }
+
+        // Arama Fonksiyonu
         function search() {
             let input = document.getElementById('searchInput').value.toLowerCase();
             let cards = document.getElementsByClassName('card');
@@ -51,6 +102,7 @@
                 card.style.display = card.getAttribute('data-name').includes(input) ? "block" : "none";
             }
         }
+
         load();
     </script>
 </body>
