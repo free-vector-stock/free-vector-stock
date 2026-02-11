@@ -1,73 +1,146 @@
-<div style="text-align: center; margin: 30px 0;">
-    <input type="text" id="searchInput" placeholder="Tasarım ara... (Örn: fast food)" 
-           style="padding: 12px; width: 300px; border-radius: 25px; border: 1px solid #f39c12; background: #111; color: white;">
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Vector Stock | Ultimate Edition</title>
+    <style>
+        /* Genel Tasarım */
+        body { background-color: #000; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        header { text-align: center; padding: 40px 20px; background: linear-gradient(to bottom, #111, #000); }
+        h1 { color: #f39c12; letter-spacing: 5px; margin: 0; font-size: 2.5em; }
+
+        /* Arama Kutusu */
+        .search-container { text-align: center; margin: 30px 0; }
+        #searchInput { 
+            padding: 15px 25px; width: 60%; max-width: 500px; border-radius: 30px; 
+            border: 2px solid #f39c12; background: #111; color: white; font-size: 16px; outline: none;
+            transition: 0.3s;
+        }
+        #searchInput:focus { box-shadow: 0 0 15px rgba(243, 156, 18, 0.5); }
+
+        /* Galeri Izgarası */
+        .grid-container { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px; padding: 20px; max-width: 1200px; margin: auto; 
+        }
+
+        /* Kart Tasarımı */
+        .vector-card { 
+            background: #111; border-radius: 15px; overflow: hidden; 
+            border: 1px solid #222; transition: transform 0.3s, border-color 0.3s; 
+        }
+        .vector-card:hover { transform: translateY(-5px); border-color: #f39c12; }
+        .card-image { width: 100%; height: 200px; background: #070707; display: flex; align-items: center; justify-content: center; }
+        .card-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        
+        .card-info { padding: 15px; text-align: center; }
+        .card-info h3 { font-size: 14px; margin: 10px 0; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Butonlar */
+        .download-btn { 
+            display: block; width: 100%; padding: 12px 0; background: #f39c12; 
+            color: #000; text-decoration: none; font-weight: bold; border-radius: 8px; transition: 0.3s;
+        }
+        .download-btn:hover { background: #ffb133; }
+
+        /* Sayfalandırma (Pagination) */
+        .pagination { text-align: center; margin: 50px 0; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .page-btn { 
+            padding: 10px 18px; background: #111; border: 1px solid #333; 
+            color: #fff; cursor: pointer; border-radius: 5px; transition: 0.3s; font-weight: bold;
+        }
+        .page-btn:hover { border-color: #f39c12; color: #f39c12; }
+        .page-btn.active { background: #f39c12; color: #000; border-color: #f39c12; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>FREE VECTOR STOCK</h1>
+</header>
+
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Tasarım ara... (Örn: fast food)">
 </div>
 
-<div id="vectorGrid" class="grid-container"></div>
+<div id="vectorGrid" class="grid-container">
+    </div>
 
-<div id="pagination" style="text-align: center; margin-top: 40px; display: flex; justify-content: center; gap: 10px;"></div>
+<div id="pagination" class="pagination"></div>
 
 <script>
-let allVectors = [];
-let filteredVectors = [];
-let currentPage = 1;
-const itemsPerPage = 12; // Her sayfada kaç ürün görünsün?
+    let allVectors = [];
+    let filteredVectors = [];
+    let currentPage = 1;
+    const itemsPerPage = 12; // Bir sayfada gösterilecek kutu sayısı
 
-// Verileri Yükle
-fetch('vectors.json')
-    .then(res => res.json())
-    .then(data => {
-        allVectors = data;
-        filteredVectors = data;
+    // 1. Verileri vectors.json'dan çek
+    fetch('vectors.json')
+        .then(response => response.json())
+        .then(data => {
+            allVectors = data;
+            filteredVectors = data;
+            renderGallery();
+        })
+        .catch(err => console.error("JSON yükleme hatası:", err));
+
+    // 2. Galeriyi Ekrana Basma Fonksiyonu
+    function renderGallery() {
+        const grid = document.getElementById('vectorGrid');
+        const paginationDiv = document.getElementById('pagination');
+        grid.innerHTML = "";
+        paginationDiv.innerHTML = "";
+
+        // Hangi aralıktaki veriler gösterilecek?
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageItems = filteredVectors.slice(startIndex, endIndex);
+
+        // Kartları oluştur
+        pageItems.forEach(name => {
+            const folder = name.trim();
+            const card = document.createElement('div');
+            card.className = 'vector-card';
+            
+            // Fixer aracına uyumlu dosya yolu: vectors/klasör/klasör.jpg
+            card.innerHTML = `
+                <div class="card-image">
+                    <img src="vectors/${folder}/${folder}.jpg" alt="${folder}" onerror="this.src='https://via.placeholder.com/300x200?text=Yukleniyor...'">
+                </div>
+                <div class="card-info">
+                    <h3>${folder.replace(/-/g, ' ')}</h3>
+                    <a href="vectors/${folder}/${folder}.eps" class="download-btn" download>DOWNLOAD EPS</a>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // 3. Sayfa Numaralarını Oluştur (1 2 3...)
+        const pageCount = Math.ceil(filteredVectors.length / itemsPerPage);
+        if(pageCount > 1) {
+            for (let i = 1; i <= pageCount; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.className = (i === currentPage) ? 'page-btn active' : 'page-btn';
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderGallery();
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                };
+                paginationDiv.appendChild(btn);
+            }
+        }
+    }
+
+    // 4. Arama Filtreleme Fonksiyonu
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        filteredVectors = allVectors.filter(v => v.toLowerCase().includes(term));
+        currentPage = 1; // Arama yapılınca 1. sayfaya dön
         renderGallery();
     });
-
-// Galeri ve Sayfalandırma Mantığı
-function renderGallery() {
-    const grid = document.getElementById('vectorGrid');
-    const pagination = document.getElementById('pagination');
-    grid.innerHTML = "";
-    pagination.innerHTML = "";
-
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const pageItems = filteredVectors.slice(start, end);
-
-    pageItems.forEach(name => {
-        // Senin klasör yapına uygun otomatik isim eşleştirme
-        const folder = name.trim();
-        grid.innerHTML += `
-            <div class="vector-card">
-                <img src="vectors/${folder}/${folder}.jpg" alt="${folder}" loading="lazy">
-                <h3>${folder.toUpperCase()}</h3>
-                <a href="vectors/${folder}/${folder}.eps" class="download-btn" download>DOWNLOAD EPS</a>
-            </div>
-        `;
-    });
-
-    // Sayfa Numaraları Oluştur
-    const pageCount = Math.ceil(filteredVectors.length / itemsPerPage);
-    for (let i = 1; i <= pageCount; i++) {
-        const btn = document.createElement('button');
-        btn.innerText = i;
-        btn.className = (i === currentPage) ? 'page-btn active' : 'page-btn';
-        btn.onclick = () => { currentPage = i; renderGallery(); window.scrollTo(0,0); };
-        pagination.appendChild(btn);
-    }
-}
-
-// Arama Filtresi
-document.getElementById('searchInput').oninput = (e) => {
-    const term = e.target.value.toLowerCase();
-    filteredVectors = allVectors.filter(v => v.toLowerCase().includes(term));
-    currentPage = 1;
-    renderGallery();
-};
 </script>
 
-<style>
-/* Sayfa Butonları İçin Stil */
-.page-btn { padding: 10px 15px; background: #111; border: 1px solid #f39c12; color: white; cursor: pointer; border-radius: 5px; }
-.page-btn.active { background: #f39c12; color: black; font-weight: bold; }
-.page-btn:hover { background: #333; }
-</style>
+</body>
+</html>
