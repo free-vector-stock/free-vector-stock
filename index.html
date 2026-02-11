@@ -20,7 +20,7 @@
 <body>
     <h1>FREE VECTOR STOCK</h1>
     <div class="search-container"><input type="text" id="searchInput" placeholder="Search vectors..." onkeyup="search()"></div>
-    <div id="gallery" class="gallery">Loading...</div>
+    <div id="gallery" class="gallery">Loading assets...</div>
     <script>
         const OWNER = 'free-vector-stock';
         const REPO = 'free-vector-stock';
@@ -45,7 +45,7 @@
                         }
                     }
                 }
-            } catch(e) { gallery.innerHTML = 'Error loading assets.'; }
+            } catch(e) { gallery.innerHTML = 'No assets found yet.'; }
         }
         function applySize(img) {
             if (img.naturalHeight > img.naturalWidth) { img.style.width = "107px"; img.style.height = "160px"; } 
