@@ -1,6 +1,19 @@
-[
-  {
-    "slug": "fast-food-29",
-    "folder": "FAST FOOD (29)"
-  }
-]
+items.forEach(name => {
+    // Klasör ismini güvenli hale getiriyoruz (parantezler için şart)
+    const encName = encodeURIComponent(name);
+    
+    // Senin yapında klasör adı = dosya adı olduğu için:
+    const imgPath = `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}/vectors/${encName}/${encName}.jpg`;
+    const epsPath = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/vectors/${encName}/${encName}.eps`;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+        <div class="img-box">
+            <img src="${imgPath}" onerror="this.src='https://via.placeholder.com/300x200/111/f39c12?text=Image+Not+Ready'">
+        </div>
+        <div class="card-title">${name.replace(/-/g, ' ')}</div>
+        <button class="btn" onclick="downloadEps('${epsPath}', '${name}.eps')">DOWNLOAD EPS</button>
+    `;
+    gal.appendChild(card);
+});
