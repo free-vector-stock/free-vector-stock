@@ -2,90 +2,130 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Free Vector Stock | Paginated Gallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Vector Stock | Search & Pages</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
-        h1 { color: #f39c12; text-transform: uppercase; margin-bottom: 30px; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; min-height: 400px; }
-        .card { background: #111; border: 1px solid #222; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; }
-        .card img { width: 100%; height: 150px; object-fit: contain; background: #080808; border-radius: 5px; }
-        .card-title { color: #f39c12; font-size: 11px; margin: 10px 0; text-transform: uppercase; }
-        .btn { background: #f39c12; color: #000; padding: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 12px; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 20px; }
+        h1 { color: #f39c12; text-transform: uppercase; letter-spacing: 2px; margin-top: 20px; }
         
-        /* Sayfalama Butonları Stili */
-        .pagination { margin-top: 40px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .page-btn { background: #222; color: #fff; border: 1px solid #f39c12; padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
-        .page-btn:hover, .page-btn.active { background: #f39c12; color: #000; }
+        /* Arama Çubuğu */
+        .search-box { margin: 30px auto; max-width: 600px; position: relative; }
+        #searchInput { width: 100%; padding: 15px 25px; border-radius: 30px; border: 2px solid #333; background: #111; color: #fff; font-size: 16px; outline: none; transition: 0.3s; }
+        #searchInput:focus { border-color: #f39c12; box-shadow: 0 0 10px rgba(243, 156, 18, 0.3); }
+
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; padding: 20px; max-width: 1300px; margin: 0 auto; min-height: 300px; }
+        .card { background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
+        .card:hover { transform: translateY(-5px); border-color: #444; }
+        .card img { width: 100%; height: 160px; object-fit: contain; background: #080808; border-radius: 8px; }
+        .card-title { color: #f39c12; font-size: 12px; margin: 15px 0; text-transform: uppercase; font-weight: bold; height: 30px; overflow: hidden; }
+        
+        .btn { background: #f39c12; color: #000; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; transition: 0.2s; }
+        .btn:hover { background: #e67e22; }
+
+        .pagination { margin: 40px 0; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .page-btn { background: #111; color: #aaa; border: 1px solid #333; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .page-btn.active { background: #f39c12; color: #000; border-color: #f39c12; }
+        
+        #loader { font-size: 18px; color: #f39c12; margin: 50px; }
     </style>
 </head>
 <body>
 
     <h1>FREE VECTOR STOCK</h1>
-    <div id="gallery" class="gallery">Loading assets...</div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search by name (e.g. burger, pizza...)" onkeyup="handleSearch()">
+    </div>
+
+    <div id="loader">Fetching vectors...</div>
+    <div id="gallery" class="gallery"></div>
     <div id="pagination" class="pagination"></div>
 
     <script>
         const OWNER = 'free-vector-stock';
         const REPO = 'free-vector-stock';
-        const ITEMS_PER_PAGE = 12; // Her sayfada kaç tasarım görünsün?
-        let allAssets = [];
+        const ITEMS_PER_PAGE = 12;
+        
+        let allFolders = [];
+        let filteredFolders = [];
+        let currentPage = 1;
 
         async function init() {
             try {
                 const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/vectors`);
-                const dirs = await res.json();
+                const data = await res.json();
                 
-                // Klasörleri al ve ters çevir (En yeni yüklenen en üstte görünsün)
-                allAssets = dirs.filter(d => d.type === 'dir').reverse(); 
+                // Sadece klasörleri al ve tarihe göre (genelde yeni sona eklenir) ters çevir
+                allFolders = data.filter(item => item.type === 'dir').reverse();
+                filteredFolders = [...allFolders];
                 
+                document.getElementById('loader').style.display = 'none';
                 renderPage(1);
-            } catch (e) { document.getElementById('gallery').innerHTML = "Error loading gallery."; }
+            } catch (error) {
+                document.getElementById('loader').innerText = "Failed to load vectors. Please refresh.";
+            }
         }
 
         async function renderPage(page) {
+            currentPage = page;
             const gallery = document.getElementById('gallery');
-            const pagination = document.getElementById('pagination');
-            gallery.innerHTML = 'Loading page ' + page + '...';
+            gallery.innerHTML = '';
             
             const start = (page - 1) * ITEMS_PER_PAGE;
             const end = start + ITEMS_PER_PAGE;
-            const pageItems = allAssets.slice(start, end);
+            const itemsToShow = filteredFolders.slice(start, end);
 
-            let html = '';
-            for (let d of pageItems) {
-                const fRes = await fetch(d.url);
-                const files = await fRes.json();
-                const jpg = files.find(f => f.name.toLowerCase().endsWith('.jpg'));
-                const eps = files.find(f => f.name.toLowerCase().endsWith('.eps'));
+            for (let folder of itemsToShow) {
+                try {
+                    const fRes = await fetch(folder.url);
+                    const files = await fRes.json();
+                    
+                    const jpg = files.find(f => f.name.toLowerCase().match(/\.(jpg|jpeg)$/));
+                    const eps = files.find(f => f.name.toLowerCase().endsWith('.eps'));
 
-                if (jpg && eps) {
-                    html += `
-                        <div class="card">
-                            <img src="${jpg.download_url}" alt="${d.name}">
-                            <div class="card-title">${d.name.replace(/-/g, ' ')}</div>
-                            <button class="btn" onclick="downloadFile('${eps.download_url}', '${d.name}.eps')">DOWNLOAD EPS</button>
-                        </div>`;
-                }
+                    if (jpg && eps) {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <img src="${jpg.download_url}" alt="${folder.name}">
+                            <div class="card-title">${folder.name.replace(/-/g, ' ')}</div>
+                            <button class="btn" onclick="downloadEPS('${eps.download_url}', '${folder.name}.eps')">DOWNLOAD EPS</button>
+                        `;
+                        gallery.appendChild(card);
+                    }
+                } catch (e) { console.error("Error loading folder:", folder.name); }
             }
-            gallery.innerHTML = html || 'No vectors found in this page.';
-            setupPagination(page);
-            window.scrollTo(0,0);
+            updatePaginationLinks();
         }
 
-        function setupPagination(currentPage) {
-            const pagination = document.getElementById('pagination');
-            const totalPages = Math.ceil(allAssets.length / ITEMS_PER_PAGE);
-            let pgHtml = '';
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            filteredFolders = allFolders.filter(f => f.name.toLowerCase().replace(/-/g, ' ').includes(query));
+            renderPage(1); // Aramada her zaman 1. sayfaya dön
+        }
+
+        function updatePaginationLinks() {
+            const container = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredFolders.length / ITEMS_PER_PAGE);
+            container.innerHTML = '';
+
+            if(totalPages <= 1) return;
 
             for (let i = 1; i <= totalPages; i++) {
-                pgHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="renderPage(${i})">${i}</button>`;
+                const btn = document.createElement('button');
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                btn.innerText = i;
+                btn.onclick = () => {
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                    renderPage(i);
+                };
+                container.appendChild(btn);
             }
-            pagination.innerHTML = pgHtml;
         }
 
-        async function downloadFile(url, filename) {
-            const response = await fetch(url);
-            const blob = await response.blob();
+        async function downloadEPS(url, filename) {
+            const res = await fetch(url);
+            const blob = await res.json ? await res.blob() : await res.blob();
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
             link.download = filename;
