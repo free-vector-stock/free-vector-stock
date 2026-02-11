@@ -2,92 +2,121 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Upload | Free Vector Stock</title>
+    <title>Free Vector Stock</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .upload-box { background: #111; padding: 40px; border-radius: 20px; border: 2px solid #f39c12; width: 500px; text-align: center; }
-        h2 { color: #f39c12; margin-bottom: 5px; }
-        .info { font-size: 13px; color: #777; margin-bottom: 25px; }
-        input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #222; color: white; box-sizing: border-box; }
-        .btn-select { background: #222; color: #f39c12; padding: 12px; border-radius: 8px; cursor: pointer; display: block; margin: 15px 0; border: 1px dashed #f39c12; width: 100%; font-weight: bold; }
-        .btn-upload { background: #27ae60; color: #fff; padding: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; width: 100%; font-size: 16px; margin-top: 10px; }
-        #log { margin-top: 20px; font-size: 12px; text-align: left; max-height: 200px; overflow-y: auto; color: #aaa; border-top: 1px solid #222; padding-top: 15px; font-family: monospace; }
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
+        h1 { color: #f39c12; margin-top: 30px; text-transform: uppercase; }
+        
+        .search-container { margin: 20px auto; max-width: 500px; }
+        #searchInput { 
+            width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid #333; 
+            background: #111; color: #fff; outline: none; box-sizing: border-box;
+        }
+
+        .gallery { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
+            gap: 25px; padding: 20px; max-width: 1400px; margin: 0 auto;
+        }
+        
+        .card { 
+            background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            min-height: 340px;
+        }
+
+        .img-container {
+            display: flex; align-items: center; justify-content: center;
+            width: 240px; height: 160px; 
+            background: #080808; border-radius: 8px; overflow: hidden;
+        }
+
+        .card img { object-fit: contain; display: block; }
+        .card-title { margin: 15px 0; font-size: 13px; font-weight: bold; color: #f39c12; text-transform: uppercase; }
+
+        /* BUTON BURADA İNGİLİZCE OLDU */
+        .download-btn { 
+            background: #f39c12; color: #000; padding: 12px; text-decoration: none; 
+            font-weight: bold; border-radius: 6px; font-size: 13px;
+            border: none; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        .download-btn:hover { background: #fff; }
     </style>
 </head>
 <body>
 
-<div class="upload-box">
-    <h2>BULK AUTO-UPLOAD</h2>
-    <p class="info">Folder names are automatically generated from filenames.</p>
+    <h1>FREE VECTOR STOCK</h1>
     
-    <input type="password" id="ghToken" placeholder="GitHub Token (ghp_...)">
-    
-    <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.eps" style="display: none;" onchange="updateUI()">
-    <button class="btn-select" onclick="document.getElementById('fileInput').click()">SELECT JPG & EPS FILES</button>
-    
-    <div id="fileStatus" style="color:#f39c12; font-weight:bold; margin-bottom:10px;"></div>
-    
-    <button class="btn-upload" onclick="startUpload()">START UPLOAD PROCESS</button>
-    
-    <div id="log"></div>
-</div>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search vectors..." onkeyup="search()">
+    </div>
 
-<script>
-    function updateUI() {
-        const files = document.getElementById('fileInput').files;
-        document.getElementById('fileStatus').innerText = files.length + " files ready to upload.";
-    }
+    <div id="gallery" class="gallery">Loading...</div>
 
-    async function startUpload() {
-        const token = document.getElementById('ghToken').value.trim();
-        const files = Array.from(document.getElementById('fileInput').files);
-        const log = document.getElementById('log');
+    <script>
+        const OWNER = 'free-vector-stock';
+        const REPO = 'free-vector-stock';
 
-        if (!token || files.length === 0) { alert("Token and files required!"); return; }
-
-        log.innerHTML = "🏁 Starting Upload Process...<br>";
-
-        const jpgFiles = files.filter(f => f.name.toLowerCase().endsWith('.jpg') || f.name.toLowerCase().endsWith('.jpeg'));
-
-        for (let jpgFile of jpgFiles) {
-            const baseName = jpgFile.name.split('.')[0];
-            const folder = baseName.toLowerCase().replace(/\s+/g, '-');
-            const epsFile = files.find(f => f.name.split('.')[0] === baseName && f.name.toLowerCase().endsWith('.eps'));
-
-            if (epsFile) {
-                log.innerHTML += `📁 Folder: <b>${folder}</b>`;
-                const res1 = await uploadFile(jpgFile, folder, token);
-                const res2 = await uploadFile(epsFile, folder, token);
+        async function load() {
+            const gallery = document.getElementById('gallery');
+            try {
+                const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/vectors`);
+                const dirs = await res.json();
+                gallery.innerHTML = '';
                 
-                if(res1 && res2) {
-                    log.innerHTML += ` - <span style="color:#2ecc71">SUCCESS</span><br>`;
-                } else {
-                    log.innerHTML += ` - <span style="color:#e74c3c">FAILED (Check Token)</span><br>`;
+                for(let d of dirs) {
+                    if(d.type === 'dir') {
+                        const fRes = await fetch(d.url);
+                        const files = await fRes.json();
+                        const jpg = files.find(f => f.name.toLowerCase().endsWith('.jpg') || f.name.toLowerCase().endsWith('.jpeg'));
+                        const eps = files.find(f => f.name.toLowerCase().endsWith('.eps'));
+
+                        if(jpg && eps) {
+                            gallery.innerHTML += `
+                                <div class="card" data-name="${d.name.toLowerCase()}">
+                                    <div class="img-container">
+                                        <img src="${jpg.download_url}" alt="${d.name}" onload="applyDynamicSize(this)">
+                                    </div>
+                                    <div class="card-title">${d.name.replace(/-/g, ' ')}</div>
+                                    <button class="download-btn" onclick="downloadFile('${eps.download_url}', '${d.name}.eps')">
+                                        DOWNLOAD EPS
+                                    </button>
+                                </div>`;
+                        }
+                    }
                 }
+            } catch(e) { gallery.innerHTML = 'Error loading assets.'; }
+        }
+
+        function applyDynamicSize(img) {
+            if (img.naturalHeight > img.naturalWidth) {
+                img.style.width = "107px";
+                img.style.height = "160px";
+            } else {
+                img.style.width = "240px";
+                img.style.height = "160px";
             }
         }
-        log.innerHTML += "<br>✅ Done!";
-    }
 
-    async function uploadFile(file, folder, token) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        return new Promise(resolve => {
-            reader.onload = async () => {
-                const content = reader.result.split(',')[1];
-                const path = `vectors/${folder}/${file.name}`;
-                try {
-                    const res = await fetch(`https://api.github.com/repos/free-vector-stock/free-vector-stock/contents/${path}`, {
-                        method: 'PUT',
-                        headers: { 'Authorization': `token ${token}` },
-                        body: JSON.stringify({ message: `Upload: ${folder}`, content: content })
-                    });
-                    resolve(res.ok);
-                } catch { resolve(false); }
-            };
-        });
-    }
-</script>
+        function downloadFile(url, filename) {
+            fetch(url).then(res => res.blob()).then(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            });
+        }
+
+        function search() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let cards = document.getElementsByClassName('card');
+            for (let card of cards) {
+                card.style.display = card.getAttribute('data-name').includes(input) ? "flex" : "none";
+            }
+        }
+        load();
+    </script>
 </body>
 </html>
