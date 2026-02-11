@@ -3,55 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Vector Stock | Final Fixed</title>
+    <title>Free Vector Stock | Auto-Path Edition</title>
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; max-width: 1200px; margin: 30px auto; }
-        .card { background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; }
-        .img-box { width: 100%; height: 180px; background: #050505; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; max-width: 1300px; margin: 30px auto; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 12px; transition: 0.3s; }
+        .card:hover { border-color: #f39c12; transform: translateY(-5px); }
+        .img-box { width: 100%; height: 180px; background: #050505; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 12px; }
         .img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .card-title { color: #f39c12; font-size: 11px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-        .btn { background: #f39c12; color: #000; padding: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; text-decoration: none; display: inline-block; }
+        .card-title { color: #f39c12; font-size: 12px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; }
+        .btn { background: #f39c12; color: #000; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; display: block; width: 100%; box-sizing: border-box; }
     </style>
 </head>
 <body>
-    <h1 style="color:#f39c12">FREE VECTOR STOCK</h1>
-    <div id="gallery" class="gallery">Sistem yükleniyor...</div>
+    <h1 style="color:#f39c12; letter-spacing: 2px;">FREE VECTOR STOCK</h1>
+    <div id="gallery" class="gallery">Loading Assets...</div>
 
     <script>
         const OWNER = 'free-vector-stock';
         const REPO = 'free-vector-stock';
-        
-        // ÖNEMLİ: Dosyalarının bulunduğu gerçek klasör yollarını buraya yazmalısın
-        const items = [
-            { name: "konular-37--(1)", path: "1" },
-            { name: "fast-food--(1)", path: "fast-food--(1)" },
-            // Yeni yüklediklerini buraya manuel ekleyebilirsin veya admin paneliyle güncelleyebilirsin
-        ];
 
-        function render() {
+        // vectors.json içindeki listeyi buraya ekle
+        async function loadGallery() {
+            try {
+                const response = await fetch('vectors.json?v=' + Date.now());
+                const names = await response.json();
+                render(names.reverse());
+            } catch (e) {
+                document.getElementById('gallery').innerText = "Database Error!";
+            }
+        }
+
+        function render(items) {
             const gal = document.getElementById('gallery');
             gal.innerHTML = '';
             
-            items.forEach(item => {
-                const encName = encodeURIComponent(item.name);
-                const encPath = encodeURIComponent(item.path);
+            items.forEach(name => {
+                const encName = encodeURIComponent(name);
                 
-                // image_c5b605.png'deki yapıya göre dinamik yol:
-                const imgUrl = `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}/vectors/${encPath}/${encName}.jpg`;
-                const epsUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/vectors/${encPath}/${encName}.eps`;
+                // AKILLI YOL KONTROLÜ: 
+                // Önce "1" klasörüne bak, olmazsa kendi klasörüne bak.
+                const imgPath1 = `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}/vectors/1/${encName}.jpg`;
+                const imgPath2 = `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}/vectors/${encName}/${encName}.jpg`;
+                
+                const epsPath1 = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/vectors/1/${encName}.eps`;
+                const epsPath2 = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/vectors/${encName}/${encName}.eps`;
 
-                gal.innerHTML += `
-                    <div class="card">
-                        <div class="img-box">
-                            <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/300x200/111/f39c12?text=Preview+Error'">
-                        </div>
-                        <div class="card-title">${item.name}</div>
-                        <a href="${epsUrl}" class="btn" download>DOWNLOAD EPS</a>
-                    </div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="img-box">
+                        <img src="${imgPath1}" onerror="this.src='${imgPath2}'; this.onerror=function(){this.src='https://via.placeholder.com/300x200/111/f39c12?text=Not+Found'}">
+                    </div>
+                    <div class="card-title">${name.replace(/-/g, ' ')}</div>
+                    <a href="${epsPath1}" id="dl-${encName}" class="btn" onclick="checkDownload(event, '${epsPath1}', '${epsPath2}', '${name}.eps')">DOWNLOAD EPS</a>
+                `;
+                gal.appendChild(card);
             });
         }
-        render();
+
+        async function checkDownload(e, path1, path2, filename) {
+            e.preventDefault();
+            try {
+                let res = await fetch(path1);
+                let finalPath = res.ok ? path1 : path2;
+                
+                const response = await fetch(finalPath);
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+            } catch (err) { alert("File not found on GitHub yet."); }
+        }
+
+        loadGallery();
     </script>
 </body>
 </html>
