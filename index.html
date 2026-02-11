@@ -12,34 +12,41 @@
                 if(d.type === 'dir') {
                     const fRes = await fetch(d.url);
                     const files = await fRes.json();
-                    const jpg = files.find(f => f.name.toLowerCase().endsWith('.jpg')).download_url;
-                    const eps = files.find(f => f.name.toLowerCase().endsWith('.eps')).download_url;
                     
-                    const card = `
-                        <div class="card">
-                            <img src="${jpg}">
-                            <p>${d.name.replace(/-/g, ' ').toUpperCase()}</p>
-                            <button class="btn" onclick="forceDownload('${eps}', '${d.name}.eps')">EPS İNDİR</button>
-                        </div>`;
-                    gallery.innerHTML += card;
+                    const jpgFile = files.find(f => f.name.toLowerCase().endsWith('.jpg'));
+                    const epsFile = files.find(f => f.name.toLowerCase().endsWith('.eps'));
+
+                    if (jpgFile && epsFile) {
+                        const card = `
+                            <div class="card">
+                                <img src="${jpgFile.download_url}">
+                                <div class="card-info">
+                                    <div class="card-title">${d.name.replace(/-/g, ' ').toUpperCase()}</div>
+                                    <button onclick="downloadFile('${epsFile.download_url}', '${d.name}.eps')" class="download-btn">EPS İNDİR</button>
+                                </div>
+                            </div>`;
+                        gallery.innerHTML += card;
+                    }
                 }
             }
-        } catch(e) { console.log("Yükleme hatası:", e); }
+        } catch(e) { console.error("Yükleme hatası:", e); }
     }
 
-    // Dosyayı kod olarak açmak yerine bilgisayara indiren sihirli fonksiyon
-    function forceDownload(url, filename) {
+    // Tarayıcının dosyayı açmasını engelleyip direkt indirmesini sağlayan fonksiyon
+    function downloadFile(url, filename) {
         fetch(url)
             .then(response => response.blob())
             .then(blob => {
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(blobUrl);
             })
-            .catch(e => console.error('İndirme hatası:', e));
+            .catch(e => alert('İndirme başarısız oldu!'));
     }
 
     load();
