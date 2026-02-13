@@ -9,14 +9,14 @@
         header { background: #000; color: #fff; padding: 25px 0 10px 0; text-align: center; }
         header h1 { margin: 0; font-size: 28px; letter-spacing: 5px; font-weight: bold; text-transform: uppercase; }
 
-        /* News Slider - Updated with your text */
+        /* News Slider - Updated Content */
         .news-slider { background: #000; color: #f39c12; padding: 15px 20px; font-size: 14px; border-bottom: 4px solid #f39c12; overflow: hidden; min-height: 20px; }
         .slide-text { text-align: center; display: none; line-height: 1.4; }
         .slide-text.active { display: block; animation: fadeIn 0.8s; }
 
         .wrapper { display: flex; max-width: 1500px; margin: auto; padding: 20px; gap: 30px; }
 
-        /* No-Scroll Sidebar */
+        /* Fixed Sidebar */
         .category-sidebar { flex: 0 0 200px; background: #f9f9f9; padding: 15px; border-radius: 10px; position: sticky; top: 20px; height: auto; border: 1px solid #eee; }
         .category-sidebar h2 { font-size: 14px; border-bottom: 2px solid #f39c12; padding-bottom: 8px; margin-top: 0; text-transform: uppercase; }
         .category-list { list-style: none; padding: 0; margin: 0; }
@@ -32,9 +32,17 @@
 
         #detailView { display: none; }
         .detail-box { display: flex; gap: 30px; background: #fff; padding: 25px; border: 1px solid #eee; border-radius: 12px; }
-        .download-btn { background: #f39c12; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; display: block; text-align: center; margin-top: 20px; font-size: 18px; }
+        .detail-img-side { width: 55%; }
+        .detail-img-side img { width: 100%; border-radius: 8px; border: 1px solid #eee; }
         
-        /* Footer with Email Link */
+        /* Action Buttons */
+        .action-side { flex: 1; }
+        .download-btn { color: #000; padding: 15px; text-decoration: none; border-radius: 5px; font-weight: bold; display: block; text-align: center; margin-bottom: 10px; font-size: 16px; transition: 0.3s; border: 2px solid transparent; }
+        .eps-btn { background: #f39c12; }
+        .jpg-btn { background: #fff; border: 2px solid #f39c12; color: #f39c12; }
+        .download-btn:hover { background: #000; color: #fff; border-color: #000; }
+        
+        /* Footer */
         footer { padding: 60px 20px; text-align: center; border-top: 1px solid #eee; margin-top: 60px; background: #fafafa; }
         .footer-mail { font-weight: bold; color: #333; margin-bottom: 10px; font-size: 16px; }
         .footer-mail a { color: #f39c12; text-decoration: none; }
@@ -70,10 +78,15 @@
         <div id="detailView">
             <button onclick="showGallery()" style="margin-bottom:20px; cursor:pointer; padding: 8px 15px; background: #fff; border: 1px solid #ccc; border-radius: 5px;">← Back to Gallery</button>
             <div class="detail-box">
-                <img id="detImg" style="width:55%; border-radius:8px; border: 1px solid #eee;">
-                <div style="flex:1;">
+                <div class="detail-img-side"><img id="detImg" src=""></div>
+                <div class="action-side">
                     <h2 id="detTitle" style="text-transform:uppercase; margin-top: 0;"></h2>
-                    <a id="detDl" href="" class="download-btn" download>DOWNLOAD EPS</a>
+                    <div style="height:80px; background:#f9f9f9; border:1px dashed #ccc; margin:10px 0; line-height:80px; text-align:center; color:#999; font-size: 11px;">ADVERTISEMENT</div>
+                    
+                    <a id="epsDl" href="" class="download-btn eps-btn" download>DOWNLOAD EPS (VECTOR)</a>
+                    <a id="jpgDl" href="" class="download-btn jpg-btn" download>DOWNLOAD JPEG (IMAGE)</a>
+                    
+                    <div style="height:80px; background:#f9f9f9; border:1px dashed #ccc; margin:10px 0; line-height:80px; text-align:center; color:#999; font-size: 11px;">ADVERTISEMENT</div>
                 </div>
             </div>
         </div>
@@ -88,7 +101,6 @@
 </footer>
 
 <script>
-    // Slider döngüsü
     let sIdx = 0; const slides = document.querySelectorAll('.slide-text');
     setInterval(() => { slides[sIdx].classList.remove('active'); sIdx = (sIdx + 1) % slides.length; slides[sIdx].classList.add('active'); }, 5000);
 
@@ -112,10 +124,15 @@
     }
 
     function openDetail(f) {
-        document.getElementById('galleryView').style.display="none"; document.getElementById('detailView').style.display="block";
+        document.getElementById('galleryView').style.display="none"; 
+        document.getElementById('detailView').style.display="block";
         document.getElementById('detTitle').innerText = f.split('-').slice(0,-1).join(' ');
         document.getElementById('detImg').src = `vectors/${f}/${f}.jpg`;
-        document.getElementById('detDl').href = `vectors/${f}/${f}.eps`;
+        
+        // Setup both download links
+        document.getElementById('epsDl').href = `vectors/${f}/${f}.eps`;
+        document.getElementById('jpgDl').href = `vectors/${f}/${f}.jpg`;
+        
         window.scrollTo(0,0);
     }
 
