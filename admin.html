@@ -21,14 +21,14 @@
     <div class="box">
         <h2>SISTEM OTOMATIK YUKLEME</h2>
         <p class="info-text">1000 dosyaya kadar toplu yukleme yapabilirsiniz.</p>
-        
+
         <input type="password" id="tk" placeholder="GitHub Personal Access Token">
         <input type="file" id="fi" multiple accept=".jpg,.eps">
-        
+
         <textarea id="desc" placeholder="Ozel aciklama (Bos birakirsaniz sistem 40 anahtar kelimeyle otomatik uretir)"></textarea>
-        
+
         <button id="btn" onclick="startProcess()">DOSYALARI ISLE VE YUKLE</button>
-        
+
         <div id="log">Sistem hazir. Dosyalari secip yuklemeyi baslatin.</div>
     </div>
 
@@ -45,14 +45,14 @@
         const files = Array.from(document.getElementById('fi').files);
         const globalDesc = document.getElementById('desc').value;
         const log = document.getElementById('log');
-        
+
         if(!token || files.length === 0) return alert("HATA: Token ve Dosyalar eksik!");
 
         document.getElementById('btn').disabled = true;
         log.innerHTML = "<b>Yukleme islemi basladi... Lutfen bekleyin.</b>";
 
         const jpegs = files.filter(f => f.name.toLowerCase().endsWith('.jpg'));
-        
+
         for (let jpg of jpegs) {
             let base = jpg.name.split('.')[0];
             let clean = base.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-');
@@ -70,7 +70,7 @@
                 try {
                     await push(folder, jpg, `${folder}.jpg`, token);
                     await push(folder, eps, `${folder}.eps`, token);
-                    
+
                     const data = {
                         name: folder,
                         desc: globalDesc || `High-quality ${clean.replace(/-/g, ' ')} vector illustration. Perfect for professional design projects.`,
