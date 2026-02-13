@@ -9,14 +9,12 @@
         header { background: #000; color: #fff; padding: 25px 0 10px 0; text-align: center; }
         header h1 { margin: 0; font-size: 28px; letter-spacing: 5px; font-weight: bold; text-transform: uppercase; }
 
-        /* News Slider - Content Fixed */
         .news-slider { background: #000; color: #f39c12; padding: 15px 20px; font-size: 14px; border-bottom: 4px solid #f39c12; overflow: hidden; min-height: 20px; }
         .slide-text { text-align: center; display: none; line-height: 1.4; }
         .slide-text.active { display: block; animation: fadeIn 0.8s; }
 
         .wrapper { display: flex; max-width: 1500px; margin: auto; padding: 20px; gap: 30px; }
 
-        /* Fixed Sidebar */
         .category-sidebar { flex: 0 0 200px; background: #f9f9f9; padding: 15px; border-radius: 10px; position: sticky; top: 20px; height: auto; border: 1px solid #eee; }
         .category-sidebar h2 { font-size: 14px; border-bottom: 2px solid #f39c12; padding-bottom: 8px; margin-top: 0; text-transform: uppercase; }
         .category-list { list-style: none; padding: 0; margin: 0; }
@@ -36,12 +34,16 @@
         .detail-img-side img { width: 100%; border-radius: 8px; border: 1px solid #eee; }
         
         .action-side { flex: 1; }
+        .desc-box { background: #fdf7ed; border-left: 4px solid #f39c12; padding: 15px; margin-bottom: 10px; font-size: 14px; line-height: 1.5; color: #555; }
+        
+        .keyword-area { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; max-height: 150px; overflow-y: auto; padding: 5px; border: 1px solid #f9f9f9; }
+        .tag { background: #f1f1f1; color: #777; padding: 3px 8px; border-radius: 3px; font-size: 10px; text-transform: lowercase; border: 1px solid #ddd; }
+
         .download-btn { color: #000; padding: 15px; text-decoration: none; border-radius: 5px; font-weight: bold; display: block; text-align: center; margin-bottom: 10px; font-size: 16px; transition: 0.3s; border: 2px solid transparent; }
         .eps-btn { background: #f39c12; }
         .jpg-btn { background: #fff; border: 2px solid #f39c12; color: #f39c12; }
         .download-btn:hover { background: #000; color: #fff; border-color: #000; }
         
-        /* Footer & Contact */
         footer { padding: 60px 20px; text-align: center; border-top: 1px solid #eee; margin-top: 60px; background: #fafafa; }
         .footer-mail { font-weight: bold; color: #333; margin-bottom: 10px; font-size: 16px; }
         .footer-mail a { color: #f39c12; text-decoration: none; }
@@ -70,7 +72,7 @@
 
     <main class="content-area">
         <div id="galleryView">
-            <input type="text" id="searchInput" placeholder="Search vectors..." style="width:100%; padding:15px; margin-bottom:20px; border-radius:8px; border:1px solid #ddd; outline: none;">
+            <input type="text" id="searchInput" placeholder="Search by name, category or 40+ keywords..." style="width:100%; padding:15px; margin-bottom:20px; border-radius:8px; border:1px solid #ddd; outline: none;">
             <div id="vectorGrid" class="grid"></div>
         </div>
 
@@ -80,9 +82,12 @@
                 <div class="detail-img-side"><img id="detImg" src=""></div>
                 <div class="action-side">
                     <h2 id="detTitle" style="text-transform:uppercase; margin-top: 0;"></h2>
-                    <div style="height:80px; background:#f9f9f9; border:1px dashed #ccc; margin:10px 0; line-height:80px; text-align:center; color:#999; font-size: 11px;">ADVERTISEMENT</div>
+                    <div id="detDesc" class="desc-box"></div>
+                    <div id="detKeys" class="keyword-area"></div>
+                    
                     <a id="epsDl" href="" class="download-btn eps-btn" download>DOWNLOAD EPS (VECTOR)</a>
                     <a id="jpgDl" href="" class="download-btn jpg-btn" download>DOWNLOAD JPEG (IMAGE)</a>
+                    
                     <div style="height:80px; background:#f9f9f9; border:1px dashed #ccc; margin:10px 0; line-height:80px; text-align:center; color:#999; font-size: 11px;">ADVERTISEMENT</div>
                 </div>
             </div>
@@ -91,17 +96,12 @@
 </div>
 
 <footer>
-    <div class="footer-mail">
-        Contact: <a href="mailto:hakankacar2014@gmail.com">hakankacar2014@gmail.com</a>
-    </div>
+    <div class="footer-mail">Contact: <a href="mailto:hakankacar2014@gmail.com">hakankacar2014@gmail.com</a></div>
     <div class="footer-copy">© 2026 FREE VECTOR STOCK. All Rights Reserved.</div>
 </footer>
 
 <script>
-    // Koruma Kalkanı Fonksiyonu: Hatalı isimleri tarayıcıya uygun hale getirir
-    function safePath(path) {
-        return encodeURIComponent(path).replace(/%2F/g, '/');
-    }
+    function safePath(path) { return encodeURIComponent(path).replace(/%2F/g, '/'); }
 
     let sIdx = 0; const slides = document.querySelectorAll('.slide-text');
     setInterval(() => { slides[sIdx].classList.remove('active'); sIdx = (sIdx + 1) % slides.length; slides[sIdx].classList.add('active'); }, 5000);
@@ -119,28 +119,47 @@
 
     function render() {
         const grid = document.getElementById('vectorGrid'); grid.innerHTML = "";
-        filtered.forEach(name => {
+        filtered.forEach(item => {
+            let name = typeof item === 'string' ? item : item.name;
             let clean = name.split('-').slice(0,-1).join(' ');
-            // Kart görseli için koruma kullanıldı
             grid.innerHTML += `<div class="card" onclick="openDetail('${name}')"><img src="${safePath('vectors/'+name+'/'+name+'.jpg')}"><h3>${clean}</h3></div>`;
         });
     }
 
-    function openDetail(f) {
+    function openDetail(name) {
         document.getElementById('galleryView').style.display="none"; 
         document.getElementById('detailView').style.display="block";
-        document.getElementById('detTitle').innerText = f.split('-').slice(0,-1).join(' ');
+        const item = rawData.find(x => (typeof x === 'string' ? x : x.name) === name);
         
-        // Detay görseli ve indirme linkleri için koruma kalkanı devrede
-        document.getElementById('detImg').src = safePath(`vectors/${f}/${f}.jpg`);
-        document.getElementById('epsDl').href = safePath(`vectors/${f}/${f}.eps`);
-        document.getElementById('jpgDl').href = safePath(`vectors/${f}/${f}.jpg`);
+        const desc = (typeof item === 'object' && item.desc) ? item.desc : "Professional free vector resource for your creative projects.";
+        const keywords = (typeof item === 'object' && item.keys) ? item.keys.split(',') : [];
+
+        document.getElementById('detTitle').innerText = name.split('-').slice(0,-1).join(' ');
+        document.getElementById('detDesc').innerText = desc;
         
+        const keyArea = document.getElementById('detKeys');
+        keyArea.innerHTML = "";
+        keywords.forEach(k => {
+            if(k.trim() !== "") keyArea.innerHTML += `<span class="tag">#${k.trim()}</span>`;
+        });
+
+        document.getElementById('detImg').src = safePath(`vectors/${name}/${name}.jpg`);
+        document.getElementById('epsDl').href = safePath(`vectors/${name}/${name}.eps`);
+        document.getElementById('jpgDl').href = safePath(`vectors/${name}/${name}.jpg`);
         window.scrollTo(0,0);
     }
 
     function showGallery() { document.getElementById('detailView').style.display="none"; document.getElementById('galleryView').style.display="block"; }
-    function filterData(v) { filtered = rawData.filter(x => x.toLowerCase().includes(v.toLowerCase())); render(); }
+    
+    function filterData(v) { 
+        const search = v.toLowerCase();
+        filtered = rawData.filter(item => {
+            let name = typeof item === 'string' ? item : item.name;
+            let keys = (typeof item === 'object' && item.keys) ? item.keys.toLowerCase() : "";
+            return name.toLowerCase().includes(search) || keys.includes(search);
+        }); 
+        render(); 
+    }
     document.getElementById('searchInput').oninput = (e) => filterData(e.target.value);
 </script>
 </body>
