@@ -6,8 +6,8 @@
     <style>
         body { background:#000; color:#fff; font-family: sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; }
         .box { background:#111; padding:40px; border-radius:20px; border:2px solid #f39c12; width:400px; text-align:center; }
-        input { width:100%; padding:12px; margin:10px 0; border-radius:6px; border:1px solid #333; background:#1a1a1a; color:white; }
-        button { width:100%; padding:15px; background:#27ae60; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; }
+        input { width:100%; padding:12px; margin:10px 0; border-radius:6px; border:1px solid #333; background:#1a1a1a; color:white; box-sizing: border-box; }
+        button { width:100%; padding:15px; background:#27ae60; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; width: 100%; }
         #log { margin-top:15px; font-size:11px; color:#888; text-align:left; max-height:150px; overflow-y:auto; padding:10px; background:#000; }
     </style>
 </head>
@@ -17,7 +17,7 @@
         <input type="password" id="tk" placeholder="GitHub Token">
         <input type="file" id="fi" multiple accept=".jpg,.eps">
         <button id="btn" onclick="startProcess()">START SECURE UPLOAD</button>
-        <div id="log">Ready to upload...</div>
+        <div id="log">Waiting for files...</div>
     </div>
 
 <script>
@@ -28,7 +28,7 @@
         if(!token || files.length === 0) return alert("Fill all fields!");
 
         document.getElementById('btn').disabled = true;
-        log.innerHTML = "Processing...";
+        log.innerHTML = "Processing files...";
 
         const jpegs = files.filter(f => f.name.toLowerCase().endsWith('.jpg'));
         for (let jpg of jpegs) {
@@ -44,17 +44,17 @@
                 await push(finalName, jpg, `${finalName}.jpg`, token);
                 await push(finalName, eps, `${finalName}.eps`, token);
                 await updateJson(finalName, token);
-                log.innerHTML += `<div style="color:green">✓ Done!</div>`;
+                log.innerHTML += `<div style="color:green">✓ Successfully Uploaded!</div>`;
             }
         }
-        alert("Upload complete!");
+        alert("Upload session finished!");
         document.getElementById('btn').disabled = false;
     }
 
     async function push(folder, file, name, token) {
         const content = await toB64(file);
         const url = `https://api.github.com/repos/free-vector-stock/free-vector-stock/contents/vectors/${folder}/${name}`;
-        await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${token}` }, body: JSON.stringify({ message: `Add ${name}`, content: content.split(',')[1] }) });
+        await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${token}` }, body: JSON.stringify({ message: `Secure Add: ${name}`, content: content.split(',')[1] }) });
     }
 
     async function updateJson(name, token) {
@@ -63,7 +63,7 @@
         const data = await res.json();
         let list = JSON.parse(atob(data.content));
         list.unshift(name);
-        await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${token}` }, body: JSON.stringify({ message: `Index ${name}`, content: btoa(JSON.stringify(list)), sha: data.sha }) });
+        await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${token}` }, body: JSON.stringify({ message: `Update Index ${name}`, content: btoa(JSON.stringify(list)), sha: data.sha }) });
     }
 
     const toB64 = file => new Promise((resolve, reject) => {
