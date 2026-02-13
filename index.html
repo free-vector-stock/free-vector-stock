@@ -9,9 +9,9 @@
         header { background: #000; color: #fff; padding: 25px 0 10px 0; text-align: center; }
         header h1 { margin: 0; font-size: 28px; letter-spacing: 5px; font-weight: bold; text-transform: uppercase; }
 
-        /* News Slider */
-        .news-slider { background: #000; color: #f39c12; padding: 12px 0; font-size: 13px; border-bottom: 4px solid #f39c12; overflow: hidden; }
-        .slide-text { text-align: center; display: none; }
+        /* News Slider - Updated with your text */
+        .news-slider { background: #000; color: #f39c12; padding: 15px 20px; font-size: 14px; border-bottom: 4px solid #f39c12; overflow: hidden; min-height: 20px; }
+        .slide-text { text-align: center; display: none; line-height: 1.4; }
         .slide-text.active { display: block; animation: fadeIn 0.8s; }
 
         .wrapper { display: flex; max-width: 1500px; margin: auto; padding: 20px; gap: 30px; }
@@ -30,17 +30,14 @@
         .card img { width: 100%; height: 150px; object-fit: contain; background: #f4f4f4; border-radius: 5px; }
         .card h3 { font-size: 10px; margin: 12px 0; color: #555; text-transform: uppercase; }
 
-        /* Detail View Styling */
         #detailView { display: none; }
         .detail-box { display: flex; gap: 30px; background: #fff; padding: 25px; border: 1px solid #eee; border-radius: 12px; }
-        .download-btn { background: #f39c12; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; display: block; text-align: center; margin-top: 20px; font-size: 18px; transition: 0.3s; }
-        .download-btn:hover { background: #000; color: #f39c12; }
+        .download-btn { background: #f39c12; color: #000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; display: block; text-align: center; margin-top: 20px; font-size: 18px; }
         
-        /* Footer & Email Link */
+        /* Footer with Email Link */
         footer { padding: 60px 20px; text-align: center; border-top: 1px solid #eee; margin-top: 60px; background: #fafafa; }
         .footer-mail { font-weight: bold; color: #333; margin-bottom: 10px; font-size: 16px; }
-        .footer-mail a { color: #f39c12; text-decoration: none; transition: 0.2s; }
-        .footer-mail a:hover { text-decoration: underline; color: #000; }
+        .footer-mail a { color: #f39c12; text-decoration: none; }
         .footer-copy { color: #999; font-size: 12px; letter-spacing: 1px; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -51,9 +48,11 @@
 <header><h1>FREE VECTOR STOCK</h1></header>
 
 <div class="news-slider">
-    <div class="slide-text active">Premium quality vectors for your professional projects.</div>
-    <div class="slide-text">Click our email below to contact us directly!</div>
-    <div class="slide-text">© 2026 - All rights reserved for Free Vector Stock.</div>
+    <div class="slide-text active">We operate our own in-house studio to produce graphic designs and offer them free of charge for both personal and commercial projects.</div>
+    <div class="slide-text">Our goal is to provide a comprehensive and ideal platform for those seeking graphic resources.</div>
+    <div class="slide-text">We aim to offer a wide archive of graphics, including vector illustrations, stock photos, icons, logos, and various design elements.</div>
+    <div class="slide-text">Our only and absolute rule is that our files may not be redistributed in any way.</div>
+    <div class="slide-text">The advertisements on our website generate revenue to enable us to continue our work. Therefore, we ask for your understanding.</div>
 </div>
 
 <div class="wrapper">
@@ -74,9 +73,7 @@
                 <img id="detImg" style="width:55%; border-radius:8px; border: 1px solid #eee;">
                 <div style="flex:1;">
                     <h2 id="detTitle" style="text-transform:uppercase; margin-top: 0;"></h2>
-                    <div style="height:100px; background:#f9f9f9; border:1px dashed #ccc; margin:15px 0; line-height:100px; text-align:center; color:#999;">AD SPACE</div>
                     <a id="detDl" href="" class="download-btn" download>DOWNLOAD EPS</a>
-                    <div style="height:100px; background:#f9f9f9; border:1px dashed #ccc; margin:15px 0; line-height:100px; text-align:center; color:#999;">AD SPACE</div>
                 </div>
             </div>
         </div>
@@ -91,8 +88,9 @@
 </footer>
 
 <script>
+    // Slider döngüsü
     let sIdx = 0; const slides = document.querySelectorAll('.slide-text');
-    setInterval(() => { slides[sIdx].classList.remove('active'); sIdx = (sIdx + 1) % slides.length; slides[sIdx].classList.add('active'); }, 4000);
+    setInterval(() => { slides[sIdx].classList.remove('active'); sIdx = (sIdx + 1) % slides.length; slides[sIdx].classList.add('active'); }, 5000);
 
     const cats = ["Abstract", "Animals", "Arts", "Backgrounds", "Beauty", "Buildings", "Business", "Celebrities", "Education", "Food", "Healthcare", "Holidays", "Industrial", "Interiors", "Miscellaneous", "Nature", "Objects", "Parks", "People", "Religion", "Science", "Signs", "Sports", "Technology", "Transportation", "Vintage"];
     const menu = document.getElementById('categoryMenu');
