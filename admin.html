@@ -5,96 +5,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FREE VECTOR STOCK - Admin</title>
 
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
 <style>
-body{margin:0;font-family:Arial;background:#ffffff;}
-header{background:#000;color:#fff;text-align:center;padding:20px;font-size:24px;font-weight:bold;}
-.container{max-width:1200px;margin:auto;padding:30px;}
-input,button{width:100%;padding:12px;margin:10px 0;}
-button{background:#000;color:#fff;border:none;cursor:pointer;font-weight:bold;}
+body{margin:0;font-family:Arial;background:white}
+.header{background:black;color:white;padding:25px;text-align:center;font-size:22px}
+.container{padding:40px}
+button{background:black;color:white;padding:10px 20px;margin-top:10px;cursor:pointer}
 </style>
 </head>
 <body>
 
-<header>FREE VECTOR STOCK - Admin Panel</header>
+<div class="header">FREE VECTOR STOCK - Admin Panel</div>
 
 <div class="container">
-
-<h2>Bulk Upload (Minimum 50 Recommended)</h2>
-
-<label>Upload JPEG Files</label>
-<input type="file" id="jpegFiles" multiple accept=".jpg,.jpeg">
-
-<label>Upload EPS10 Files</label>
-<input type="file" id="epsFiles" multiple accept=".eps">
-
-<button onclick="uploadFiles()">Process Upload</button>
-
+<h2>Unlimited Bulk Upload (JPEG, EPS10, SVG)</h2>
+<input type="file" id="files" multiple>
+<br>
+<button onclick="upload()">Upload</button>
+<p id="status"></p>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
 <script>
-const firebaseConfig={
-apiKey:"YOUR_KEY",
-authDomain:"YOUR_DOMAIN",
-projectId:"YOUR_PROJECT_ID"
-};
-
+const firebaseConfig = YOUR_FIREBASE_CONFIG_HERE;
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
+const storage=firebase.storage();
 
 function cleanName(name){
-return name.toLowerCase().replace(/[^a-z0-9]/g,"-");
+return name.toLowerCase().replace(/[^a-z0-9]/g,"");
 }
 
-function detectCategory(name){
-const cats=[
-"abstract","animals","arts","backgrounds","beauty","buildings","business","celebrities",
-"education","food","healthcare","holidays","industrial","interiors","miscellaneous",
-"nature","objects","parks","people","religion","science","signs","sports",
-"technology","transportation","vintage"
-];
-for(let c of cats){if(name.includes(c)) return c;}
-return "miscellaneous";
+function detectCategories(name){
+let cats=[];
+const map={
+"sport":"Sports/Recreation",
+"people":"People",
+"nature":"Nature",
+"business":"Business/Finance",
+"tech":"Technology"
+};
+for(let key in map){
+if(name.includes(key)) cats.push(map[key]);
+}
+return cats.length?cats:["Miscellaneous"];
 }
 
 function generateTitle(base){
-return base.replace(/-/g," ").replace(/\b\w/g,l=>l.toUpperCase());
+return "High Quality "+base+" Vector Illustration";
 }
 
 function generateKeywords(base){
-let arr=base.split("-");
-while(arr.length<45){arr.push("vector");}
-return arr.slice(0,45);
+let arr=[];
+for(let i=1;i<=20;i++){
+arr.push(base+" keyword "+i);
+}
+return arr;
 }
 
-async function uploadFiles(){
-const jpegs=document.getElementById("jpegFiles").files;
-const eps=document.getElementById("epsFiles").files;
+async function upload(){
+let files=document.getElementById("files").files;
+let grouped={};
 
-if(jpegs.length===0||eps.length===0){
-alert("Upload both JPEG and EPS files.");
-return;
+for(let f of files){
+let base=cleanName(f.name.split(".")[0]);
+if(!grouped[base]) grouped[base]={};
+if(f.name.endsWith(".jpg")||f.name.endsWith(".jpeg")) grouped[base].jpeg=f;
+if(f.name.endsWith(".eps")) grouped[base].eps=f;
+if(f.name.endsWith(".svg")) grouped[base].svg=f;
 }
 
-for(let i=0;i<jpegs.length;i++){
-let base=cleanName(jpegs[i].name.split(".")[0]);
-let category=detectCategory(base);
+for(let base in grouped){
+let g=grouped[base];
+let categories=detectCategories(base);
+let title=generateTitle(base);
+let keywords=generateKeywords(base);
 
-await db.collection("vectors").add({
-title:generateTitle(base)+" "+Date.now(),
-category:category,
-jpeg:"images/"+jpegs[i].name,
-eps:"images/"+eps[i].name,
-keywords:generateKeywords(base),
-date:Date.now()
+let urls={};
+for(let type in g){
+let ref=storage.ref("uploads/"+base+"."+type);
+await ref.put(g[type]);
+urls[type]=await ref.getDownloadURL();
+}
+
+await db.collection("images").add({
+title:title,
+keywords:keywords,
+categories:categories,
+jpeg:urls.jpeg||"",
+eps:urls.eps||"",
+svg:urls.svg||"",
+created:Date.now()
 });
 }
 
-alert("Upload Completed Successfully.");
+document.getElementById("status").innerText="Upload Completed";
 }
 </script>
-
 </body>
 </html>
