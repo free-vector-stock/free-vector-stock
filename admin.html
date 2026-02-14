@@ -3,108 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FREE VECTOR STOCK - Admin Upload Panel</title>
+<title>FREE VECTOR STOCK - Admin</title>
+
 <style>
-body{font-family:Arial;background:#ffffff;padding:40px}
-textarea{width:100%;height:150px;margin-bottom:20px;padding:10px;border:1px solid #ccc}
-button{padding:14px 30px;background:black;color:white;border:none;cursor:pointer}
-#output{white-space:pre-wrap;background:#f4f4f4;padding:20px;margin-top:20px;max-height:400px;overflow:auto}
+body{margin:0;font-family:Arial;background:#ffffff;}
+header{background:#000;color:#fff;text-align:center;padding:20px;font-size:24px;font-weight:bold;}
+.container{max-width:1200px;margin:auto;padding:30px;}
+input,button{width:100%;padding:12px;margin:10px 0;}
+button{background:#000;color:#fff;border:none;cursor:pointer;font-weight:bold;}
 </style>
 </head>
 <body>
 
-<h1>FREE VECTOR STOCK - Bulk Upload Generator</h1>
+<header>FREE VECTOR STOCK - Admin Panel</header>
 
-<textarea id="jpegInput" placeholder="Paste JPEG file names (minimum 50)..."></textarea>
-<textarea id="epsInput" placeholder="Paste EPS file names (minimum 50)..."></textarea>
+<div class="container">
 
-<button onclick="generateData()">Generate & Save</button>
+<h2>Bulk Upload (Minimum 50 Recommended)</h2>
 
-<div id="output"></div>
+<label>Upload JPEG Files</label>
+<input type="file" id="jpegFiles" multiple accept=".jpg,.jpeg">
+
+<label>Upload EPS10 Files</label>
+<input type="file" id="epsFiles" multiple accept=".eps">
+
+<button onclick="uploadFiles()">Process Upload</button>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 
 <script>
+const firebaseConfig={
+apiKey:"YOUR_KEY",
+authDomain:"YOUR_DOMAIN",
+projectId:"YOUR_PROJECT_ID"
+};
 
-const categories=[
-"Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion",
-"Buildings/Landmarks","Business/Finance","Celebrities","Education","Food and Drink",
-"Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature",
-"Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols",
-"Sports/Recreation","Technology","Transportation","Vintage"
-].sort();
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
 
 function cleanName(name){
-return name.toLowerCase()
-.replace(/\s+/g,"-")
-.replace(/[^a-z0-9\-\.]/g,"");
+return name.toLowerCase().replace(/[^a-z0-9]/g,"-");
 }
 
-function detectCategories(name){
-let result=[];
-categories.forEach(cat=>{
-let key=cat.split("/")[0].toLowerCase();
-if(name.includes(key)) result.push(cat);
-});
-if(result.length===0) result.push("Miscellaneous");
-return result;
-}
-
-function titleTemplates(category){
-return [
-category+" Professional Vector Design",
-category+" Modern Graphic Illustration",
-category+" Premium Stock Artwork",
-category+" Creative Visual Composition",
-category+" High Quality Vector Resource",
-category+" Detailed EPS10 Illustration",
-category+" Unique Graphic Concept",
-category+" Minimal Clean Vector Design",
-category+" Commercial Use Graphic",
-category+" Advanced Design Element"
+function detectCategory(name){
+const cats=[
+"abstract","animals","arts","backgrounds","beauty","buildings","business","celebrities",
+"education","food","healthcare","holidays","industrial","interiors","miscellaneous",
+"nature","objects","parks","people","religion","science","signs","sports",
+"technology","transportation","vintage"
 ];
+for(let c of cats){if(name.includes(c)) return c;}
+return "miscellaneous";
 }
 
-function keywordTemplates(category){
-let base=category.split("/")[0].toLowerCase();
-let keywords=[];
-for(let i=1;i<=20;i++){
-keywords.push(base+" vector"+i);
-}
-return keywords;
+function generateTitle(base){
+return base.replace(/-/g," ").replace(/\b\w/g,l=>l.toUpperCase());
 }
 
-function generateData(){
-let jpeg=document.getElementById("jpegInput").value.trim().split("\n");
-let eps=document.getElementById("epsInput").value.trim().split("\n");
+function generateKeywords(base){
+let arr=base.split("-");
+while(arr.length<45){arr.push("vector");}
+return arr.slice(0,45);
+}
 
-let data=[];
-let id=1;
+async function uploadFiles(){
+const jpegs=document.getElementById("jpegFiles").files;
+const eps=document.getElementById("epsFiles").files;
 
-jpeg.forEach((file,index)=>{
-let clean=cleanName(file);
-let base=clean.replace(".jpg","");
-let epsMatch=eps.find(e=>cleanName(e).replace(".eps","")===base);
-if(!epsMatch) return;
+if(jpegs.length===0||eps.length===0){
+alert("Upload both JPEG and EPS files.");
+return;
+}
 
-let cats=detectCategories(base);
+for(let i=0;i<jpegs.length;i++){
+let base=cleanName(jpegs[i].name.split(".")[0]);
+let category=detectCategory(base);
 
-cats.forEach(cat=>{
-let titles=titleTemplates(cat);
-data.push({
-id:id++,
-title:titles[index%titles.length]+" "+(index+1),
-category:cat,
-jpeg:"uploads/"+clean,
-eps:"uploads/"+base+".eps",
-keywords:keywordTemplates(cat)
+await db.collection("vectors").add({
+title:generateTitle(base)+" "+Date.now(),
+category:category,
+jpeg:"images/"+jpegs[i].name,
+eps:"images/"+eps[i].name,
+keywords:generateKeywords(base),
+date:Date.now()
 });
-});
-});
-
-localStorage.setItem("fvs_assets",JSON.stringify(data));
-document.getElementById("output").innerText=JSON.stringify(data,null,2);
-alert("Assets saved successfully.");
 }
 
+alert("Upload Completed Successfully.");
+}
 </script>
 
 </body>
