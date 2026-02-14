@@ -3,25 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel - Asset Manager</title>
+<title>FREE VECTOR STOCK - Admin Panel</title>
 <style>
-body{font-family:Arial;background:#ffffff;margin:0;padding:30px}
+body{font-family:Arial;background:#ffffff;margin:0;padding:40px}
 h1{margin-bottom:20px}
-textarea{width:100%;height:150px;margin-bottom:15px;padding:10px}
-button{padding:12px 25px;background:black;color:white;border:none;cursor:pointer}
-#output{white-space:pre-wrap;background:#f5f5f5;padding:15px;margin-top:20px}
+textarea{width:100%;height:160px;margin-bottom:20px;padding:10px;border:1px solid #ccc}
+button{padding:14px 30px;background:black;color:white;border:none;cursor:pointer;font-size:16px}
+#output{white-space:pre-wrap;background:#f4f4f4;padding:20px;margin-top:30px;max-height:400px;overflow:auto}
+.note{margin-bottom:20px;color:#666}
 </style>
 </head>
 <body>
 
-<h1>Bulk Upload Panel</h1>
+<h1>FREE VECTOR STOCK – Bulk Upload Generator</h1>
 
-<p>Paste JPEG and EPS file names (minimum 50 recommended)</p>
+<div class="note">
+Minimum recommended upload: 50 JPEG + 50 EPS files.<br>
+File names must match (example: sports-football-01.jpg / sports-football-01.eps)
+</div>
 
-<textarea id="jpegInput" placeholder="example: sports-football-01.jpg"></textarea>
-<textarea id="epsInput" placeholder="example: sports-football-01.eps"></textarea>
+<textarea id="jpegInput" placeholder="Paste JPEG file names here..."></textarea>
+<textarea id="epsInput" placeholder="Paste EPS file names here..."></textarea>
 
-<button onclick="generateJSON()">Generate JSON Data</button>
+<button onclick="generateData()">Generate & Save Data</button>
 
 <div id="output"></div>
 
@@ -35,55 +39,66 @@ const categories = [
 "Sports/Recreation","Technology","Transportation","Vintage"
 ].sort();
 
-function cleanName(name){
+function cleanFilename(name){
 return name.toLowerCase()
-.replace(/\s+/g,'-')
-.replace(/[^a-z0-9\-\.]/g,'')
+.replace(/\s+/g,"-")
+.replace(/[^a-z0-9\-\.]/g,"");
 }
 
-function detectCategory(filename){
-filename = filename.toLowerCase();
-for(let cat of categories){
-if(filename.includes(cat.split("/")[0].toLowerCase())) return cat;
-}
-return "Miscellaneous";
+function detectCategories(filename){
+let matches=[];
+categories.forEach(cat=>{
+let base=cat.split("/")[0].toLowerCase();
+if(filename.includes(base)) matches.push(cat);
+});
+if(matches.length===0) matches.push("Miscellaneous");
+return matches;
 }
 
 function generateTitle(category,index){
-return category+" Premium Graphic Design "+(index+1);
+return category + " Premium Vector Design " + (index+1);
 }
 
 function generateKeywords(category){
-let base = category.split("/")[0].toLowerCase();
+let base=category.split("/")[0].toLowerCase();
 let keywords=[];
-for(let i=1;i<=45;i++){
-keywords.push(base+" keyword"+i);
+for(let i=1;i<=20;i++){
+keywords.push(base+" vector"+i);
 }
 return keywords;
 }
 
-function generateJSON(){
-let jpeg = document.getElementById("jpegInput").value.trim().split("\n");
-let eps = document.getElementById("epsInput").value.trim().split("\n");
+function generateData(){
+let jpegList=document.getElementById("jpegInput").value.trim().split("\n");
+let epsList=document.getElementById("epsInput").value.trim().split("\n");
 
 let data=[];
+let id=1;
 
-jpeg.forEach((file,i)=>{
-let clean = cleanName(file);
-let category = detectCategory(clean);
+jpegList.forEach((file,index)=>{
+let clean=cleanFilename(file);
+let baseName=clean.replace(".jpg","");
+let epsMatch=epsList.find(e=>cleanFilename(e).replace(".eps","")===baseName);
+if(!epsMatch) return;
+
+let matchedCategories=detectCategories(baseName);
+
+matchedCategories.forEach(cat=>{
 data.push({
-id:i+1,
-title:generateTitle(category,i),
-category:category,
-jpeg:clean,
-eps:clean.replace(".jpg",".eps"),
-keywords:generateKeywords(category)
+id:id++,
+title:generateTitle(cat,index),
+category:cat,
+jpeg:"uploads/"+clean,
+eps:"uploads/"+clean.replace(".jpg",".eps"),
+keywords:generateKeywords(cat)
 });
 });
 
-document.getElementById("output").innerText = JSON.stringify(data,null,2);
-localStorage.setItem("assetsData",JSON.stringify(data));
-alert("Data saved to localStorage.");
+});
+
+localStorage.setItem("fvs_assets",JSON.stringify(data));
+document.getElementById("output").innerText=JSON.stringify(data,null,2);
+alert("Data saved successfully.");
 }
 
 </script>
