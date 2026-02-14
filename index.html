@@ -3,33 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Free Vector Download | Premium Graphic Resources</title>
-<meta name="description" content="Free vector download, stock images, EPS10 files, premium design resources for commercial and personal use.">
-<meta name="keywords" content="free vector download, stock images, eps10, graphic design resources">
+<title>FREE VECTOR STOCK | Free Vector Download</title>
+<meta name="description" content="Free vector download, EPS10 graphics, stock images, premium design resources for commercial and personal use.">
+<meta name="keywords" content="free vector download, eps10 download, stock images, free graphics">
+<meta name="robots" content="index, follow">
 <style>
-body{margin:0;font-family:Arial;background:white;color:#000}
-.topbar{background:black;color:white;padding:20px;text-align:center}
-.logo{font-size:26px;font-weight:bold}
-.lines{margin-top:10px;display:flex;justify-content:center;gap:10px}
-.line{width:40px;height:3px;background:white;cursor:pointer}
-.dynamic-text{margin-top:15px;font-size:14px;max-width:800px;margin-left:auto;margin-right:auto}
+body{margin:0;font-family:Arial;background:#ffffff;color:#000}
+.topbar{background:black;color:white;padding:30px;text-align:center}
+.logo{font-size:28px;font-weight:bold}
+.lines{margin-top:15px;display:flex;justify-content:center;gap:10px}
+.line{width:50px;height:3px;background:white;cursor:pointer}
+.dynamic-text{margin-top:20px;font-size:14px;max-width:900px;margin-left:auto;margin-right:auto}
 .container{display:flex}
-.sidebar{width:250px;padding:20px;border-right:1px solid #ddd;height:100vh;overflow:auto}
-.sidebar div{padding:5px 0;cursor:pointer}
-.content{flex:1;padding:20px}
-.search{margin-bottom:20px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}
-.card{border:1px solid #eee;padding:10px}
+.sidebar{width:260px;padding:20px;border-right:1px solid #eee;height:calc(100vh - 200px);overflow:auto}
+.sidebar div{padding:6px 0;cursor:pointer;font-size:14px}
+.content{flex:1;padding:30px}
+.search-box{margin-bottom:30px}
+.search-box input{width:100%;padding:12px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:25px}
+.card{border:1px solid #eee;padding:15px}
 .card img{width:100%}
-.ad{background:#eee;text-align:center;padding:40px;margin:20px 0}
-.footer{background:black;color:white;padding:20px;text-align:center}
+.card h4{font-size:14px;margin:10px 0}
+.card p{font-size:12px;color:#666}
+button{padding:8px 15px;background:black;color:white;border:none;cursor:pointer}
+.ad{background:#f2f2f2;text-align:center;padding:60px;margin:30px 0;font-weight:bold}
+.footer{background:black;color:white;padding:25px;text-align:center}
+.counter{margin-bottom:10px}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-<div class="logo">FREE GRAPHIC STUDIO</div>
-
+<div class="logo">FREE VECTOR STOCK</div>
 <div class="lines">
 <div class="line" onclick="changeText(0)"></div>
 <div class="line" onclick="changeText(1)"></div>
@@ -37,39 +42,43 @@ body{margin:0;font-family:Arial;background:white;color:#000}
 <div class="line" onclick="changeText(3)"></div>
 <div class="line" onclick="changeText(4)"></div>
 </div>
-
 <div class="dynamic-text" id="dynamicText">
 We operate our own in-house studio to produce graphic designs and offer them free of charge for both personal and commercial projects.
 </div>
 </div>
 
-<div class="ad">ADVERTISEMENT AREA</div>
+<div class="ad">ADVERTISEMENT AREA 970x250</div>
 
 <div class="container">
 
-<div class="sidebar" id="categories"></div>
+<div class="sidebar" id="categoryList"></div>
 
 <div class="content">
 
-<div class="search">
-<input type="text" placeholder="🔍 Search..." onkeyup="searchAssets(this.value)">
+<div class="search-box">
+<input type="text" placeholder="🔍 Search vectors..." onkeyup="searchAssets(this.value)">
 </div>
 
 <div class="grid" id="assetGrid"></div>
 
-<div class="ad">ADVERTISEMENT AREA</div>
+<div class="ad">ADVERTISEMENT AREA 728x90</div>
 
 </div>
 </div>
 
 <div class="footer">
-<div>Visitors: <span id="visitors"></span> | Downloads: <span id="downloads"></span></div>
-<div>© 2026 ® Registered Trademark | <a href="mailto:hakankacar2014@gmail.com" style="color:white">Info</a></div>
+<div class="counter">
+Visitors: <span id="visitorCount"></span> | Downloads: <span id="downloadCount"></span>
+</div>
+<div>
+© 2026 ® Registered Trademark | 
+<a href="mailto:hakankacar2014@gmail.com" style="color:white;text-decoration:none;">Info</a>
+</div>
 </div>
 
 <script>
 
-const texts=[
+const bannerTexts=[
 "We operate our own in-house studio to produce graphic designs and offer them free of charge for both personal and commercial projects.",
 "Our goal is to provide a comprehensive and ideal platform for those seeking graphic resources.",
 "We aim to offer a wide archive of graphics, including vector illustrations, stock photos, icons, logos, and various design elements.",
@@ -78,18 +87,16 @@ const texts=[
 ];
 
 function changeText(i){
-document.getElementById("dynamicText").innerText=texts[i];
+document.getElementById("dynamicText").innerText=bannerTexts[i];
 }
 
-let visitors = localStorage.getItem("visitors");
-if(!visitors){visitors=0}
+let visitors=localStorage.getItem("fvs_visitors")||0;
 visitors++;
-localStorage.setItem("visitors",visitors);
-document.getElementById("visitors").innerText=visitors;
+localStorage.setItem("fvs_visitors",visitors);
+document.getElementById("visitorCount").innerText=visitors;
 
-let downloads = localStorage.getItem("downloads");
-if(!downloads){downloads=0}
-document.getElementById("downloads").innerText=downloads;
+let downloads=localStorage.getItem("fvs_downloads")||0;
+document.getElementById("downloadCount").innerText=downloads;
 
 const categories=[
 "Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion",
@@ -99,50 +106,63 @@ const categories=[
 "Sports/Recreation","Technology","Transportation","Vintage"
 ].sort();
 
-const categoryDiv=document.getElementById("categories");
+const catDiv=document.getElementById("categoryList");
 categories.forEach(cat=>{
-let div=document.createElement("div");
-div.innerText=cat;
-div.onclick=()=>filterCategory(cat);
-categoryDiv.appendChild(div);
+let el=document.createElement("div");
+el.innerText=cat;
+el.onclick=()=>filterCategory(cat);
+catDiv.appendChild(el);
 });
 
-let assets = JSON.parse(localStorage.getItem("assetsData")) || [];
+let assets=JSON.parse(localStorage.getItem("fvs_assets"))||[];
 
-function renderAssets(list){
+function render(list){
 const grid=document.getElementById("assetGrid");
 grid.innerHTML="";
 list.forEach(asset=>{
 let card=document.createElement("div");
 card.className="card";
 card.innerHTML=`
-<img src="${asset.jpeg}">
+<img src="${asset.jpeg}" alt="${asset.title}">
 <h4>${asset.title}</h4>
-<p>${asset.keywords.slice(0,5).join(", ")}</p>
-<button onclick="downloadFile()">Download</button>
+<p>${asset.keywords.join(", ")}</p>
+<button onclick="downloadAsset('${asset.jpeg}','${asset.eps}')">Download</button>
 `;
 grid.appendChild(card);
 });
 }
 
 function filterCategory(cat){
-renderAssets(assets.filter(a=>a.category===cat));
+render(assets.filter(a=>a.category===cat));
 }
 
 function searchAssets(q){
 q=q.toLowerCase();
-renderAssets(assets.filter(a=>a.title.toLowerCase().includes(q)));
+render(assets.filter(a=>a.title.toLowerCase().includes(q)));
 }
 
-function downloadFile(){
-let downloads = localStorage.getItem("downloads");
+function downloadAsset(jpeg,eps){
+let downloads=localStorage.getItem("fvs_downloads")||0;
 downloads++;
-localStorage.setItem("downloads",downloads);
-document.getElementById("downloads").innerText=downloads;
-alert("Download page with ads would open here.");
+localStorage.setItem("fvs_downloads",downloads);
+document.getElementById("downloadCount").innerText=downloads;
+
+let win=window.open("");
+win.document.write(`
+<html>
+<head><title>Download File</title></head>
+<body style="font-family:Arial;text-align:center;background:white">
+<div style="background:#f2f2f2;padding:40px;margin:20px">ADVERTISEMENT AREA 970x250</div>
+<h2>Select Format</h2>
+<a href="${jpeg}" download><button>Download JPEG</button></a>
+<a href="${eps}" download><button>Download EPS10</button></a>
+<div style="background:#f2f2f2;padding:40px;margin:20px">ADVERTISEMENT AREA 728x90</div>
+</body>
+</html>
+`);
 }
 
-renderAssets(assets);
+render(assets);
 
 </script>
 
