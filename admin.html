@@ -2,18 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>FREE VECTOR STOCK - CLOUD MANAGEMENT</title>
+    <title>FREE VECTOR STOCK - ADMIN CLOUD SYNC</title>
     <style>
         body { font-family: sans-serif; background: #fff; margin: 0; padding: 0; }
-        .header { background: #000; color: #fff; padding: 25px; text-align: center; font-weight: bold; letter-spacing: 1px; }
-        .box { max-width: 650px; margin: 50px auto; padding: 40px; border: 1px solid #eee; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
-        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 13px; }
-        input[type="password"] { width: 100%; padding: 12px; margin-bottom: 25px; border: 1px solid #ddd; outline: none; }
-        .drop-area { border: 2px dashed #bbb; padding: 60px; text-align: center; color: #666; cursor: pointer; background: #fafafa; border-radius: 8px; }
-        .drop-area:hover { border-color: #000; background: #fff; }
-        .sync-btn { width: 100%; padding: 18px; background: #000; color: #fff; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; font-size: 15px; }
-        #console { margin-top: 25px; font-size: 12px; max-height: 300px; overflow-y: auto; background: #f4f4f4; padding: 15px; border-radius: 5px; }
-        .msg-ok { color: green; margin: 3px 0; } .msg-err { color: red; margin: 3px 0; }
+        .header { background: #000; color: #fff; padding: 30px; text-align: center; font-weight: 900; letter-spacing: 2px; }
+        .box { max-width: 700px; margin: 50px auto; padding: 40px; border: 1px solid #eee; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+        input[type="password"] { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; outline: none; }
+        .drop-zone { border: 2px dashed #ccc; padding: 50px; text-align: center; color: #888; cursor: pointer; background: #fafafa; border-radius: 10px; }
+        .drop-zone:hover { border-color: #000; background: #fff; }
+        button { width: 100%; padding: 20px; background: #000; color: #fff; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+        #log { margin-top: 20px; font-size: 12px; height: 200px; overflow-y: auto; background: #f4f4f4; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -21,77 +19,72 @@
 <div class="header">FREE VECTOR STOCK - CLOUD MANAGEMENT</div>
 
 <div class="box">
-    <label>GITHUB PERSONAL ACCESS TOKEN:</label>
-    <input type="password" id="ghToken" placeholder="Enter ghp_ your token here">
-
-    <div class="drop-area" onclick="document.getElementById('fileInput').click()">
-        <strong style="font-size: 18px;">Bulk Upload Assets</strong>
-        <p>Drop your JPG, EPS10, SVG and JSON files here.<br>Systems will automatically match files with the same name.</p>
+    <label>GITHUB TOKEN:</label>
+    <input type="password" id="token" placeholder="Enter ghp_ your secure token">
+    
+    <div class="drop-zone" onclick="document.getElementById('fileInp').click()">
+        <strong>CLICK TO BULK SELECT ASSETS</strong>
+        <p>You can select JPG, EPS, SVG and JSON files simultaneously.<br>Systems will match them automatically by name.</p>
     </div>
-    <input type="file" id="fileInput" multiple style="display:none" onchange="listSelected()">
+    <input type="file" id="fileInp" multiple style="display:none" onchange="showStats()">
 
-    <div id="console">No files selected.</div>
-    <button class="sync-btn" onclick="startCloudSync()">SYNC ASSETS TO CLOUD</button>
+    <div id="log">No files selected.</div>
+    <button onclick="startSync()">START BULK CLOUD SYNC</button>
 </div>
 
 <script>
-    let filesToUpload = [];
     const OWNER = "free-vector-stock", REPO = "free-vector-stock";
-
-    function listSelected() {
-        filesToUpload = Array.from(document.getElementById('fileInput').files);
-        document.getElementById('console').innerHTML = `<strong>Ready to Sync:</strong> ${filesToUpload.length} files selected.`;
+    
+    function showStats() {
+        const count = document.getElementById('fileInp').files.length;
+        document.getElementById('log').innerText = count + " files ready to sync.";
     }
 
-    async function startCloudSync() {
-        const token = document.getElementById('ghToken').value;
-        const consoleBox = document.getElementById('console');
-        if(!token) return alert("Security token is required!");
-        if(filesToUpload.length === 0) return alert("Please select files first!");
+    async function startSync() {
+        const token = document.getElementById('token').value;
+        const files = Array.from(document.getElementById('fileInp').files);
+        const log = document.getElementById('log');
 
-        consoleBox.innerHTML = "<em>Starting cloud synchronization...</em><br>";
+        if(!token || files.length === 0) return alert("Token or files missing!");
 
-        for(let file of filesToUpload) {
+        log.innerHTML = "Sync process started...<br>";
+
+        for(let file of files) {
             try {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 await new Promise((resolve) => {
                     reader.onload = async () => {
-                        const content = reader.result.split(',')[1];
+                        const base64 = reader.result.split(',')[1];
                         const path = `assets/${file.name}`;
                         
-                        // Check for existing file SHA to update
+                        // Check if file exists to get SHA (for update)
                         let sha = null;
-                        const checkRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+                        const check = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
                             headers: { 'Authorization': `token ${token}` }
                         });
-                        if(checkRes.ok) { 
-                            const existingFile = await checkRes.json(); 
-                            sha = existingFile.sha; 
-                        }
+                        if(check.ok) { const data = await check.json(); sha = data.sha; }
 
-                        const uploadRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+                        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
                             method: 'PUT',
                             headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                                message: `Bulk Cloud Sync: ${file.name}`, 
-                                content: content,
-                                sha: sha 
+                            body: JSON.stringify({
+                                message: "Cloud Sync: " + file.name,
+                                content: base64,
+                                sha: sha
                             })
                         });
 
-                        if(uploadRes.ok) {
-                            consoleBox.innerHTML += `<div class="msg-ok">✓ Successfully Synced: ${file.name}</div>`;
-                        } else {
-                            consoleBox.innerHTML += `<div class="msg-err">✗ Failed: ${file.name}</div>`;
-                        }
-                        consoleBox.scrollTop = consoleBox.scrollHeight;
+                        if(res.ok) log.innerHTML += `<span style="color:green">✓ SYNCED: ${file.name}</span><br>`;
+                        else log.innerHTML += `<span style="color:red">✗ FAILED: ${file.name}</span><br>`;
+                        
+                        log.scrollTop = log.scrollHeight;
                         resolve();
                     };
                 });
-            } catch(e) { consoleBox.innerHTML += `<div class="msg-err">✗ Error on ${file.name}</div>`; }
+            } catch(e) { log.innerHTML += `<span style="color:red">✗ ERROR: ${file.name}</span><br>`; }
         }
-        consoleBox.innerHTML += "<br><strong>SYNC PROCESS COMPLETED.</strong>";
+        log.innerHTML += "<strong>PROCESS COMPLETED.</strong>";
     }
 </script>
 </body>
