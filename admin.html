@@ -2,50 +2,115 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ADMIN UPLOADER</title>
+    <title>ADMIN PANEL - FREE VECTOR STOCK</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding: 50px; background: #f0f0f0; }
-        .box { background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 400px; }
-        input, button { width: 100%; padding: 15px; margin-bottom: 20px; box-sizing: border-box; }
-        button { background: #000; color: #fff; border: none; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 50px; }
+        .admin-card { background: #fff; max-width: 600px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { font-size: 20px; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 13px; color: #666; }
+        input[type="password"] { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 25px; box-sizing: border-box; }
+        .drop-zone { border: 2px dashed #ccc; padding: 40px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.3s; background: #fafafa; }
+        .drop-zone:hover { border-color: #000; background: #fff; }
+        #file-list { margin-top: 20px; font-size: 12px; color: #555; max-height: 200px; overflow-y: auto; background: #f9f9f9; padding: 10px; display: none; }
+        .btn-sync { width: 100%; padding: 18px; background: #ccc; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed; margin-top: 25px; text-transform: uppercase; transition: 0.3s; }
+        .btn-sync.active { background: #000; cursor: pointer; }
+        #log { margin-top: 20px; font-size: 13px; }
+        .success { color: green; } .error { color: red; }
     </style>
 </head>
 <body>
-<div class="box">
-    <h2>Upload Assets</h2>
-    <input type="password" id="token" placeholder="GitHub Token">
-    <input type="file" id="files" multiple>
-    <div id="status"></div>
-    <button onclick="upload()">SYNC TO GITHUB</button>
+
+<div class="admin-card">
+    <h1>GitHub Cloud Management</h1>
+    
+    <label>GitHub Personal Access Token:</label>
+    <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxx">
+
+    <div class="drop-zone" onclick="document.getElementById('files').click()">
+        <strong>Click to Bulk Upload Assets</strong>
+        <p>Select multiple JPG, EPS10, SVG, and JSON files simultaneously.</p>
+    </div>
+    <input type="file" id="files" multiple style="display:none" onchange="handleFiles(this.files)">
+
+    <div id="file-list"></div>
+
+    <button id="syncBtn" class="btn-sync" onclick="startSync()" disabled>Sync Assets to Cloud</button>
+
+    <div id="log"></div>
 </div>
 
 <script>
-    async function upload() {
-        const token = document.getElementById('token').value;
-        const files = document.getElementById('files').files;
-        const status = document.getElementById('status');
-        if(!token || files.length === 0) return alert("Fill all fields");
+    let selectedFiles = [];
+    const OWNER = "free-vector-stock", REPO = "free-vector-stock";
 
-        for(let file of files) {
-            status.innerText = "Uploading: " + file.name;
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const content = reader.result.split(',')[1];
-                const url = `https://api.github.com/repos/free-vector-stock/free-vector-stock/contents/assets/${file.name}`;
-                
-                const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-                let sha = null; if(check.ok) { const d = await check.json(); sha = d.sha; }
-
-                const res = await fetch(url, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: "upload", content, sha })
-                });
-                if(res.ok) status.innerText = "Success: " + file.name;
-            };
+    function handleFiles(files) {
+        selectedFiles = Array.from(files);
+        const list = document.getElementById('file-list');
+        const btn = document.getElementById('syncBtn');
+        
+        if(selectedFiles.length > 0) {
+            list.style.display = 'block';
+            list.innerHTML = `<strong>Ready to upload:</strong> ${selectedFiles.length} files.`;
+            btn.disabled = false;
+            btn.classList.add('active');
         }
     }
+
+    async function startSync() {
+        const token = document.getElementById('token').value;
+        const log = document.getElementById('log');
+        if(!token) { alert("Please enter your GitHub Token"); return; }
+
+        log.innerHTML = "<em>Starting sync process...</em>";
+
+        for (let file of selectedFiles) {
+            try {
+                const base64Content = await toBase64(file);
+                const path = `assets/${file.name}`;
+                
+                // Check if file exists to get SHA
+                let sha = null;
+                const checkRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                
+                if(checkRes.ok) {
+                    const data = await checkRes.json();
+                    sha = data.sha;
+                }
+
+                const uploadRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Admin upload: ${file.name}`,
+                        content: base64Content,
+                        sha: sha
+                    })
+                });
+
+                if(uploadRes.ok) {
+                    log.innerHTML += `<div class="success">✓ Uploaded: ${file.name}</div>`;
+                } else {
+                    log.innerHTML += `<div class="error">✗ Failed: ${file.name}</div>`;
+                }
+            } catch (e) {
+                log.innerHTML += `<div class="error">✗ Error: ${file.name}</div>`;
+            }
+        }
+        log.innerHTML += "<strong>Process finished.</strong>";
+    }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
 </script>
+
 </body>
 </html>
