@@ -2,63 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ADMIN PANEL | FREE VECTOR STOCK</title>
+    <title>CLOUD ADMIN | FREE VECTOR STOCK</title>
     <style>
-        body { font-family: sans-serif; background: #fff; margin: 0; }
-        .header { background: #000; color: #fff; padding: 30px; text-align: center; font-weight: 900; letter-spacing: 2px; }
-        .wrapper { max-width: 800px; margin: 40px auto; padding: 20px; border: 1px solid #eee; }
-        input[type="password"] { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; }
-        .upload-zone { border: 3px dashed #ccc; padding: 50px; text-align: center; cursor: pointer; background: #f9f9f9; }
-        #statusLog { height: 200px; overflow-y: auto; background: #222; color: #0f0; padding: 15px; font-family: monospace; margin-top: 15px; }
-        button { width: 100%; padding: 15px; background: #000; color: #fff; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+        .header { background: #000; color: #fff; padding: 25px; text-align: center; font-weight: 800; letter-spacing: 2px; }
+        .main-panel { max-width: 700px; margin: 50px auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        input[type="password"] { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; }
+        .drop-zone { border: 2px dashed #bbb; padding: 40px; text-align: center; color: #888; cursor: pointer; border-radius: 4px; margin-bottom: 20px; }
+        .drop-zone:hover { background: #fcfcfc; border-color: #000; }
+        #log { background: #000; color: #0f0; padding: 15px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 12px; border-radius: 4px; }
+        button { width: 100%; padding: 18px; background: #000; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="header">FREE VECTOR STOCK - ADMIN CLOUD</div>
-    <div class="wrapper">
-        <input type="password" id="tokenInp" placeholder="Enter GitHub Token">
-        <div class="upload-zone" onclick="document.getElementById('fileInp').click()">
-            <strong>CLICK TO SELECT ALL FILES (JPG, EPS, SVG, JSON)</strong>
+    <div class="header">FREE VECTOR STOCK - CLOUD MANAGEMENT</div>
+    <div class="main-panel">
+        <label>GITHUB PERSONAL ACCESS TOKEN:</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+        
+        <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+            <strong>Click to Bulk Upload Assets</strong><br>
+            <small>Select multiple JPG, EPS10, SVG, and JSON files simultaneously.</small>
         </div>
-        <input type="file" id="fileInp" multiple style="display:none" onchange="document.getElementById('statusLog').innerText='Files ready to sync.'">
-        <div id="statusLog">Ready...</div>
-        <button onclick="startSync()">START BULK SYNC</button>
+        <input type="file" id="fileInput" multiple style="display:none" onchange="updateCount()">
+        
+        <div id="log">Waiting for files...</div>
+        <button onclick="startSync()">SYNC ASSETS TO CLOUD</button>
     </div>
 
     <script>
         const OWNER = "free-vector-stock", REPO = "free-vector-stock";
+        function updateCount() {
+            const files = document.getElementById('fileInput').files;
+            document.getElementById('log').innerText = `${files.length} files selected and ready to sync.`;
+        }
+
         async function startSync() {
-            const token = document.getElementById('tokenInp').value;
-            const files = Array.from(document.getElementById('fileInp').files);
-            const log = document.getElementById('statusLog');
-            if(!token || files.length === 0) return alert("Fill required fields!");
+            const token = document.getElementById('ghToken').value;
+            const files = Array.from(document.getElementById('fileInput').files);
+            const logBox = document.getElementById('log');
+
+            if(!token || files.length === 0) return alert("Please enter token and select files!");
+
+            logBox.innerHTML = "Syncing process started...<br>";
             
-            log.innerHTML = "Syncing...<br>";
             for(let file of files) {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                await new Promise(res => {
+                await new Promise(resolve => {
                     reader.onload = async () => {
-                        const base64 = reader.result.split(',')[1];
+                        const content = reader.result.split(',')[1];
                         const path = `assets/${file.name}`;
+                        
+                        // Önce dosya varsa SHA alalım (Update için)
                         let sha = null;
                         const check = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
-                            headers: {'Authorization': `token ${token}`}
+                            headers: { 'Authorization': `token ${token}` }
                         });
-                        if(check.ok) { const d = await check.json(); sha = d.sha; }
-                        
-                        const upload = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+                        if(check.ok) { const data = await check.json(); sha = data.sha; }
+
+                        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
                             method: 'PUT',
-                            headers: {'Authorization': `token ${token}`, 'Content-Type': 'application/json'},
-                            body: JSON.stringify({message: "Sync", content: base64, sha: sha})
+                            headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: `Upload ${file.name}`, content, sha })
                         });
-                        log.innerHTML += (upload.ok ? "✓ " : "✗ ") + file.name + "<br>";
-                        log.scrollTop = log.scrollHeight;
-                        res();
+
+                        logBox.innerHTML += (res.ok ? `✓ SUCCESS: ` : `✗ FAILED: `) + file.name + "<br>";
+                        logBox.scrollTop = logBox.scrollHeight;
+                        resolve();
                     };
                 });
             }
-            log.innerHTML += "<strong>DONE.</strong>";
+            logBox.innerHTML += "<strong>BULK SYNC COMPLETED!</strong>";
         }
     </script>
 </body>
