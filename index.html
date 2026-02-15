@@ -3,145 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Free Premium Vector Stock - Download free EPS10, JPG and SVG files for personal and commercial use.">
-    <title>FREE VECTOR STOCK - Premium Graphic Resources</title>
+    <meta name="description" content="Free Vector Stock - Download premium EPS10, JPEG, and SVG files for free. High-quality vector illustrations and design elements.">
+    <meta name="keywords" content="free vector download, eps10, svg, stock illustrations, free graphic resources">
+    <title>FREE VECTOR STOCK | Premium Graphic Resources</title>
     <style>
-        :root { --black: #000; --white: #fff; --grey: #f4f4f4; --border: #ececec; }
-        body { margin: 0; font-family: 'Inter', Helvetica, Arial, sans-serif; background: var(--white); color: var(--black); overflow-x: hidden; }
+        :root { --black: #000; --white: #fff; --grey: #f5f5f5; --border: #e0e0e0; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--white); color: var(--black); display: flex; flex-direction: column; min-height: 100vh; }
         
-        /* Header & Banner */
-        .top-banner { background: var(--black); color: var(--white); padding: 40px 20px; text-align: center; position: relative; }
-        .logo { font-size: 32px; font-weight: 900; letter-spacing: -1px; text-decoration: none; color: var(--white); display: block; margin-bottom: 20px; text-transform: uppercase; }
-        .banner-nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-        .nav-line { width: 35px; height: 3px; background: #444; cursor: pointer; transition: 0.3s; }
+        /* Banners */
+        .header-banner { background: var(--black); color: var(--white); padding: 30px 20px; text-align: center; width: 100%; }
+        .logo { font-size: 32px; font-weight: 900; text-decoration: none; color: var(--white); text-transform: uppercase; letter-spacing: 1px; }
+        .banner-nav { display: flex; justify-content: center; gap: 10px; margin: 20px 0 10px 0; }
+        .nav-line { width: 40px; height: 3px; background: #333; cursor: pointer; transition: 0.3s; }
         .nav-line.active { background: var(--white); }
-        #info-text { font-size: 14px; max-width: 800px; margin: 0 auto; line-height: 1.6; min-height: 45px; }
+        #banner-text { font-size: 14px; max-width: 800px; margin: 0 auto; min-height: 40px; line-height: 1.5; opacity: 0.9; }
 
         /* Search */
-        .search-area { padding: 40px 20px; background: var(--white); text-align: center; border-bottom: 1px solid var(--border); }
-        .search-box { position: relative; max-width: 700px; margin: 0 auto; }
-        .search-box input { width: 100%; padding: 18px 60px 18px 30px; border-radius: 50px; border: 1px solid #ddd; font-size: 16px; outline: none; transition: 0.3s; }
-        .search-box input:focus { border-color: var(--black); box-shadow: 0 0 15px rgba(0,0,0,0.05); }
-        .search-box span { position: absolute; right: 25px; top: 18px; font-size: 22px; cursor: pointer; }
+        .search-container { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+        .search-wrapper { position: relative; max-width: 700px; margin: 0 auto; }
+        .search-wrapper input { width: 100%; padding: 18px 25px; border-radius: 40px; border: 1px solid #ccc; font-size: 16px; outline: none; transition: 0.3s; }
+        .search-wrapper input:focus { border-color: var(--black); box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .search-wrapper i { position: absolute; right: 25px; top: 18px; font-style: normal; cursor: pointer; font-size: 20px; }
 
-        /* Layout */
-        .container { display: flex; max-width: 100%; margin: 0 auto; min-height: 80vh; }
-        .sidebar { width: 280px; padding: 40px 20px; border-right: 1px solid var(--border); }
-        .sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--black); padding-bottom: 10px; margin-bottom: 20px; }
-        .cat-list { list-style: none; padding: 0; margin: 0; }
-        .cat-item { padding: 10px 0; font-size: 14px; color: #555; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f9f9f9; }
-        .cat-item:hover { color: var(--black); padding-left: 5px; font-weight: 600; }
+        /* Main Layout */
+        .main-wrapper { display: flex; flex: 1; max-width: 100%; margin: 0 auto; width: 100%; }
+        .sidebar { width: 300px; padding: 30px; border-right: 1px solid var(--border); overflow-y: auto; height: fit-content; }
+        .sidebar h3 { font-size: 12px; text-transform: uppercase; color: #888; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
+        .cat-item { display: block; padding: 8px 0; color: #444; text-decoration: none; font-size: 14px; cursor: pointer; border-bottom: 1px solid #f9f9f9; }
+        .cat-item:hover { color: var(--black); font-weight: bold; }
         
-        .main-content { flex: 1; padding: 40px; }
-        .ad-space { background: #fafafa; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 11px; text-transform: uppercase; margin: 20px 0; overflow: hidden; }
+        .content { flex: 1; padding: 30px; }
+        .ad-slot { background: #fafafa; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 11px; margin: 20px 0; overflow: hidden; }
 
-        /* Gallery */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 30px; }
-        .vector-card { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; transition: 0.3s; cursor: pointer; position: relative; }
-        .vector-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
-        .vector-card img { width: 100%; height: 200px; object-fit: cover; background: #f9f9f9; }
-        .vector-info { padding: 15px; text-align: center; }
-        .vector-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .dl-badge { background: var(--black); color: var(--white); padding: 8px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-
-        /* Pagination */
-        .pagination { display: flex; justify-content: center; gap: 8px; margin: 50px 0; }
-        .page-num { padding: 10px 18px; border: 1px solid #ddd; background: var(--white); cursor: pointer; font-weight: bold; border-radius: 4px; }
-        .page-num.active { background: var(--black); color: var(--white); border-color: var(--black); }
+        /* Gallery Grid */
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
+        .item-card { border: 1px solid var(--border); transition: 0.3s; cursor: pointer; background: var(--white); }
+        .item-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .item-card img { width: 100%; height: 180px; object-fit: cover; background: #eee; }
+        .item-info { padding: 12px; text-align: center; }
+        .item-title { font-size: 13px; font-weight: bold; margin-bottom: 10px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .btn-dl-small { background: var(--black); color: var(--white); padding: 8px 15px; font-size: 11px; text-transform: uppercase; font-weight: bold; border: none; width: 100%; cursor: pointer; }
 
         /* Detail Modal */
         #detail-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--white); z-index: 1000; overflow-y: auto; }
-        .detail-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 350px; gap: 40px; }
-        .dl-section { background: var(--grey); padding: 30px; border-radius: 8px; }
-        .dl-btn { width: 100%; padding: 20px; background: var(--black); color: var(--white); border: none; font-weight: bold; font-size: 14px; cursor: pointer; margin-bottom: 15px; text-transform: uppercase; }
-        .dl-btn:hover { opacity: 0.9; }
+        .detail-page { max-width: 1200px; margin: 0 auto; padding: 40px 20px; display: grid; grid-template-columns: 1fr 350px; gap: 40px; }
+        .detail-main img { width: 100%; border: 1px solid var(--border); margin-bottom: 20px; }
+        .dl-sidebar { background: var(--grey); padding: 30px; border-radius: 4px; }
+        .btn-dl-large { width: 100%; padding: 20px; background: var(--black); color: var(--white); border: none; font-weight: bold; margin-bottom: 10px; cursor: pointer; text-transform: uppercase; }
+        .meta-data { margin-top: 20px; font-size: 14px; line-height: 1.6; }
 
-        /* Footer */
-        .bottom-banner { background: var(--black); color: var(--white); padding: 40px 20px; text-align: center; display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap; }
-        .footer-text { font-size: 14px; }
-        .info-link { color: var(--white); text-decoration: none; border: 1px solid #444; padding: 8px 20px; border-radius: 4px; transition: 0.3s; }
-        .info-link:hover { background: var(--white); color: var(--black); }
+        /* Pagination */
+        .pagination { display: flex; justify-content: center; gap: 8px; margin: 40px 0; }
+        .page-btn { padding: 10px 15px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; }
+        .page-btn.active { background: var(--black); color: var(--white); }
 
         /* Wait Screen */
-        .wait-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index:2000; display:none; align-items:center; justify-content:center; flex-direction:column; }
-        #timer-num { font-size: 100px; font-weight: 900; color: var(--black); margin: 20px 0; }
+        .wait-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+        #timer { font-size: 80px; font-weight: 900; color: #ff0000; margin: 20px 0; }
 
-        @media (max-width: 900px) { .container { flex-direction: column; } .sidebar { width: 100%; border-right: none; } .detail-container { grid-template-columns: 1fr; } }
+        /* Footer */
+        .footer-banner { background: var(--black); color: var(--white); padding: 40px 20px; text-align: center; width: 100%; margin-top: auto; }
+        .footer-content { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 14px; flex-wrap: wrap; }
+        .info-btn { color: var(--white); text-decoration: none; border: 1px solid #444; padding: 5px 15px; border-radius: 3px; transition: 0.3s; }
+        .info-btn:hover { background: var(--white); color: var(--black); }
+
+        @media (max-width: 900px) { .main-wrapper { flex-direction: column; } .sidebar { width: 100%; } .detail-page { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<div class="top-banner">
+<header class="header-banner">
     <a href="index.html" class="logo">FREE VECTOR STOCK</a>
-    <div class="banner-nav" id="nav-dots"></div>
-    <div id="info-text"></div>
-</div>
+    <div class="banner-nav" id="bannerNav"></div>
+    <div id="banner-text"></div>
+</header>
 
-<div class="search-area">
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search for free vectors, icons and more...">
-        <span onclick="performSearch()">🔍</span>
+<div class="search-container">
+    <div class="search-wrapper">
+        <input type="text" id="searchInput" placeholder="Search for free vectors, stock photos, icons...">
+        <i onclick="search()">🔍</i>
     </div>
 </div>
 
-<div class="container">
+<div class="main-wrapper">
     <aside class="sidebar">
         <h3>Categories</h3>
-        <div class="cat-list" id="categoryMenu"></div>
-        <div class="ad-space" style="height: 600px; margin-top: 30px;">ADVERTISEMENT - SIDEBAR</div>
+        <div id="categoryMenu"></div>
+        <div class="ad-slot" style="height: 600px; margin-top: 20px;">REKLAM ALANI - SIDEBAR</div>
     </aside>
 
-    <main class="main-content">
-        <div class="ad-space" style="height: 90px;">ADVERTISEMENT - TOP LEADERBOARD</div>
-        
-        <div class="grid" id="mainGrid"></div>
-        
+    <main class="content">
+        <div class="ad-slot" style="height: 90px;">REKLAM ALANI - TOP LEADERBOARD</div>
+        <div class="gallery" id="mainGrid"></div>
         <div class="pagination" id="pagination"></div>
 
-        <div class="ad-space" style="height: 250px;">ADVERTISEMENT - MIDDLE RECTANGLE</div>
-
-        <h3 style="margin-top: 60px; border-bottom: 2px solid #00; padding-bottom: 10px;">Related Stock Vectors</h3>
-        <div class="grid" id="relatedGrid"></div>
+        <h3 style="margin-top: 60px; border-bottom: 2px solid #000; padding-bottom: 10px;">Related Stock Vectors</h3>
+        <div class="gallery" id="relatedGrid"></div>
     </main>
 </div>
 
 <div id="detail-view">
-    <div style="padding: 20px; border-bottom: 1px solid #eee;"><button onclick="closeDetail()" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:16px;">← BACK TO GALLERY</button></div>
-    <div class="detail-container">
-        <div id="detail-main">
-            <img id="detImg" style="width: 100%; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
-            <div class="ad-space" style="height: 120px;">ADVERTISEMENT - UNDER IMAGE</div>
-            <h1 id="detTitle" style="margin: 30px 0 10px 0; font-size: 28px;"></h1>
-            <p id="detDesc" style="color: #666; line-height: 1.8; margin-bottom: 20px;"></p>
-            <div id="detTags" style="font-style: italic; color: #888; font-size: 13px;"></div>
+    <div style="padding: 20px; border-bottom: 1px solid #eee;"><button onclick="closeDetail()" style="cursor:pointer; font-weight:bold; background:none; border:none;">← BACK TO GALLERY</button></div>
+    <div class="detail-page">
+        <div class="detail-main">
+            <img id="detImg" src="">
+            <div class="ad-slot" style="height: 150px;">REKLAM ALANI - BELOW IMAGE</div>
+            <div class="meta-data" id="detMeta"></div>
         </div>
-        <div class="dl-section">
-            <div class="ad-space" style="height: 250px; margin-top: 0;">ADVERTISEMENT - DL TOP</div>
-            <button class="dl-btn" onclick="prepareDownload('jpg')">DOWNLOAD JPEG IMAGE</button>
-            <div class="ad-space" style="height: 100px;">ADVERTISEMENT - BETWEEN BUTTONS</div>
-            <button class="dl-btn" onclick="prepareDownload('eps')">DOWNLOAD EPS10 VECTOR</button>
-            <button class="dl-btn" onclick="prepareDownload('svg')">DOWNLOAD SVG FILE</button>
+        <div class="dl-sidebar">
+            <div class="ad-slot" style="height: 250px; margin-top: 0;">REKLAM ALANI - DOWNLOAD SIDEBAR TOP</div>
+            <button class="btn-dl-large" onclick="dlWait('jpg')">DOWNLOAD JPEG</button>
+            <div class="ad-slot" style="height: 100px;">REKLAM ALANI - BETWEEN BUTTONS</div>
+            <button class="btn-dl-large" onclick="dlWait('eps')">DOWNLOAD EPS10 (VECTOR)</button>
+            <button class="btn-dl-large" onclick="dlWait('svg')">DOWNLOAD SVG</button>
         </div>
     </div>
 </div>
 
-<div class="wait-overlay" id="waitOverlay">
-    <div class="ad-space" style="width: 336px; height: 280px;">MOST VALUABLE AD - PREMIUM PLACEMENT</div>
-    <h2 style="margin-top: 30px;">Your file is being prepared...</h2>
-    <div id="timer-num">10</div>
-    <p>Please wait while we generate your high-quality download link.</p>
+<div class="wait-screen" id="waitScreen">
+    <div class="ad-slot" style="width: 336px; height: 280px;">REKLAM ALANI - PREMIUM PLACEMENT</div>
+    <h2>Your file is being prepared...</h2>
+    <div id="timer">10</div>
+    <p>The download will start automatically. Thank you for your patience.</p>
 </div>
 
-<footer class="bottom-banner">
-    <div class="footer-text">2026 © FREE VECTOR STOCK™ - Registered Trademark. All Rights Reserved.</div>
-    <a href="mailto:hakankacar2014@gmail.com" class="info-link">Info</a>
+<footer class="footer-banner">
+    <div class="footer-content">
+        2026 © FREE VECTOR STOCK™ - Registered Trademark. All Rights Reserved.
+        <a href="mailto:hakankacar2014@gmail.com" class="info-btn">Info</a>
+    </div>
 </footer>
 
 <script>
     const OWNER = "free-vector-stock", REPO = "free-vector-stock";
-    let allAssets = [], filteredAssets = [], currentPage = 1, itemsPerPage = 10;
-    
-    const bannerTexts = [
+    let allAssets = [], filteredAssets = [], page = 1, limit = 10, currentItem = null;
+
+    const bannerMsgs = [
         "We operate our own in-house studio to produce graphic designs and offer them free of charge for both personal and commercial projects.",
         "Our goal is to provide a comprehensive and ideal platform for those seeking graphic resources.",
         "We aim to offer a wide archive of graphics, including vector illustrations, stock photos, icons, logos, and various design elements.",
@@ -150,176 +148,148 @@
         "Our website's sustainability depends on advertising revenue. Some features may be restricted while an ad blocker is active. Please disable the blocker and refresh the page."
     ];
 
-    const categories = ["Abstract", "Animals/Wildlife", "The Arts", "Backgrounds/Textures", "Beauty/Fashion", "Buildings/Landmarks", "Business/Finance", "Celebrities", "Education", "Food", "Drink", "Healthcare/Medical", "Holidays", "Industrial", "Interiors", "Miscellaneous", "Nature", "Objects", "Parks/Outdoor", "People", "Religion", "Science", "Signs/Symbols", "Sports/Recreation", "Technology", "Transportation", "Vintage", "Logo", "Font", "icon"].sort();
+    const cats = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","icon"].sort();
 
-    function init() {
-        // Banner logic
-        const navDots = document.getElementById('nav-dots');
-        const infoDisplay = document.getElementById('info-text');
-        bannerTexts.forEach((text, i) => {
-            const dot = document.createElement('div');
-            dot.className = `nav-line ${i === 0 ? 'active' : ''}`;
-            dot.onclick = () => {
-                infoDisplay.innerText = text;
-                document.querySelectorAll('.nav-line').forEach(d => d.classList.remove('active'));
-                dot.classList.add('active');
+    async function init() {
+        // Banner setup
+        const nav = document.getElementById('bannerNav');
+        const txt = document.getElementById('banner-text');
+        bannerMsgs.forEach((m, i) => {
+            const line = document.createElement('div');
+            line.className = `nav-line ${i===0?'active':''}`;
+            line.onclick = () => {
+                txt.innerText = m;
+                document.querySelectorAll('.nav-line').forEach(l => l.classList.remove('active'));
+                line.classList.add('active');
             };
-            navDots.appendChild(dot);
-            if(i === 0) infoDisplay.innerText = text;
+            nav.appendChild(line);
+            if(i===0) txt.innerText = m;
         });
 
-        // Category Menu
-        const catMenu = document.getElementById('categoryMenu');
-        categories.forEach(cat => {
-            const item = document.createElement('div');
-            item.className = 'cat-item';
-            item.innerText = cat;
-            item.onclick = () => filterByCategory(cat);
-            catMenu.appendChild(item);
+        // Categories setup
+        const cMenu = document.getElementById('categoryMenu');
+        cats.forEach(c => {
+            const el = document.createElement('div');
+            el.className = 'cat-item';
+            el.innerText = c;
+            el.onclick = () => { 
+                filteredAssets = allAssets.filter(a => (a.jsonContent?.keywords || "").toLowerCase().includes(c.toLowerCase()));
+                render(1);
+            };
+            cMenu.appendChild(el);
         });
 
-        fetchAssets();
-        document.getElementById('searchInput').onkeyup = (e) => { if(e.key === 'Enter') performSearch(); };
+        await loadData();
+        document.getElementById('searchInput').onkeyup = (e) => { if(e.key==='Enter') search(); };
     }
 
-    async function fetchAssets() {
-        try {
-            const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/assets`);
-            const files = await res.json();
-            const groups = {};
-
-            for(let f of files) {
-                const nameParts = f.name.split('.');
-                const ext = nameParts.pop().toLowerCase();
-                const id = nameParts.join('.');
-                if(!groups[id]) groups[id] = { id, jpg:null, eps:null, svg:null, json:null, meta:{} };
-                
-                if(ext === 'jpg' || ext === 'jpeg') groups[id].jpg = f.download_url;
-                else if(ext === 'eps') groups[id].eps = f.download_url;
-                else if(ext === 'svg') groups[id].svg = f.download_url;
-                else if(ext === 'json') groups[id].json = f.download_url;
+    async function loadData() {
+        const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/assets`);
+        const data = await r.json();
+        const map = {};
+        for(let f of data) {
+            const parts = f.name.split('.');
+            const ext = parts.pop().toLowerCase();
+            const id = parts.join('.');
+            if(!map[id]) map[id] = { id, jpg:null, eps:null, svg:null, json:null, jsonContent:null };
+            if(ext==='jpg'||ext==='jpeg') map[id].jpg = f.download_url;
+            if(ext==='eps') map[id].eps = f.download_url;
+            if(ext==='svg') map[id].svg = f.download_url;
+            if(ext==='json') map[id].json = f.download_url;
+        }
+        allAssets = Object.values(map).filter(a => a.jpg);
+        
+        // Fetch JSON contents
+        for(let a of allAssets) {
+            if(a.json) {
+                try { a.jsonContent = await fetch(a.json).then(res => res.json()); } catch(e) {}
             }
-
-            allAssets = Object.values(groups).filter(a => a.jpg);
-            
-            // Meta Fetch
-            for(let a of allAssets) {
-                if(a.json) {
-                    try { a.meta = await fetch(a.json).then(r => r.json()); } catch(e) {}
-                }
-            }
-
-            filteredAssets = [...allAssets];
-            renderPage(1);
-            renderRelated();
-        } catch(e) { console.error("Fetch error", e); }
+        }
+        filteredAssets = [...allAssets];
+        render(1);
+        renderRel();
     }
 
-    function renderPage(p) {
-        currentPage = p;
+    function render(p) {
+        page = p;
         const grid = document.getElementById('mainGrid'); grid.innerHTML = "";
-        const start = (p - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const items = filteredAssets.slice(start, end);
-
-        items.forEach(item => {
+        const items = filteredAssets.slice((p-1)*limit, p*limit);
+        items.forEach(a => {
             const card = document.createElement('div');
-            card.className = 'vector-card';
-            card.onclick = () => openDetail(item);
-            card.innerHTML = `<img src="${item.jpg}"><div class="vector-info"><span class="vector-title">${item.meta.title || item.id}</span><span class="dl-badge">FREE DOWNLOAD</span></div>`;
+            card.className = 'item-card';
+            card.onclick = () => openDetail(a);
+            card.innerHTML = `<img src="${a.jpg}"><div class="item-info"><span class="item-title">${a.jsonContent?.title || a.id}</span><button class="btn-dl-small">FREE DOWNLOAD</button></div>`;
             grid.appendChild(card);
         });
-
-        renderPagination();
-        window.scrollTo(0, 400);
+        renderPager();
     }
 
-    function renderPagination() {
-        const pager = document.getElementById('pagination'); pager.innerHTML = "";
-        const total = Math.ceil(filteredAssets.length / itemsPerPage);
-        if(total <= 1) return;
+    function renderPager() {
+        const pDiv = document.getElementById('pagination'); pDiv.innerHTML = "";
+        const total = Math.ceil(filteredAssets.length / limit);
         for(let i=1; i<=total; i++) {
-            const btn = document.createElement('button');
-            btn.className = `page-num ${i === currentPage ? 'active' : ''}`;
-            btn.innerText = i;
-            btn.onclick = () => renderPage(i);
-            pager.appendChild(btn);
+            const b = document.createElement('button');
+            b.className = `page-btn ${i===page?'active':''}`;
+            b.innerText = i; b.onclick = () => render(i);
+            pDiv.appendChild(b);
         }
     }
 
-    function renderRelated() {
-        const relGrid = document.getElementById('relatedGrid'); relGrid.innerHTML = "";
-        const relItems = [...allAssets].sort(() => 0.5 - Math.random()).slice(0, 20);
-        relItems.forEach(item => {
+    function renderRel() {
+        const rGrid = document.getElementById('relatedGrid'); rGrid.innerHTML = "";
+        const rel = [...allAssets].sort(()=>0.5-Math.random()).slice(0, 20);
+        rel.forEach(a => {
             const card = document.createElement('div');
-            card.className = 'vector-card';
-            card.onclick = () => openDetail(item);
-            card.innerHTML = `<img src="${item.jpg}"><div class="vector-info"><span class="vector-title">${item.meta.title || item.id}</span><span class="dl-badge">FREE DOWNLOAD</span></div>`;
-            relGrid.appendChild(card);
+            card.className = 'item-card';
+            card.onclick = () => openDetail(a);
+            card.innerHTML = `<img src="${a.jpg}"><div class="item-info"><span class="item-title">${a.jsonContent?.title || a.id}</span><button class="btn-dl-small">FREE DOWNLOAD</button></div>`;
+            rGrid.appendChild(card);
         });
     }
 
-    function performSearch() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
+    function search() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
         filteredAssets = allAssets.filter(a => {
-            const searchData = `${a.id} ${a.meta.title || ''} ${a.meta.description || ''} ${a.meta.keywords || ''}`.toLowerCase();
-            return searchData.includes(query);
+            const data = `${a.id} ${a.jsonContent?.title || ''} ${a.jsonContent?.keywords || ''} ${a.jsonContent?.description || ''}`.toLowerCase();
+            return data.includes(q);
         });
-        renderPage(1);
+        render(1);
     }
 
-    function filterByCategory(cat) {
-        filteredAssets = allAssets.filter(a => {
-            const searchData = `${a.meta.description || ''} ${a.meta.keywords || ''}`.toLowerCase();
-            return searchData.includes(cat.toLowerCase());
-        });
-        renderPage(1);
-    }
-
-    let activeItem = null;
-    function openDetail(item) {
-        activeItem = item;
-        document.getElementById('detImg').src = item.jpg;
-        document.getElementById('detTitle').innerText = item.meta.title || item.id;
-        document.getElementById('detDesc').innerText = item.meta.description || "Download this high-quality vector stock for free. Available in EPS, JPG and SVG formats.";
-        document.getElementById('detTags').innerText = "Keywords: " + (item.meta.keywords || "vector, free download, graphic design");
-        document.getElementById('detail-view').style.display = "block";
+    function openDetail(a) {
+        currentItem = a;
+        document.getElementById('detImg').src = a.jpg;
+        document.getElementById('detMeta').innerHTML = `
+            <h1>${a.jsonContent?.title || a.id}</h1>
+            <p>${a.jsonContent?.description || 'Download this high-quality vector stock for your personal or commercial projects.'}</p>
+            <p><strong>Keywords:</strong> ${a.jsonContent?.keywords || 'vector, free, illustration'}</p>
+        `;
+        document.getElementById('detail-view').style.display = 'block';
         window.scrollTo(0,0);
     }
 
-    function closeDetail() { document.getElementById('detail-view').style.display = "none"; }
+    function closeDetail() { document.getElementById('detail-view').style.display = 'none'; }
 
-    function prepareDownload(type) {
-        const url = activeItem[type];
-        if(!url) { alert("Format not available for this item."); return; }
-        
-        const overlay = document.getElementById('waitOverlay');
-        const timerText = document.getElementById('timer-num');
-        overlay.style.display = "flex";
+    function dlWait(type) {
+        const url = currentItem[type];
+        if(!url) return alert("This format is not available for this item.");
+        const ws = document.getElementById('waitScreen');
+        const t = document.getElementById('timer');
+        ws.style.display = 'flex';
         let count = 10;
-        timerText.innerText = count;
-
+        t.innerText = count;
         const interval = setInterval(() => {
             count--;
-            timerText.innerText = count;
+            t.innerText = count;
             if(count <= 0) {
                 clearInterval(interval);
-                overlay.style.display = "none";
-                triggerDownload(url, `${activeItem.id}.${type}`);
+                ws.style.display = 'none';
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${currentItem.id}.${type}`;
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
             }
         }, 1000);
-    }
-
-    async function triggerDownload(url, filename) {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
     }
 
     init();
