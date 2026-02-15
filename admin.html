@@ -2,93 +2,81 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>FREE VECTOR STOCK - CLOUD MANAGEMENT</title>
+    <title>ADMIN PANEL - FREE VECTOR STOCK</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fff; margin: 0; padding: 0; }
-        .header { background: #000; color: #fff; padding: 20px; text-align: center; font-weight: bold; text-transform: uppercase; }
-        .container { max-width: 600px; margin: 50px auto; padding: 40px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 12px; }
-        input[type="password"] { width: 100%; padding: 12px; margin-bottom: 30px; border: 1px solid #ddd; }
-        .drop-zone { border: 2px dashed #ccc; padding: 40px; text-align: center; color: #666; cursor: pointer; background: #fafafa; transition: 0.3s; }
-        .drop-zone:hover { border-color: #000; background: #fff; }
-        .btn-sync { width: 100%; padding: 15px; background: #ddd; color: #fff; border: none; font-weight: bold; cursor: not-allowed; margin-top: 20px; text-transform: uppercase; }
-        .btn-sync.active { background: #000; cursor: pointer; }
-        #status { margin-top: 20px; font-size: 13px; max-height: 200px; overflow-y: auto; }
-        .success { color: green; margin-bottom: 5px; } .error { color: red; margin-bottom: 5px; }
+        body { font-family: sans-serif; background: #fff; margin: 0; padding: 40px; }
+        .box { max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        h1 { border-bottom: 2px solid #000; padding-bottom: 10px; font-size: 20px; text-transform: uppercase; }
+        input[type="password"] { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #ddd; }
+        .drop { border: 2px dashed #ccc; padding: 40px; text-align: center; cursor: pointer; background: #fafafa; }
+        .drop:hover { border-color: #000; background: #fff; }
+        #log { margin-top: 20px; font-size: 13px; max-height: 200px; overflow-y: auto; }
+        .btn { width: 100%; padding: 15px; background: #000; color: #fff; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+        .ok { color: green; } .err { color: red; }
     </style>
 </head>
 <body>
 
-<div class="header">FREE VECTOR STOCK - CLOUD MANAGEMENT</div>
-
-<div class="container">
-    <label>GITHUB PERSONAL ACCESS TOKEN:</label>
-    <input type="password" id="token" placeholder="Enter ghp_ token here">
-
-    <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
-        <strong>Click to Bulk Upload Assets</strong>
-        <p>Select multiple JPG, EPS10, SVG, and JSON files simultaneously.</p>
+<div class="box">
+    <h1>GitHub Cloud Uploader</h1>
+    <input type="password" id="tk" placeholder="Enter GitHub Token (ghp_...)">
+    
+    <div class="drop" onclick="document.getElementById('f').click()">
+        <strong>Click to Select Files</strong>
+        <p>Bulk Upload: JPG, EPS, SVG, JSON</p>
     </div>
-    <input type="file" id="fileInput" multiple style="display:none" onchange="updateList(this.files)">
+    <input type="file" id="f" multiple style="display:none" onchange="list()">
 
-    <div id="status"></div>
-    <button id="syncBtn" class="btn-sync" onclick="startSync()">SYNC ASSETS TO CLOUD</button>
+    <div id="log"></div>
+    <button class="btn" onclick="sync()">Sync to Cloud</button>
 </div>
 
 <script>
-    let filesToUpload = [];
-    const OWNER = "free-vector-stock", REPO = "free-vector-stock";
+    let files = [];
+    const U = "free-vector-stock", R = "free-vector-stock";
 
-    function updateList(files) {
-        filesToUpload = Array.from(files);
-        const st = document.getElementById('status');
-        const btn = document.getElementById('syncBtn');
-        st.innerHTML = `<strong>Selected:</strong> ${filesToUpload.length} files ready.`;
-        if(filesToUpload.length > 0) {
-            btn.classList.add('active');
-            btn.disabled = false;
-        }
+    function list() {
+        files = Array.from(document.getElementById('f').files);
+        document.getElementById('log').innerHTML = `<strong>Selected:</strong> ${files.length} files.`;
     }
 
-    async function startSync() {
-        const token = document.getElementById('token').value;
-        const st = document.getElementById('status');
+    async function sync() {
+        const token = document.getElementById('tk').value;
+        const log = document.getElementById('log');
         if(!token) return alert("Token required!");
 
-        st.innerHTML = "<em>Starting bulk upload...</em><br>";
+        log.innerHTML = "<em>Starting upload...</em><br>";
 
-        for(let file of filesToUpload) {
+        for(let file of files) {
             try {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                await new Promise((resolve) => {
+                await new Promise(res => {
                     reader.onload = async () => {
                         const content = reader.result.split(',')[1];
                         const path = `assets/${file.name}`;
                         
-                        // Check SHA
                         let sha = null;
-                        const check = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+                        const check = await fetch(`https://api.github.com/repos/${U}/${R}/contents/${path}`, {
                             headers: { 'Authorization': `token ${token}` }
                         });
                         if(check.ok) { const d = await check.json(); sha = d.sha; }
 
-                        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+                        const up = await fetch(`https://api.github.com/repos/${U}/${R}/contents/${path}`, {
                             method: 'PUT',
                             headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: `Upload ${file.name}`, content, sha })
+                            body: JSON.stringify({ message: `Admin upload: ${file.name}`, content, sha })
                         });
 
-                        if(res.ok) st.innerHTML += `<div class="success">✓ ${file.name} uploaded.</div>`;
-                        else st.innerHTML += `<div class="error">✗ ${file.name} failed.</div>`;
-                        resolve();
+                        if(up.ok) log.innerHTML += `<div class="ok">✓ ${file.name} uploaded.</div>`;
+                        else log.innerHTML += `<div class="err">✗ ${file.name} failed.</div>`;
+                        res();
                     };
                 });
-            } catch(e) { st.innerHTML += `<div class="error">✗ Error on ${file.name}</div>`; }
+            } catch(e) { log.innerHTML += `<div class="err">✗ Error: ${file.name}</div>`; }
         }
-        st.innerHTML += "<br><strong>Process Completed!</strong>";
+        log.innerHTML += "<strong>Completed.</strong>";
     }
 </script>
-
 </body>
 </html>
