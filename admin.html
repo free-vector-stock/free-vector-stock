@@ -2,75 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADMIN PANEL - FREE VECTOR STOCK</title>
+    <title>ADMIN UPLOADER</title>
     <style>
-        :root { --primary: #000; --bg: #ffffff; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f4f4; color: #333; }
-        .header { background: var(--primary); color: #fff; padding: 25px; text-align: center; font-weight: bold; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
-        .container { max-width: 700px; margin: 50px auto; padding: 40px; border: 1px solid #eee; border-radius: 12px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 13px; text-transform: uppercase; color: #666; }
-        input[type="password"] { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 25px; box-sizing: border-box; font-size: 16px; }
-        .upload-area { border: 2px dashed #bbb; padding: 50px 20px; text-align: center; cursor: pointer; background: #fafafa; transition: 0.3s; border-radius: 8px; }
-        .upload-area:hover { border-color: #000; background: #fff; }
-        #fileList { margin-top: 20px; font-size: 13px; max-height: 150px; overflow-y: auto; background: #f9f9f9; padding: 15px; display: none; border: 1px solid #eee; border-radius: 6px; }
-        .btn { background: var(--primary); color: #fff; width: 100%; padding: 18px; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; border-radius: 6px; transition: 0.3s; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-        .status { margin-top: 20px; padding: 15px; text-align: center; font-weight: bold; display: none; border-radius: 6px; }
-        .loading { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 50px; background: #f0f0f0; }
+        .box { background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 400px; }
+        input, button { width: 100%; padding: 15px; margin-bottom: 20px; box-sizing: border-box; }
+        button { background: #000; color: #fff; border: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-<div class="header">GITHUB CLOUD UPLOADER</div>
-<div class="container">
-    <label>Enter GitHub Token:</label>
-    <input type="password" id="ghToken" placeholder="Paste your personal access token here...">
-    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-        <strong>Click to Select Files</strong>
-        <p style="font-size: 12px; color: #888;">JPG, EPS, SVG, JSON</p>
-    </div>
-    <input type="file" id="fileInput" multiple style="display:none" onchange="handleFiles(this.files)">
-    <div id="fileList"></div>
-    <div id="status" class="status"></div>
-    <button id="uploadBtn" class="btn" onclick="startUpload()" disabled>SYNC TO CLOUD</button>
+<div class="box">
+    <h2>Upload Assets</h2>
+    <input type="password" id="token" placeholder="GitHub Token">
+    <input type="file" id="files" multiple>
+    <div id="status"></div>
+    <button onclick="upload()">SYNC TO GITHUB</button>
 </div>
+
 <script>
-    const OWNER = "free-vector-stock", REPO = "free-vector-stock";
-    let selectedFiles = [];
-    function handleFiles(files) {
-        selectedFiles = Array.from(files);
-        const list = document.getElementById('fileList');
-        if(selectedFiles.length > 0) {
-            list.style.display = "block";
-            list.innerHTML = "<strong>Selected:</strong><br>" + selectedFiles.map(f => `• ${f.name}`).join('<br>');
-            document.getElementById('uploadBtn').disabled = false;
-        }
-    }
-    async function startUpload() {
-        const token = document.getElementById('ghToken').value.trim();
+    async function upload() {
+        const token = document.getElementById('token').value;
+        const files = document.getElementById('files').files;
         const status = document.getElementById('status');
-        if(!token) return alert("Please enter your token!");
-        status.className = "status loading"; status.style.display = "block"; status.innerText = "Syncing with GitHub...";
-        try {
-            for (let file of selectedFiles) {
-                const base64 = await new Promise(r => {
-                    const reader = new FileReader();
-                    reader.onload = () => r(reader.result.split(',')[1]);
-                    reader.readAsDataURL(file);
-                });
-                const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/assets/${file.name}`;
+        if(!token || files.length === 0) return alert("Fill all fields");
+
+        for(let file of files) {
+            status.innerText = "Uploading: " + file.name;
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const content = reader.result.split(',')[1];
+                const url = `https://api.github.com/repos/free-vector-stock/free-vector-stock/contents/assets/${file.name}`;
+                
                 const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-                let sha = null; if (check.ok) { const d = await check.json(); sha = d.sha; }
-                await fetch(url, {
+                let sha = null; if(check.ok) { const d = await check.json(); sha = d.sha; }
+
+                const res = await fetch(url, {
                     method: 'PUT',
                     headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: `Bulk upload: ${file.name}`, content: base64, sha: sha })
+                    body: JSON.stringify({ message: "upload", content, sha })
                 });
-            }
-            status.className = "status success"; status.innerText = "SUCCESS! Everything uploaded to GitHub.";
-        } catch (e) { alert("Error: " + e.message); }
+                if(res.ok) status.innerText = "Success: " + file.name;
+            };
+        }
     }
 </script>
 </body>
