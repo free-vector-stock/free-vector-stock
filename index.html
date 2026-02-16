@@ -3,186 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FREE VECTOR STOCK | Professional Free Vector Graphics</title>
-    <meta name="description" content="Download high-quality free vectors, EPS10 illustrations, and SVG icons. Best resource for free vector download.">
-    <meta name="keywords" content="free vector download, free eps10, free svg, professional illustrations, stock vectors">
+    <title>FREE VECTOR STOCK | Download Professional Free Vectors, EPS10 and SVG</title>
+    <meta name="description" content="Access thousands of high-quality free vectors, icons, and illustrations. Free for personal and commercial use. Best resource for EPS10, SVG and JPG.">
+    <meta name="keywords" content="free vector download, free stock illustrations, eps10, svg icons, high resolution graphics, free design resources">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --black: #000000; --white: #ffffff; --grey: #f8f9fa; --border: #e0e0e0; }
+        :root { --black: #000000; --white: #ffffff; --grey: #f4f4f4; --border: #e0e0e0; --text-grey: #666; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
         body { background: var(--white); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         
         /* Anti-Copy */
         body { -webkit-user-select: none; user-select: none; }
 
-        /* Header */
-        header { background: var(--black); color: var(--white); padding: 20px 0 10px; width: 100%; position: sticky; top: 0; z-index: 1000; }
-        .header-container { max-width: 1400px; margin: 0 auto; padding: 0 20px; text-align: center; }
-        .logo { font-size: 32px; font-weight: 900; letter-spacing: -1px; text-decoration: none; color: var(--white); display: block; margin-bottom: 15px; }
+        /* Header & Navigation */
+        header { background: var(--black); color: var(--white); padding: 15px 0; position: sticky; top: 0; z-index: 1000; }
+        .header-content { max-width: 1400px; margin: 0 auto; padding: 0 20px; text-align: center; }
+        .logo { font-size: 30px; font-weight: 900; letter-spacing: -1px; text-decoration: none; color: var(--white); display: block; margin-bottom: 10px; }
         
-        .nav-lines { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
-        .line { width: 50px; height: 3px; background: #333; cursor: pointer; transition: 0.3s; }
+        .nav-lines { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
+        .line { width: 40px; height: 3px; background: #333; cursor: pointer; transition: 0.3s; border-radius: 2px; }
         .line.active { background: var(--white); }
-        #banner-msg { font-size: 13px; color: #aaa; max-width: 800px; margin: 0 auto; min-height: 35px; line-height: 1.4; }
+        #banner-msg { font-size: 13px; color: #ccc; max-width: 800px; margin: 0 auto; min-height: 32px; line-height: 1.4; }
 
-        /* Search Bar */
-        .search-section { padding: 40px 20px; border-bottom: 1px solid var(--border); text-align: center; }
-        .search-box { position: relative; max-width: 700px; margin: 0 auto; }
-        #searchInput { width: 100%; padding: 18px 60px 18px 30px; border-radius: 50px; border: 1px solid var(--border); font-size: 18px; outline: none; transition: 0.3s; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
-        #searchInput:focus { border-color: #000; }
-        .search-btn { position: absolute; right: 25px; top: 18px; font-size: 22px; color: #888; cursor: pointer; border: none; background: none; }
+        /* Search Section */
+        .search-container { padding: 40px 20px; border-bottom: 1px solid var(--border); text-align: center; }
+        .search-box { position: relative; max-width: 600px; margin: 0 auto; }
+        #searchInput { width: 100%; padding: 15px 50px 15px 25px; border-radius: 30px; border: 1px solid var(--border); font-size: 16px; outline: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .search-btn { position: absolute; right: 20px; top: 15px; color: var(--text-grey); font-size: 18px; cursor: pointer; border: none; background: none; }
 
-        /* Layout */
-        .main-wrapper { display: flex; max-width: 1600px; margin: 0 auto; width: 100%; flex: 1; }
+        /* Layout Area */
+        .layout { display: flex; max-width: 1600px; margin: 0 auto; width: 100%; flex: 1; }
         
-        /* Sidebar */
-        .sidebar { width: 280px; padding: 30px 20px; border-right: 1px solid var(--border); background: var(--white); overflow-y: auto; position: sticky; top: 150px; height: calc(100vh - 150px); }
+        /* Sidebar Navigation */
+        .sidebar { width: 260px; padding: 30px 20px; border-right: 1px solid var(--border); background: var(--white); position: sticky; top: 150px; height: calc(100vh - 150px); overflow-y: auto; }
         .sidebar::-webkit-scrollbar { width: 5px; }
         .sidebar::-webkit-scrollbar-thumb { background: #eee; }
-        .cat-head { font-size: 11px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
-        .cat-link { display: block; padding: 10px 0; color: #444; text-decoration: none; font-size: 14px; border-bottom: 1px solid #f9f9f9; transition: 0.2s; cursor: pointer; }
+        .cat-title { font-size: 11px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+        .cat-link { display: block; padding: 8px 0; color: #444; text-decoration: none; font-size: 14px; border-bottom: 1px solid #f9f9f9; transition: 0.2s; cursor: pointer; }
         .cat-link:hover { color: #000; font-weight: bold; transform: translateX(5px); }
         .cat-link.active { color: #000; font-weight: bold; border-left: 3px solid #000; padding-left: 10px; }
 
-        /* Content Area */
+        /* Main Content Grid */
         .content { flex: 1; padding: 30px; }
-        .ad-space { background: #fafafa; border: 1px dashed #ccc; color: #999; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-bottom: 25px; text-transform: uppercase; font-weight: bold; overflow: hidden; }
+        .ad-box { background: #fafafa; border: 1px dashed #ccc; color: #999; display: flex; align-items: center; justify-content: center; font-size: 11px; text-transform: uppercase; font-weight: bold; overflow: hidden; margin-bottom: 20px; }
 
-        /* Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
-        .item-card { background: #fff; border: 1px solid var(--border); transition: 0.3s; position: relative; }
-        .item-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .item-card img { width: 100%; height: 200px; object-fit: cover; display: block; cursor: pointer; }
-        .card-info { padding: 15px; text-align: center; }
-        .dl-btn { background: #000; color: #fff; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .card { background: #fff; border: 1px solid var(--border); transition: 0.3s; position: relative; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .card img { width: 100%; height: 180px; object-fit: cover; display: block; cursor: pointer; background: #eee; }
+        .card-info { padding: 12px; }
+        .dl-btn-small { background: #000; color: #fff; border: none; padding: 10px; width: 100%; font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; }
 
-        /* Download View / Modal */
-        #dlModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; overflow-y: auto; padding: 50px 20px; }
-        .dl-container { max-width: 1200px; margin: 0 auto; display: flex; gap: 40px; }
-        .dl-preview { flex: 1.5; }
-        .dl-preview img { width: 100%; border: 1px solid #eee; }
-        .dl-meta { flex: 1; }
-        .dl-action-box { background: #f9f9f9; padding: 30px; border: 1px solid #eee; }
-        .file-btn { display: flex; align-items: center; justify-content: space-between; background: #000; color: #fff; padding: 18px 25px; text-decoration: none; font-weight: 800; margin-bottom: 10px; border: none; width: 100%; cursor: pointer; }
+        /* Modal / Download Page View */
+        #downloadPage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; overflow-y: auto; padding: 40px 20px; }
+        .modal-wrap { max-width: 1200px; margin: 0 auto; display: flex; gap: 40px; }
+        .preview-side { flex: 1.5; }
+        .preview-side img { width: 100%; border: 1px solid var(--border); }
+        .info-side { flex: 1; }
+        .dl-box { background: #f9f9f9; padding: 25px; border: 1px solid var(--border); position: relative; }
+        .dl-main-btn { display: flex; align-items: center; justify-content: space-between; background: #000; color: #fff; padding: 15px 20px; text-decoration: none; font-weight: 800; margin-bottom: 10px; border: none; width: 100%; cursor: pointer; font-size: 14px; }
+
+        /* File Information Below Images */
+        .file-meta-content { margin-top: 20px; padding: 15px; background: #fff; border: 1px solid #eee; }
+        .meta-title { font-weight: bold; margin-bottom: 5px; font-size: 18px; }
+        .meta-desc { color: var(--text-grey); font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+        .meta-keys { font-size: 12px; color: #999; font-style: italic; }
 
         /* Waiting Screen */
         #waiter { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 3000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        #timer { font-size: 120px; font-weight: 900; color: #000; margin: 20px 0; }
-
-        /* Footer */
-        footer { background: #000; color: #fff; padding: 30px 20px; width: 100%; margin-top: auto; }
-        .footer-wrap { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .footer-info { font-size: 14px; font-weight: bold; }
-        .footer-contact { color: #fff; text-decoration: none; border: 1px solid #444; padding: 8px 15px; font-size: 13px; }
+        #timer { font-size: 100px; font-weight: 900; color: #000; margin: 15px 0; }
 
         /* Pagination */
-        .pager { display: flex; justify-content: center; gap: 10px; margin: 50px 0; }
-        .pager button { padding: 10px 15px; border: 1px solid #000; background: #fff; cursor: pointer; font-weight: bold; }
-        .pager button.active { background: #000; color: #fff; }
+        .pagination { display: flex; justify-content: center; gap: 8px; margin: 40px 0; }
+        .pagination button { padding: 8px 14px; border: 1px solid #000; background: #fff; cursor: pointer; font-weight: bold; }
+        .pagination button.active { background: #000; color: #fff; }
 
-        @media (max-width: 900px) { .main-wrapper { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .dl-container { flex-direction: column; } }
+        /* Footer Black Banner */
+        footer { background: #000; color: #fff; padding: 25px 0; width: 100%; margin-top: auto; }
+        .footer-wrap { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+        .footer-left { font-size: 13px; font-weight: 500; }
+        .footer-right a { color: #fff; text-decoration: none; border: 1px solid #444; padding: 6px 12px; font-size: 12px; transition: 0.3s; }
+        .footer-right a:hover { background: #fff; color: #000; }
+
+        @media (max-width: 900px) { .layout { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .modal-wrap { flex-direction: column; } }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
 <header>
-    <div class="header-container">
+    <div class="header-content">
         <a href="index.html" class="logo">FREE VECTOR STOCK</a>
-        <div class="nav-lines" id="lines"></div>
+        <div class="nav-lines" id="navLines"></div>
         <div id="banner-msg"></div>
     </div>
 </header>
 
-<div class="search-section">
+<div class="search-container">
     <div class="search-box">
         <input type="text" id="searchInput" placeholder="Search across 7,000+ free vectors, icons and illustrations...">
-        <button class="search-btn" onclick="runSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <button class="search-btn" onclick="performSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
 </div>
 
-<div class="main-wrapper">
+<div class="layout">
     <aside class="sidebar">
-        <div class="ad-space" style="height: 250px;">ADVERTISEMENT</div>
-        <div class="cat-head">Categories</div>
-        <div id="categoryList"></div>
+        <div class="ad-box" style="height: 250px;">ADVERTISEMENT</div>
+        <div class="cat-title">Categories</div>
+        <div id="categoryMenu"></div>
     </aside>
 
     <main class="content">
-        <div class="ad-space" style="height: 90px;">TOP BANNER ADVERTISEMENT</div>
+        <div class="ad-box" style="height: 90px; width: 100%;">TOP BANNER ADVERTISEMENT</div>
         
         <div class="grid" id="mainGrid"></div>
-        <div class="pager" id="pager"></div>
+        <div class="pagination" id="pagination"></div>
 
-        <h3 style="margin: 60px 0 20px; text-transform: uppercase; letter-spacing: 1px;">Related Stock Vectors</h3>
+        <h3 style="margin: 50px 0 20px; text-transform: uppercase; font-size: 16px; letter-spacing: 1px; border-bottom: 2px solid #000; padding-bottom: 5px; display: inline-block;">Related Stock Vectors</h3>
         <div class="grid" id="relatedGrid"></div>
-        <div class="ad-space" style="height: 200px; margin-top: 40px;">BOTTOM BANNER ADVERTISEMENT</div>
+        
+        <div class="ad-box" style="height: 180px; margin-top: 40px; width: 100%;">BOTTOM BANNER ADVERTISEMENT</div>
     </main>
 </div>
 
-<div id="dlModal">
-    <div style="max-width: 1200px; margin: 0 auto 30px;">
-        <button onclick="closeModal()" style="background: none; border: none; font-weight: bold; cursor: pointer; font-size: 16px;">✕ CLOSE AND BACK</button>
+<div id="downloadPage">
+    <div style="max-width: 1200px; margin: 0 auto 20px;">
+        <button onclick="closeDownloadPage()" style="background: none; border: 1px solid #000; padding: 8px 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px;">← Back to Gallery</button>
     </div>
-    <div class="dl-container">
-        <div class="dl-preview">
-            <div class="ad-space" style="height: 90px; margin-bottom: 15px;">CONTENT ADVERTISEMENT</div>
-            <img id="modalImg" src="">
-            <h1 id="modalTitle" style="margin-top: 25px;"></h1>
-            <p id="modalDesc" style="color: #666; line-height: 1.6; margin: 15px 0;"></p>
-            <div id="modalKeys" style="font-size: 13px; color: #999; background: #f4f4f4; padding: 15px;"></div>
+    <div class="modal-wrap">
+        <div class="preview-side">
+            <div class="ad-box" style="height: 90px; margin-bottom: 15px;">TOP PAGE ADVERTISEMENT</div>
+            <img id="itemPreview" src="">
+            <div class="file-meta-content" id="metaContainer">
+                </div>
         </div>
-        <div class="dl-meta">
-            <div class="ad-space" style="height: 300px;">SIDEBAR ADVERTISEMENT</div>
-            <div class="dl-action-box">
-                <p style="font-size: 12px; font-weight: bold; margin-bottom: 15px;">DOWNLOAD OPTIONS:</p>
-                <div class="ad-space" style="height: 60px; margin-bottom: 10px;">AD ABOVE BUTTON</div>
-                <button class="file-btn" onclick="triggerWait('jpg')"><span>JPG High-Res</span> <i class="fa-solid fa-download"></i></button>
-                <button class="file-btn" onclick="triggerWait('eps')"><span>EPS 10 Vector</span> <i class="fa-solid fa-download"></i></button>
-                <button class="file-btn" onclick="triggerWait('svg')"><span>SVG Vector</span> <i class="fa-solid fa-download"></i></button>
-                <div class="ad-space" style="height: 100px; margin-top: 10px;">AD BELOW BUTTON</div>
+        <div class="info-side">
+            <div class="ad-box" style="height: 300px;">SIDEBAR ADVERTISEMENT</div>
+            <div class="dl-box">
+                <p style="font-size: 11px; font-weight: 800; margin-bottom: 15px; color: #888;">DOWNLOAD OPTIONS:</p>
+                <div class="ad-box" style="height: 60px; margin-bottom: 10px;">ADVERTISEMENT</div>
+                <button class="dl-main-btn" onclick="handleWait('jpg')"><span>JPG High-Res</span> <i class="fa-solid fa-download"></i></button>
+                <div class="ad-box" style="height: 60px; margin-bottom: 10px;">ADVERTISEMENT</div>
+                <button class="dl-main-btn" onclick="handleWait('eps')"><span>EPS 10 Vector</span> <i class="fa-solid fa-download"></i></button>
+                <button class="dl-main-btn" onclick="handleWait('svg')"><span>SVG Vector</span> <i class="fa-solid fa-download"></i></button>
+                <div class="ad-box" style="height: 100px; margin-top: 10px;">BOTTOM ADVERTISEMENT</div>
             </div>
         </div>
     </div>
-    
     <div style="max-width: 1200px; margin: 60px auto;">
-        <h3 style="margin-bottom: 20px;">SIMILAR VECTORS YOU MAY LIKE</h3>
-        <div class="grid" id="modalSimilar"></div>
+        <h3 style="margin-bottom: 25px; text-transform: uppercase;">Similar Stock Vectors</h3>
+        <div class="grid" id="similarGrid"></div>
     </div>
 </div>
 
 <div id="waiter">
-    <div class="ad-space" style="width: 728px; height: 90px;">PREMIUM SPONSOR AD</div>
-    <h2>Your file is being generated...</h2>
+    <div class="ad-box" style="width: 728px; height: 90px;">PREMIUM SPONSOR ADVERTISEMENT</div>
+    <h2 style="margin-top: 20px;">Your file is being prepared...</h2>
     <div id="timer">10</div>
-    <p>Please wait while we prepare your high-quality download.</p>
-    <div class="ad-space" style="width: 300px; height: 250px; margin-top: 30px;">ADVERTISEMENT</div>
+    <p style="color: #666;">Please wait while we call the high-quality file from the server.</p>
+    <div class="ad-box" style="width: 300px; height: 250px; margin-top: 30px;">REVENUE ADVERTISEMENT</div>
 </div>
 
 <footer>
     <div class="footer-wrap">
-        <div class="footer-info">2026 © FREE VECTOR STOCK™ - Registered Brand. All rights reserved.</div>
-        <a href="mailto:hakankacar2014@gmail.com" class="footer-contact">Info: hakankacar2014@gmail.com</a>
+        <div class="footer-left">2026 © FREE VECTOR STOCK™ - Registered Brand. All rights reserved.</div>
+        <div class="footer-right">
+            <a href="mailto:hakankacar2014@gmail.com">Info: hakankacar2014@gmail.com</a>
+        </div>
     </div>
 </footer>
 
 <script>
     const G_USER = "free-vector-stock", G_REPO = "free-vector-stock";
-    let allItems = [], currentFilter = [], currentPage = 1, perPage = 30;
+    let allData = [], currentSet = [], page = 1, limit = 30;
 
-    const bannerMsgs = [
+    const messages = [
         "We operate our own in-house studio to produce graphic designs and offer them free of charge for both personal and commercial projects.",
         "Our goal is to provide a comprehensive and ideal platform for those seeking graphic resources.",
         "We aim to offer a wide archive of graphics, including vector illustrations, stock photos, icons, logos, and various design elements.",
         "Our only and absolute rule is that our files may not be redistributed in any way.",
-        "Our website's sustainability depends on advertising revenue. Please disable ad blockers to support us."
+        "The advertisements on our website generate revenue to enable us to continue our work. Therefore, we ask for your understanding.",
+        "Our website's sustainability depends on advertising revenue. Some features may be restricted while an ad blocker is active. Please disable the blocker and refresh the page."
     ];
 
-    const categories = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","icon"].sort();
+    const cats = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","icon"].sort();
 
     async function init() {
-        // Build Banner
-        const lines = document.getElementById('lines');
-        bannerMsgs.forEach((m, i) => {
+        // Banner Controls
+        const nav = document.getElementById('navLines');
+        messages.forEach((m, i) => {
             const l = document.createElement('div');
             l.className = `line ${i===0?'active':''}`;
             l.onclick = () => {
@@ -190,27 +198,26 @@
                 document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
                 l.classList.add('active');
             };
-            lines.appendChild(l);
+            nav.appendChild(l);
         });
-        document.getElementById('banner-msg').innerText = bannerMsgs[0];
+        document.getElementById('banner-msg').innerText = messages[0];
 
-        // Build Sidebar
-        const catDiv = document.getElementById('categoryList');
-        categories.forEach(c => {
+        // Sidebar Categories
+        const menu = document.getElementById('categoryMenu');
+        cats.forEach(c => {
             const a = document.createElement('a');
             a.className = 'cat-link';
             a.innerText = c;
-            a.onclick = () => filterCategory(c);
-            catDiv.appendChild(a);
+            a.onclick = () => filterByCat(c);
+            menu.appendChild(a);
         });
 
-        await syncData();
+        await loadDatabase();
     }
 
-    async function syncData() {
-        // Fetching structure from all categories to prevent 404
-        let combined = [];
-        for(let cat of categories) {
+    async function loadDatabase() {
+        let items = [];
+        for(let cat of cats) {
             try {
                 const res = await fetch(`https://api.github.com/repos/${G_USER}/${G_REPO}/contents/assets/${cat}`);
                 if(!res.ok) continue;
@@ -221,13 +228,14 @@
                     const base = f.name.split('.')[0];
                     const ext = f.name.split('.').pop().toLowerCase();
                     if(!groups[base]) groups[base] = { id: base, category: cat };
-                    groups[base][ext] = f.download_url;
+                    // We use raw.githubusercontent for direct high-speed access
+                    groups[base][ext] = `https://raw.githubusercontent.com/${G_USER}/${G_REPO}/main/assets/${cat}/${f.name}`;
                 });
-                combined = [...combined, ...Object.values(groups).filter(i => i.jpg)];
-            } catch(e) {}
+                items = [...items, ...Object.values(groups).filter(i => i.jpg)];
+            } catch(e) { console.error(e); }
         }
-        allItems = combined;
-        currentFilter = [...allItems];
+        allData = items;
+        currentSet = [...allData];
         render();
         renderRelated();
     }
@@ -235,43 +243,46 @@
     function render() {
         const grid = document.getElementById('mainGrid');
         grid.innerHTML = "";
-        const start = (currentPage - 1) * perPage;
-        const slice = currentFilter.slice(start, start + perPage);
+        const start = (page - 1) * limit;
+        const slice = currentSet.slice(start, start + limit);
         
         slice.forEach(item => {
             const div = document.createElement('div');
-            div.className = 'item-card';
+            div.className = 'card';
             div.innerHTML = `
-                <img src="${item.jpg}" loading="lazy" onclick="openModal('${item.id}')">
+                <img src="${item.jpg}" loading="lazy" onclick="openItem('${item.id}')">
                 <div class="card-info">
-                    <button class="dl-btn" onclick="openModal('${item.id}')">View & Download</button>
+                    <button class="dl-btn-small" onclick="openItem('${item.id}')">View Details</button>
                 </div>
             `;
             grid.appendChild(div);
         });
-        renderPager();
+        renderPagination();
     }
 
-    function renderPager() {
-        const p = document.getElementById('pager');
-        p.innerHTML = "";
-        const total = Math.ceil(currentFilter.length / perPage);
+    function renderPagination() {
+        const pag = document.getElementById('pagination');
+        pag.innerHTML = "";
+        const total = Math.ceil(currentSet.length / limit);
         for(let i=1; i<=total; i++) {
             const b = document.createElement('button');
             b.innerText = i;
-            if(i === currentPage) b.className = 'active';
-            b.onclick = () => { currentPage = i; render(); window.scrollTo(0, 400); };
-            p.appendChild(b);
+            if(i === page) b.className = 'active';
+            b.onclick = () => { page = i; render(); window.scrollTo(0, 300); };
+            pag.appendChild(b);
         }
     }
 
     let activeItem = null;
-    async function openModal(id) {
-        activeItem = allItems.find(x => x.id === id);
-        document.getElementById('modalImg').src = activeItem.jpg;
+    async function openItem(id) {
+        activeItem = allData.find(x => x.id === id);
+        document.getElementById('itemPreview').src = activeItem.jpg;
         
-        // Load JSON metadata if exists
-        let meta = { title: activeItem.id, description: "Professional high-quality free vector for your projects.", keywords: activeItem.category };
+        // Load JSON metadata
+        const metaCont = document.getElementById('metaContainer');
+        metaCont.innerHTML = "Loading description...";
+        
+        let meta = { title: activeItem.id, description: "Professional stock graphic for personal and commercial projects.", keywords: activeItem.category };
         if(activeItem.json) {
             try {
                 const r = await fetch(activeItem.json);
@@ -280,47 +291,49 @@
             } catch(e) {}
         }
         
-        document.getElementById('modalTitle').innerText = meta.title;
-        document.getElementById('modalDesc').innerText = meta.description;
-        document.getElementById('modalKeys').innerText = "Tags: " + meta.keywords;
+        metaCont.innerHTML = `
+            <div class="meta-title">${meta.title}</div>
+            <div class="meta-desc">${meta.description}</div>
+            <div class="meta-keys"><strong>Tags:</strong> ${meta.keywords}</div>
+        `;
         
-        // Similar
-        const simGrid = document.getElementById('modalSimilar');
+        // Similar Items
+        const simGrid = document.getElementById('similarGrid');
         simGrid.innerHTML = "";
-        allItems.sort(() => 0.5 - Math.random()).slice(0, 8).forEach(s => {
+        allData.sort(() => 0.5 - Math.random()).slice(0, 8).forEach(s => {
             const d = document.createElement('div');
-            d.className = 'item-card';
-            d.innerHTML = `<img src="${s.jpg}" onclick="openModal('${s.id}')">`;
+            d.className = 'card';
+            d.innerHTML = `<img src="${s.jpg}" onclick="openItem('${s.id}')">`;
             simGrid.appendChild(d);
         });
 
-        document.getElementById('dlModal').style.display = 'block';
+        document.getElementById('downloadPage').style.display = 'block';
         document.body.style.overflow = 'hidden';
     }
 
-    function closeModal() {
-        document.getElementById('dlModal').style.display = 'none';
+    function closeDownloadPage() {
+        document.getElementById('downloadPage').style.display = 'none';
         document.body.style.overflow = 'auto';
     }
 
-    function triggerWait(ext) {
-        const url = activeItem[ext];
-        if(!url) { alert("File not available in this format."); return; }
+    function handleWait(ext) {
+        const fileUrl = activeItem[ext];
+        if(!fileUrl) { alert("Format not found for this item."); return; }
         
         const w = document.getElementById('waiter');
         const t = document.getElementById('timer');
         w.style.display = 'flex';
-        let count = 10;
-        t.innerText = count;
+        let time = 10;
+        t.innerText = time;
 
-        const interval = setInterval(() => {
-            count--;
-            t.innerText = count;
-            if(count <= 0) {
-                clearInterval(interval);
+        const clock = setInterval(() => {
+            time--;
+            t.innerText = time;
+            if(time <= 0) {
+                clearInterval(clock);
                 w.style.display = 'none';
                 const link = document.createElement('a');
-                link.href = url;
+                link.href = fileUrl;
                 link.download = `${activeItem.id}.${ext}`;
                 document.body.appendChild(link);
                 link.click();
@@ -329,26 +342,27 @@
         }, 1000);
     }
 
-    function filterCategory(c) {
-        currentFilter = allItems.filter(i => i.category === c);
-        currentPage = 1;
+    function filterByCat(c) {
+        currentSet = allData.filter(i => i.category === c);
+        page = 1;
         render();
+        closeDownloadPage();
     }
 
-    function runSearch() {
+    function performSearch() {
         const q = document.getElementById('searchInput').value.toLowerCase();
-        currentFilter = allItems.filter(i => i.id.toLowerCase().includes(q));
-        currentPage = 1;
+        currentSet = allData.filter(i => i.id.toLowerCase().includes(q));
+        page = 1;
         render();
     }
 
     function renderRelated() {
         const g = document.getElementById('relatedGrid');
         g.innerHTML = "";
-        allItems.sort(() => 0.5 - Math.random()).slice(0, 20).forEach(item => {
+        allData.sort(() => 0.5 - Math.random()).slice(0, 20).forEach(item => {
             const div = document.createElement('div');
-            div.className = 'item-card';
-            div.innerHTML = `<img src="${item.jpg}" loading="lazy" onclick="openModal('${item.id}')">`;
+            div.className = 'card';
+            div.innerHTML = `<img src="${item.jpg}" loading="lazy" onclick="openItem('${item.id}')">`;
             g.appendChild(div);
         });
     }
