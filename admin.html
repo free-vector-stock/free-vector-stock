@@ -3,43 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FREE VECTOR STOCK - Admin</title>
+<title>FREE VECTOR STOCK - Admin Upload</title>
 <style>
-body{font-family:Arial;background:#fff;margin:0;padding:30px}
-h1{margin-bottom:20px}
-input,button{width:100%;padding:12px;margin-bottom:10px}
-button{background:#000;color:#fff;border:none;cursor:pointer}
-#log{height:200px;overflow:auto;background:#f4f4f4;padding:10px}
+body{font-family:Arial;background:#fff;margin:0;padding:20px}
+h1{margin:0 0 20px 0}
+input,button{width:100%;padding:10px;margin:5px 0}
+button{background:#000;color:#fff;border:0;cursor:pointer}
+.log{margin-top:20px;height:200px;overflow:auto;background:#f4f4f4;padding:10px}
 </style>
 </head>
 <body>
 
-<h1>FREE VECTOR STOCK - Upload Panel</h1>
+<h1>FREE VECTOR STOCK - Bulk Upload Panel</h1>
 
-<input type="text" id="repo" placeholder="GitHub Repo (username/repository)">
-<input type="password" id="token" placeholder="GitHub Personal Access Token">
+<input type="text" id="repo" placeholder="username/repository">
+<input type="text" id="token" placeholder="GitHub Personal Access Token">
 <input type="file" id="files" multiple>
-<button onclick="uploadFiles()">Upload</button>
+<button onclick="upload()">Upload Files</button>
 
-<div id="log"></div>
+<div class="log" id="log"></div>
 
 <script>
-function log(msg){document.getElementById("log").innerHTML+=msg+"<br>"}
+const categories=[
+"Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion",
+"Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink",
+"Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature",
+"Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols",
+"Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"
+];
 
-async function uploadFiles(){
-const repo=document.getElementById("repo").value.trim()
-const token=document.getElementById("token").value.trim()
-const files=document.getElementById("files").files
+function log(t){document.getElementById("log").innerHTML+=t+"<br>"}
+
+function findCategory(name){
+for(let c of categories){
+if(name.toLowerCase().includes(c.toLowerCase().split("/")[0])) return c;
+}
+return "Miscellaneous";
+}
+
+async function upload(){
+const repo=document.getElementById("repo").value.trim();
+const token=document.getElementById("token").value.trim();
+const files=document.getElementById("files").files;
 if(!repo||!token||files.length===0){alert("Fill all fields");return;}
 
 for(let file of files){
-let name=file.name
-let base=name.split("-")[0]
-let category=base.charAt(0).toUpperCase()+base.slice(1)
-let path="assets/"+category+"/"+name
 
-let content=await file.arrayBuffer()
-let base64=btoa(String.fromCharCode(...new Uint8Array(content)))
+let category=findCategory(file.name);
+let cleanCategory=category.replace("/","_");
+let path="assets/"+cleanCategory+"/"+file.name;
+
+let buffer=await file.arrayBuffer();
+let base64=btoa(
+new Uint8Array(buffer)
+.reduce((d,b)=>d+String.fromCharCode(b),'')
+);
 
 await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,{
 method:"PUT",
@@ -48,16 +66,16 @@ headers:{
 "Content-Type":"application/json"
 },
 body:JSON.stringify({
-message:"Upload "+name,
+message:"Upload "+file.name,
 content:base64
 })
-})
+});
 
-log("Uploaded: "+name)
+log("Uploaded: "+file.name+" → "+category);
 }
-alert("Upload Completed")
+
+alert("Upload Complete");
 }
 </script>
-
 </body>
 </html>
