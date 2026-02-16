@@ -1,92 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin - Bulk Upload to GitHub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<title>FREE VECTOR STOCK - Admin Upload</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{font-family:Arial;background:#fff;padding:30px}
+h1{text-align:center}
+input,button{margin-top:15px;padding:10px;width:100%}
+button{background:#000;color:#fff;border:none;cursor:pointer}
+.ad{background:#eee;padding:20px;margin-top:20px;text-align:center}
+</style>
 </head>
-<body class="bg-gray-100 p-10">
-    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-2xl">
-        <h1 class="text-3xl font-bold mb-2">Bulk Content Uploader</h1>
-        <p class="text-gray-500 mb-8">Files will be auto-categorized based on their names (e.g., "food-001.jpg" goes to Food).</p>
 
-        <div class="grid gap-6">
-            <input type="password" id="token" placeholder="Enter GitHub Personal Access Token" class="w-full p-3 border rounded">
-            
-            <div class="border-4 border-dashed border-gray-200 p-10 text-center rounded-lg">
-                <input type="file" id="fileInput" multiple class="hidden" onchange="updateList()">
-                <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 text-white px-8 py-3 rounded-full font-bold">Select Files (JPG, EPS, SVG, JSON)</button>
-                <p id="fileCount" class="mt-4 text-sm text-gray-400">No files selected</p>
-            </div>
+<body>
 
-            <div id="status" class="hidden p-4 rounded bg-blue-50 text-blue-700 text-sm font-mono whitespace-pre-wrap max-h-40 overflow-auto"></div>
+<h1>FREE VECTOR STOCK - Bulk Upload</h1>
 
-            <button onclick="startUpload()" id="uploadBtn" class="bg-black text-white p-4 rounded-lg font-bold hover:opacity-90 disabled:bg-gray-400">START BULK UPLOAD</button>
-        </div>
-    </div>
+<input type="file" id="files" multiple>
 
-    <script>
-        const CATEGORIES = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"];
+<button onclick="upload()">Upload Files</button>
 
-        function updateList() {
-            const files = document.getElementById('fileInput').files;
-            document.getElementById('fileCount').innerText = `${files.length} files ready to upload.`;
-        }
+<div class="ad">Advertisement Area</div>
 
-        async function startUpload() {
-            const token = document.getElementById('token').value;
-            const files = document.getElementById('fileInput').files;
-            const status = document.getElementById('status');
-            const btn = document.getElementById('uploadBtn');
+<script>
+async function upload(){
 
-            if(!token) return alert("Please enter GitHub Token");
-            if(files.length === 0) return alert("Select files first");
+const token="YOUR_GITHUB_TOKEN";
+const repo="free-vector-stock/free-vector-stock";
+const branch="main";
 
-            btn.disabled = true;
-            status.classList.remove('hidden');
-            status.innerText = "Initializing upload...\n";
+const files=document.getElementById("files").files;
 
-            for(let file of files) {
-                const cat = CATEGORIES.find(c => file.name.toLowerCase().includes(c.toLowerCase().split('/')[0])) || "Miscellaneous";
-                const path = `assets/${cat.replace(/\//g,'_')}/${file.name}`;
-                
-                status.innerText += `Uploading: ${path} ... `;
-                
-                try {
-                    const reader = new FileReader();
-                    const contentPromise = new Promise(resolve => {
-                        reader.onload = () => resolve(reader.result.split(',')[1]);
-                        reader.readAsDataURL(file);
-                    });
-                    
-                    const base64Content = await contentPromise;
-                    
-                    const res = await fetch(`https://api.github.com/repos/free-vector-stock/free-vector-stock/contents/${path}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: `Upload ${file.name}`,
-                            content: base64Content
-                        })
-                    });
+for(let file of files){
 
-                    if(res.ok) {
-                        status.innerText += "SUCCESS ✅\n";
-                    } else {
-                        status.innerText += "FAILED ❌\n";
-                    }
-                } catch (e) {
-                    status.innerText += `ERROR: ${e.message}\n`;
-                }
-                status.scrollTop = status.scrollHeight;
-            }
+const reader=new FileReader();
 
-            status.innerText += "\n--- ALL FINISHED ---";
-            btn.disabled = false;
-        }
-    </script>
+reader.onload=async function(){
+
+const content=btoa(reader.result);
+
+await fetch(`https://api.github.com/repos/${repo}/contents/assets/${file.name}`,{
+method:"PUT",
+headers:{
+Authorization:"token "+token,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+message:"upload "+file.name,
+content:content,
+branch:branch
+})
+});
+};
+
+reader.readAsBinaryString(file);
+}
+
+alert("Upload Completed");
+}
+</script>
+
 </body>
 </html>
