@@ -6,10 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{font-family:Arial;background:#fff;margin:0;padding:40px}
-h1{margin-bottom:10px}
-input,button{padding:10px;margin:5px 0;width:100%}
+h1{margin-bottom:20px}
+input,button{width:100%;padding:12px;margin-bottom:15px}
 button{background:black;color:white;border:none;cursor:pointer}
-#log{white-space:pre-wrap;margin-top:20px;background:#f5f5f5;padding:20px}
+#log{background:#f3f3f3;padding:20px;white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -17,30 +17,30 @@ button{background:black;color:white;border:none;cursor:pointer}
 <h1>FREE VECTOR STOCK - ADMIN PANEL</h1>
 
 <input type="text" id="token" placeholder="GitHub Personal Access Token">
-<input type="text" id="repo" placeholder="Repository (username/repository)">
+<input type="text" id="repo" placeholder="username/repository">
 <input type="file" id="files" multiple>
-<button onclick="upload()">UPLOAD FILES</button>
+<button onclick="uploadFiles()">Upload Files</button>
 
 <div id="log"></div>
 
 <script>
-async function upload(){
-const token=document.getElementById('token').value;
-const repo=document.getElementById('repo').value;
-const files=document.getElementById('files').files;
-const log=document.getElementById('log');
-if(!token||!repo||files.length==0){alert("Fill all fields");return;}
-for(let file of files){
-let reader=new FileReader();
-reader.onload=async function(){
-let content=btoa(reader.result);
-let category="Miscellaneous";
-let name=file.name.toLowerCase();
-const categories=["abstract","animals","the arts","backgrounds","beauty","buildings","business","celebrities","education","food","drink","healthcare","holidays","industrial","interiors","miscellaneous","nature","objects","parks","people","religion","science","signs","sports","technology","transportation","vintage","logo","font","icon"];
-for(let c of categories){
-if(name.includes(c.replace(/ /g,''))){category=c;break;}
+async function uploadFiles(){
+const token=document.getElementById("token").value;
+const repo=document.getElementById("repo").value;
+const files=document.getElementById("files").files;
+const log=document.getElementById("log");
+
+if(!token||!repo||files.length===0){
+alert("Fill all fields.");
+return;
 }
-let path="assets/"+category+"/"+file.name;
+
+for(let file of files){
+const reader=new FileReader();
+reader.onload=async function(){
+const content=btoa(reader.result);
+const path="assets/"+file.name;
+
 await fetch("https://api.github.com/repos/"+repo+"/contents/"+path,{
 method:"PUT",
 headers:{
@@ -52,6 +52,7 @@ message:"upload "+file.name,
 content:content
 })
 });
+
 log.innerHTML+="Uploaded: "+file.name+"\n";
 };
 reader.readAsBinaryString(file);
