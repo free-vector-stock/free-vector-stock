@@ -2,103 +2,91 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>STOCK ENGINE | Admin Bulk Uploader</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; padding: 40px; }
-        .admin-box { max-width: 800px; margin: 0 auto; background: #111; border: 1px solid #333; padding: 40px; border-radius: 8px; }
-        h1 { font-weight: 900; text-align: center; margin-bottom: 30px; letter-spacing: -1px; }
-        input[type="password"], input[type="text"] { width: 100%; padding: 15px; margin-bottom: 20px; background: #000; border: 1px solid #444; color: #fff; }
-        .drop-zone { border: 2px dashed #444; padding: 50px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
-        .drop-zone:hover { border-color: #fff; background: #1a1a1a; }
-        #status-log { background: #000; color: #0f0; padding: 15px; height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; border: 1px solid #333; margin-top: 20px; }
-        .btn { width: 100%; padding: 20px; background: #fff; color: #000; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn:disabled { background: #444; cursor: not-allowed; }
-    </style>
+    <title>Admin - Bulk Upload to GitHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 p-10">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-2xl">
+        <h1 class="text-3xl font-bold mb-2">Bulk Content Uploader</h1>
+        <p class="text-gray-500 mb-8">Files will be auto-categorized based on their names (e.g., "food-001.jpg" goes to Food).</p>
 
-    <div class="admin-box">
-        <h1>STOCK MANAGER v2026</h1>
-        <p style="color:#666; font-size:13px; margin-bottom:20px;">Upload JPG, EPS, SVG and JSON together. Categories are detected by filename.</p>
-        
-        <input type="password" id="gh-token" placeholder="GitHub Personal Access Token">
-        
-        <div class="drop-zone" onclick="document.getElementById('file-input').click()">
-            <strong>DROP FILES HERE OR CLICK</strong>
-            <p style="font-size:12px; color:#555; margin-top:10px;">Supported: .jpg, .eps, .svg, .json</p>
+        <div class="grid gap-6">
+            <input type="password" id="token" placeholder="Enter GitHub Personal Access Token" class="w-full p-3 border rounded">
+            
+            <div class="border-4 border-dashed border-gray-200 p-10 text-center rounded-lg">
+                <input type="file" id="fileInput" multiple class="hidden" onchange="updateList()">
+                <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 text-white px-8 py-3 rounded-full font-bold">Select Files (JPG, EPS, SVG, JSON)</button>
+                <p id="fileCount" class="mt-4 text-sm text-gray-400">No files selected</p>
+            </div>
+
+            <div id="status" class="hidden p-4 rounded bg-blue-50 text-blue-700 text-sm font-mono whitespace-pre-wrap max-h-40 overflow-auto"></div>
+
+            <button onclick="startUpload()" id="uploadBtn" class="bg-black text-white p-4 rounded-lg font-bold hover:opacity-90 disabled:bg-gray-400">START BULK UPLOAD</button>
         </div>
-        <input type="file" id="file-input" multiple style="display:none" onchange="logReady()">
-
-        <button class="btn" id="start-btn" onclick="uploadBatch()">SYNC TO GITHUB STORAGE</button>
-
-        <div id="status-log">System ready... awaiting files.</div>
     </div>
 
     <script>
-        const G_USER = "free-vector-stock", G_REPO = "free-vector-stock";
-        const cats = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"];
+        const CATEGORIES = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"];
 
-        function log(m) {
-            const s = document.getElementById('status-log');
-            s.innerHTML += `> ${m}<br>`;
-            s.scrollTop = s.scrollHeight;
+        function updateList() {
+            const files = document.getElementById('fileInput').files;
+            document.getElementById('fileCount').innerText = `${files.length} files ready to upload.`;
         }
 
-        function logReady() {
-            const count = document.getElementById('file-input').files.length;
-            log(`Queue updated: ${count} files ready for sync.`);
-        }
+        async function startUpload() {
+            const token = document.getElementById('token').value;
+            const files = document.getElementById('fileInput').files;
+            const status = document.getElementById('status');
+            const btn = document.getElementById('uploadBtn');
 
-        async function uploadBatch() {
-            const token = document.getElementById('gh-token').value;
-            const files = Array.from(document.getElementById('file-input').files);
-            if(!token || files.length === 0) { alert("Missing Token or Files!"); return; }
+            if(!token) return alert("Please enter GitHub Token");
+            if(files.length === 0) return alert("Select files first");
 
-            const btn = document.getElementById('start-btn');
             btn.disabled = true;
-            log("Opening Secure API Channel...");
+            status.classList.remove('hidden');
+            status.innerText = "Initializing upload...\n";
 
-            for(let f of files) {
-                let targetCat = "Miscellaneous";
-                const lowName = f.name.toLowerCase();
-                for(let c of cats) {
-                    if(lowName.includes(c.toLowerCase().split('/')[0])) { targetCat = c; break; }
-                }
-
+            for(let file of files) {
+                const cat = CATEGORIES.find(c => file.name.toLowerCase().includes(c.toLowerCase().split('/')[0])) || "Miscellaneous";
+                const path = `assets/${cat.replace(/\//g,'_')}/${file.name}`;
+                
+                status.innerText += `Uploading: ${path} ... `;
+                
                 try {
-                    const b64 = await toBase64(f);
-                    const path = `assets/${targetCat}/${f.name}`;
+                    const reader = new FileReader();
+                    const contentPromise = new Promise(resolve => {
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.readAsDataURL(file);
+                    });
                     
-                    // Direct PUT to solve deployment lag
-                    const res = await fetch(`https://api.github.com/repos/${G_USER}/${G_REPO}/contents/${path}`, {
+                    const base64Content = await contentPromise;
+                    
+                    const res = await fetch(`https://api.github.com/repos/free-vector-stock/free-vector-stock/contents/${path}`, {
                         method: 'PUT',
                         headers: {
                             'Authorization': `token ${token}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            message: `Auto-upload: ${f.name}`,
-                            content: b64
+                            message: `Upload ${file.name}`,
+                            content: base64Content
                         })
                     });
 
-                    if(res.ok) log(`SUCCESS: ${f.name} -> ${targetCat}`);
-                    else log(`FAILED: ${f.name} (Check if file already exists)`);
-                } catch(e) {
-                    log(`ERROR: ${f.name} - ${e.message}`);
+                    if(res.ok) {
+                        status.innerText += "SUCCESS ✅\n";
+                    } else {
+                        status.innerText += "FAILED ❌\n";
+                    }
+                } catch (e) {
+                    status.innerText += `ERROR: ${e.message}\n`;
                 }
+                status.scrollTop = status.scrollHeight;
             }
 
-            log("SYNC PROCESS COMPLETED.");
+            status.innerText += "\n--- ALL FINISHED ---";
             btn.disabled = false;
         }
-
-        const toBase64 = file => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = error => reject(error);
-        });
     </script>
 </body>
 </html>
