@@ -1,192 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>FREE VECTOR STOCK - Free Vector Download</title>
-<meta name="description" content="Download free vector illustrations, EPS, SVG and stock graphics for personal and commercial use.">
-<meta name="keywords" content="free vector download, eps download, free stock vectors, svg vectors">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Arial;background:#fff;color:#000;height:100vh;display:flex;flex-direction:column}
-header{background:#000;color:#fff;padding:15px 20px;display:flex;justify-content:space-between;align-items:center}
-header h1{font-size:22px}
-.lines{cursor:pointer;font-size:22px}
-.toptext{background:#111;color:#fff;padding:10px;font-size:13px}
-.layout{flex:1;display:flex;overflow:hidden}
-.sidebar{width:230px;padding:10px;border-right:1px solid #ddd}
-.sidebar a{display:block;font-size:12px;padding:3px 0;color:#000;text-decoration:none}
-.sidebar a:hover{font-weight:bold}
-.main{flex:1;padding:15px;overflow-y:auto}
-.search{width:100%;padding:10px;border:1px solid #ccc;margin-bottom:15px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:15px}
-.card{border:1px solid #eee;padding:10px}
-.card img{width:100%;height:150px;object-fit:cover}
-.meta{font-size:11px;margin-top:5px}
-button{background:#000;color:#fff;border:none;padding:8px;width:100%;cursor:pointer;margin-top:8px}
-.ad{background:#eee;text-align:center;padding:20px;margin:15px 0}
-.pagination{text-align:center;margin:20px 0}
-.pagination span{margin:0 5px;cursor:pointer}
-footer{background:#000;color:#fff;text-align:center;padding:15px;font-size:14px}
-#downloadPage{position:fixed;inset:0;background:#fff;display:none;flex-direction:column;justify-content:center;align-items:center;z-index:999}
-#downloadPage .ad{width:60%}
-@media(max-width:900px){
-.sidebar{display:none}
-}
-</style>
+    <meta charset="UTF-8">
+    <title>FREE VECTOR STOCK - Download Premium Quality Vectors for Free</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Download free vector illustrations, EPS, SVG and stock graphics for personal and commercial use. High quality assets for designers.">
+    <meta name="keywords" content="free vector download, eps download, free stock vectors, svg vectors, free illustrations">
+    <style>
+        :root { --main-black: #000; --bg-gray: #f8f8f8; }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-user-select:none; -moz-user-select:none; user-select:none; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Header & Banner */
+        header { background: var(--main-black); color: #fff; text-align: center; padding: 15px 0; z-index: 1000; position: fixed; top: 0; width: 100%; }
+        header h1 { font-size: 24px; letter-spacing: 1px; margin-bottom: 5px; }
+        #anim-text { font-size: 13px; color: #ccc; height: 20px; transition: opacity 0.5s; padding: 0 20px; }
+
+        /* Layout Structure */
+        .wrapper { display: flex; flex: 1; margin-top: 85px; margin-bottom: 50px; overflow: hidden; }
+        
+        /* Sidebar */
+        .sidebar { width: 220px; border-right: 1px solid #eee; overflow-y: auto; padding: 10px; background: #fff; }
+        .sidebar h3 { font-size: 14px; margin-bottom: 10px; color: #888; text-transform: uppercase; }
+        .sidebar a { display: block; padding: 6px 0; color: #333; text-decoration: none; font-size: 13px; border-bottom: 1px solid #f9f9f9; }
+        .sidebar a:hover { color: #000; font-weight: bold; background: #f0f0f0; }
+
+        /* Main Content */
+        .content { flex: 1; overflow-y: auto; padding: 20px; background: var(--bg-gray); position: relative; }
+        .ad-row { width: 100%; background: #eee; text-align: center; padding: 15px; margin-bottom: 15px; font-size: 12px; color: #666; border: 1px dashed #ccc; }
+        
+        .search-container { margin-bottom: 25px; position: relative; }
+        .search-input { width: 100%; padding: 15px 45px; border: 1px solid #ddd; border-radius: 30px; font-size: 16px; outline: none; }
+        .search-icon { position: absolute; left: 15px; top: 15px; color: #888; }
+
+        /* Grid System */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .card { background: #fff; border: 1px solid #eee; transition: transform 0.2s; position: relative; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 180px; object-fit: cover; border-bottom: 1px solid #eee; }
+        
+        .meta-box { padding: 10px; flex-grow: 1; overflow: hidden; }
+        .meta-box h4 { font-size: 13px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .meta-box p { font-size: 11px; color: #666; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        
+        .dl-btn { background: var(--main-black); color: #fff; border: none; padding: 10px; cursor: pointer; font-weight: bold; width: 100%; font-size: 12px; }
+
+        /* Footer */
+        footer { background: var(--main-black); color: #fff; text-align: center; padding: 15px; position: fixed; bottom: 0; width: 100%; z-index: 1000; display: flex; justify-content: center; gap: 20px; font-size: 13px; }
+        footer a { color: #fff; text-decoration: none; }
+
+        /* Download Modal */
+        #dl-modal { position: fixed; inset: 0; background: #fff; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .timer-circle { font-size: 48px; font-weight: bold; margin: 20px; border: 5px solid #000; border-radius: 50%; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
+
+        .pagination { margin: 30px 0; text-align: center; }
+        .pagination span { padding: 8px 15px; border: 1px solid #ddd; margin: 0 3px; cursor: pointer; background: #fff; }
+        .pagination .active { background: #000; color: #fff; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .wrapper { margin-top: 110px; }
+            header h1 { font-size: 18px; }
+        }
+    </style>
 </head>
 <body oncontextmenu="return false">
 
 <header>
-<h1>FREE VECTOR STOCK</h1>
-<div class="lines" onclick="changeText()">≡≡≡≡≡</div>
+    <h1>FREE VECTOR STOCK</h1>
+    <div id="anim-text">Loading insights...</div>
 </header>
 
-<div class="toptext" id="topText">
-We operate our own in-house studio to produce graphic designs and offer them free of charge for both personal and commercial projects.
-</div>
+<div class="wrapper">
+    <aside class="sidebar">
+        <h3>Categories</h3>
+        <div id="cat-list"></div>
+        <div class="ad-row" style="margin-top:20px; height: 250px;">SIDEBAR AD</div>
+    </aside>
 
-<div class="layout">
-<div class="sidebar" id="cats"></div>
+    <main class="content">
+        <div class="ad-row">TOP HORIZONTAL AD REVENUE AREA</div>
 
-<div class="main">
-<div class="ad">Advertisement Area</div>
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search for free vectors (e.g. food, sports, icons...)">
+        </div>
 
-<input type="text" id="search" class="search" placeholder="🔍 Search vectors...">
+        <div class="grid" id="mainGrid"></div>
+        
+        <div class="pagination" id="pages"></div>
 
-<div class="grid" id="grid"></div>
-
-<div class="pagination" id="pagination"></div>
-
-<div class="ad">Advertisement Area</div>
-</div>
+        <div class="ad-row" style="height: 150px;">BOTTOM CONTENT AD REVENUE AREA</div>
+    </main>
 </div>
 
 <footer>
-© 2026 ® FREE VECTOR STOCK | <a href="mailto:hakankacar2014@gmail.com" style="color:white">Info</a>
+    <span>© 2026 ® FREE VECTOR STOCK</span>
+    <span>All Rights Reserved</span>
+    <a href="mailto:hakankacar2014@gmail.com">Info & Support</a>
 </footer>
 
-<div id="downloadPage">
-<h2>Your file is being prepared</h2>
-<p>Download starts in <span id="counter">10</span> seconds</p>
-<div class="ad">Advertisement Area</div>
+<div id="dl-modal">
+    <h1>Your File is Being Prepared</h1>
+    <p>Please wait for the secure download link</p>
+    <div class="ad-row" style="width: 80%; height: 250px; margin: 20px;">MOST VALUABLE AD AREA (HIGH CTR)</div>
+    <div class="timer-circle" id="timer">10</div>
+    <p>Download will start automatically...</p>
 </div>
 
 <script>
-const repo="free-vector-stock/free-vector-stock";
-const baseRaw="https://raw.githubusercontent.com/"+repo+"/main/assets/";
-const apiBase="https://api.github.com/repos/"+repo+"/contents/assets/";
+const repo = "free-vector-stock/free-vector-stock";
+const rawBase = `https://raw.githubusercontent.com/${repo}/main/assets/`;
+const apiBase = `https://api.github.com/repos/${repo}/contents/assets/`;
 
-const categories=[
-"Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion",
-"Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink",
-"Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature",
-"Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols",
-"Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"
+const categories = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"];
+const texts = [
+    "We operate our own in-house studio to produce graphic designs and offer them free of charge.",
+    "Our goal is to provide a comprehensive and ideal platform for graphic resources.",
+    "We aim to offer a wide archive including vector illustrations, stock photos, and icons.",
+    "Rule: Our files may not be redistributed in any way.",
+    "Advertisements generate revenue to enable us to continue our work. Thank you for your support.",
+    "Sustainability depends on ad revenue. Please disable ad-blockers for full access."
 ];
 
-const texts=[
-"We operate our own in-house studio to produce graphic designs and offer them free of charge for both personal and commercial projects.",
-"Our goal is to provide a comprehensive and ideal platform for those seeking graphic resources.",
-"We aim to offer a wide archive of graphics including vector illustrations, stock photos, icons and design elements.",
-"Our only and absolute rule is that our files may not be redistributed in any way.",
-"The advertisements on our website generate revenue to enable us to continue our work."
-];
+let currentCat = "Food";
+let allItems = [];
+let filteredItems = [];
+let currentPage = 1;
+const perPage = 30;
 
-let textIndex=0;
-function changeText(){
-textIndex=(textIndex+1)%texts.length;
-document.getElementById("topText").innerText=texts[textIndex];
-}
+// Text Animation
+let tIdx = 0;
+setInterval(() => {
+    tIdx = (tIdx + 1) % texts.length;
+    const el = document.getElementById('anim-text');
+    el.style.opacity = 0;
+    setTimeout(() => {
+        el.innerText = texts[tIdx];
+        el.style.opacity = 1;
+    }, 500);
+}, 5000);
 
-let allItems=[];
-let page=1;
-const perPage=30;
-
-function loadCategories(){
-let box=document.getElementById("cats");
-categories.sort().forEach(cat=>{
-let a=document.createElement("a");
-a.innerText=cat;
-a.onclick=()=>loadCategory(cat);
-box.appendChild(a);
+// Init Categories
+const catBox = document.getElementById('cat-list');
+categories.sort().forEach(c => {
+    let a = document.createElement('a');
+    a.href = "#";
+    a.innerText = c;
+    a.onclick = () => { loadCategory(c); return false; };
+    catBox.appendChild(a);
 });
-}
-loadCategories();
 
-async function loadCategory(cat){
-allItems=[];
-page=1;
-let res=await fetch(apiBase+encodeURIComponent(cat));
-if(!res.ok) return;
-let data=await res.json();
-for(let f of data){
-if(f.name.endsWith(".jpg")){
-let base=f.name.replace(".jpg","");
-allItems.push({cat,base});
-}
-}
-render();
+async function loadCategory(cat) {
+    currentCat = cat;
+    const res = await fetch(apiBase + encodeURIComponent(cat));
+    if(!res.ok) return;
+    const data = await res.json();
+    
+    // Match JPG and ZIP
+    allItems = data.filter(f => f.name.endsWith('.jpg')).map(f => ({
+        name: f.name.replace('.jpg', ''),
+        cat: cat
+    }));
+    filteredItems = [...allItems];
+    renderGrid();
 }
 
-async function getMeta(cat,base){
-try{
-let res=await fetch(baseRaw+cat+"/"+base+".json");
-if(!res.ok) return {};
-return await res.json();
-}catch{return {};}
+async function renderGrid() {
+    const grid = document.getElementById('mainGrid');
+    grid.innerHTML = "";
+    
+    let start = (currentPage - 1) * perPage;
+    let end = start + perPage;
+    let slice = filteredItems.slice(start, end);
+
+    for(let item of slice) {
+        let meta = { title: item.name, description: "Professional vector resource", keywords: "vector, graphic, free" };
+        
+        // Try to fetch JSON for meta
+        try {
+            let mRes = await fetch(`${rawBase}${item.cat}/${item.name}.json`);
+            if(mRes.ok) meta = await mRes.json();
+        } catch(e) {}
+
+        grid.innerHTML += `
+            <div class="card">
+                <img src="${rawBase}${item.cat}/${item.name}.jpg" loading="lazy">
+                <div class="meta-box">
+                    <h4>${meta.title}</h4>
+                    <p>${meta.description}</p>
+                    <div style="font-size:9px; color:#999; margin-top:5px;">${meta.keywords}</div>
+                </div>
+                <div style="padding:5px; background:#f0f0f0; font-size:10px; text-align:center">AD AREA</div>
+                <button class="dl-btn" onclick="startDownload('${item.cat}','${item.name}')">DOWNLOAD ZIP</button>
+            </div>
+        `;
+    }
+    renderPager();
 }
 
-async function render(){
-let grid=document.getElementById("grid");
-grid.innerHTML="";
-let start=(page-1)*perPage;
-let slice=allItems.slice(start,start+perPage);
-
-for(let item of slice){
-let meta=await getMeta(item.cat,item.base);
-grid.innerHTML+=`
-<div class="card">
-<img loading="lazy" src="${baseRaw}${item.cat}/${item.base}.jpg">
-<div class="meta"><b>${meta.title||""}</b><br>${meta.description||""}<br>${meta.keywords||""}</div>
-<div class="ad">Advertisement Area</div>
-<button onclick="download('${item.cat}','${item.base}')">Download</button>
-</div>`;
-}
-renderPagination();
+function renderPager() {
+    const pager = document.getElementById('pages');
+    pager.innerHTML = "";
+    let total = Math.ceil(filteredItems.length / perPage);
+    for(let i=1; i<=total; i++) {
+        let s = document.createElement('span');
+        s.innerText = i;
+        if(i === currentPage) s.className = "active";
+        s.onclick = () => { currentPage = i; renderGrid(); };
+        pager.appendChild(s);
+    }
 }
 
-function renderPagination(){
-let total=Math.ceil(allItems.length/perPage);
-let p="";
-for(let i=1;i<=total;i++){
-p+=`<span onclick="goPage(${i})">${i}</span>`;
-}
-document.getElementById("pagination").innerHTML=p;
+// Search Logic
+document.getElementById('searchInput').oninput = function(e) {
+    let q = e.target.value.toLowerCase();
+    filteredItems = allItems.filter(i => i.name.toLowerCase().includes(q));
+    currentPage = 1;
+    renderGrid();
+};
+
+function startDownload(cat, name) {
+    const modal = document.getElementById('dl-modal');
+    const timerEl = document.getElementById('timer');
+    modal.style.display = 'flex';
+    let count = 10;
+    
+    let itv = setInterval(() => {
+        count--;
+        timerEl.innerText = count;
+        if(count <= 0) {
+            clearInterval(itv);
+            modal.style.display = 'none';
+            window.location.href = `${rawBase}${cat}/${name}.zip`;
+        }
+    }, 1000);
 }
 
-function goPage(i){page=i;render();}
-
-function download(cat,base){
-document.getElementById("downloadPage").style.display="flex";
-let c=10;
-let counter=document.getElementById("counter");
-counter.innerText=c;
-let t=setInterval(()=>{
-c--;
-counter.innerText=c;
-if(c===0){
-clearInterval(t);
-window.location.href=baseRaw+cat+"/"+base+".zip";
-}
-},1000);
-}
-
-document.getElementById("search").addEventListener("input",function(){
-let q=this.value.toLowerCase();
-allItems=allItems.filter(x=>x.base.toLowerCase().includes(q));
-render();
-});
+// Initial Load
+loadCategory("Food");
 </script>
 
 </body>
