@@ -2,35 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>FREE VECTOR STOCK - Admin Panel</title>
+<title>FREE VECTOR STOCK - Secure Admin Upload</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{font-family:Arial;background:#ffffff;margin:0;padding:30px}
+body{font-family:Arial;background:#fff;margin:0;padding:40px}
 h1{margin-bottom:20px}
 input,button{width:100%;padding:12px;margin-bottom:15px;font-size:14px}
 button{background:#000;color:#fff;border:none;cursor:pointer}
-button:hover{opacity:0.8}
-.notice{background:#f2f2f2;padding:10px;font-size:13px}
+button:hover{opacity:.85}
+.notice{background:#f3f3f3;padding:15px;font-size:13px;margin-bottom:20px}
+.success{color:green}
+.error{color:red}
 </style>
 </head>
 <body>
 
-<h1>FREE VECTOR STOCK - Secure Upload</h1>
+<h1>FREE VECTOR STOCK - Upload Panel</h1>
 
 <div class="notice">
-Only the administrator can upload files.  
-Select unlimited JPG, ZIP and JSON files together.
-Files must share identical names (example: food-0001.jpg, food-0001.zip, food-0001.json).
-Category is detected automatically from filename prefix.
+Upload unlimited JPG, ZIP and JSON files together.<br>
+Files must share identical names.<br>
+Category auto-detected from filename prefix.<br>
+Example: food-0001.jpg → Food folder
 </div>
 
-<input type="text" id="repo" placeholder="Repository (example: free-vector-stock/free-vector-stock)">
-<input type="password" id="token" placeholder="GitHub Personal Access Token">
+<input type="password" id="token" placeholder="GitHub Personal Access Token (Required)">
 <input type="file" id="files" multiple>
-<button onclick="uploadFiles()">Upload Files</button>
+<button onclick="upload()">Upload Files</button>
+
+<div id="status"></div>
 
 <script>
-const categories = [
+const repo="free-vector-stock/free-vector-stock";
+const branch="main";
+
+const categories=[
 "Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion",
 "Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink",
 "Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature",
@@ -38,44 +44,59 @@ const categories = [
 "Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"
 ];
 
-function detectCategory(filename){
-let prefix = filename.split("-")[0].toLowerCase();
+function detectCategory(name){
+let prefix=name.split("-")[0].toLowerCase();
 for(let cat of categories){
-if(cat.toLowerCase().includes(prefix)) return cat;
+if(cat.toLowerCase().replace(/[^a-z]/g,"").includes(prefix.replace(/[^a-z]/g,"")))
+return cat;
 }
 return null;
 }
 
-async function uploadFiles(){
-const repo=document.getElementById("repo").value.trim();
+async function upload(){
 const token=document.getElementById("token").value.trim();
 const files=document.getElementById("files").files;
-if(!repo||!token||files.length===0){alert("Fill all fields");return;}
+const status=document.getElementById("status");
+if(!token||files.length===0){alert("Token and files required");return;}
 
 for(let file of files){
-let category=detectCategory(file.name);
-if(!category){alert("Category not detected for "+file.name);continue;}
+let cat=detectCategory(file.name);
+if(!cat){status.innerHTML+="<div class='error'>Category not detected: "+file.name+"</div>";continue;}
 
-let reader=new FileReader();
-reader.onload=async function(){
-let content=btoa(reader.result);
-let path="assets/"+category+"/"+file.name;
+let path="assets/"+cat+"/"+file.name;
+let content=await file.arrayBuffer();
+let base64=btoa(String.fromCharCode(...new Uint8Array(content)));
 
-await fetch("https://api.github.com/repos/"+repo+"/contents/"+path,{
+let api="https://api.github.com/repos/"+repo+"/contents/"+path;
+
+let sha=null;
+let check=await fetch(api,{headers:{Authorization:"token "+token}});
+if(check.status===200){
+let existing=await check.json();
+sha=existing.sha;
+}
+
+let body={
+message:"Upload "+file.name,
+content:base64,
+branch:branch
+};
+if(sha) body.sha=sha;
+
+let res=await fetch(api,{
 method:"PUT",
 headers:{
-"Authorization":"token "+token,
+Authorization:"token "+token,
 "Content-Type":"application/json"
 },
-body:JSON.stringify({
-message:"Upload "+file.name,
-content:content
-})
+body:JSON.stringify(body)
 });
-};
-reader.readAsBinaryString(file);
+
+if(res.status===201||res.status===200)
+status.innerHTML+="<div class='success'>Uploaded: "+file.name+"</div>";
+else
+status.innerHTML+="<div class='error'>Error: "+file.name+"</div>";
 }
-alert("Upload completed successfully.");
 }
 </script>
 
