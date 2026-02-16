@@ -5,18 +5,26 @@
     <title>ADMIN - FREE VECTOR STOCK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
-        .container{background:#fff;padding:40px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:600px}
-        h2{text-align:center;margin-bottom:25px;color:#1a1a1a;border-bottom:2px solid #000;padding-bottom:10px}
-        input,button,select{width:100%;padding:14px;margin-bottom:15px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;margin:0;padding:20px;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+        .container{background:#fff;padding:30px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:800px;margin-bottom:20px}
+        h2{text-align:center;margin-bottom:20px;color:#1a1a1a;border-bottom:2px solid #000;padding-bottom:10px}
+        input,button,select{width:100%;padding:12px;margin-bottom:15px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box}
         button{background:#000;color:#fff;font-weight:bold;cursor:pointer;border:none;transition:0.3s}
         button:hover{background:#333}
         button:disabled{background:#ccc;cursor:not-allowed}
-        #status{max-height:250px;overflow-y:auto;background:#fafafa;padding:15px;border-radius:6px;font-size:12px;border:1px solid #eee}
+        #status{max-height:200px;overflow-y:auto;background:#fafafa;padding:15px;border-radius:6px;font-size:12px;border:1px solid #eee;margin-bottom:20px}
         .success{color:#27ae60;font-weight:bold;margin-bottom:5px} 
         .error{color:#e74c3c;font-weight:bold;margin-bottom:5px}
         .info{font-size:11px;color:#666;text-align:center;margin-bottom:10px}
-        .progress-item { border-bottom: 1px solid #eee; padding: 5px 0; }
+        
+        /* CATEGORY STATS TABLE */
+        .stats-container { background:#fff; padding:20px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.05); width:100%; max-width:800px; overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; font-size:14px; }
+        th, td { padding:12px; text-align:left; border-bottom:1px solid #eee; }
+        th { background:#f8f8f8; font-weight:bold; color:#333; }
+        tr:hover { background:#fafafa; }
+        .badge { background:#000; color:#fff; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:bold; }
+        .count-cell { font-weight:900; color:#000; font-size:16px; }
     </style>
 </head>
 <body>
@@ -27,6 +35,23 @@
         <input type="file" id="fileInput" multiple>
         <button id="uploadBtn" onclick="startUpload()">START MULTI-UPLOAD & UPDATE DB</button>
         <div id="status">Ready...</div>
+        <button onclick="loadStats()" style="background:#444; margin-top:10px;">REFRESH CATEGORY STATS</button>
+    </div>
+
+    <div class="stats-container">
+        <h3 style="margin-top:0; font-size:18px; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:15px;">Category Download Statistics</h3>
+        <table id="statsTable">
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th style="text-align:center;">Total Downloads</th>
+                    <th style="text-align:center;">Total Vectors</th>
+                </tr>
+            </thead>
+            <tbody id="statsBody">
+                <tr><td colspan="3" style="text-align:center; color:#999; padding:30px;">Click "Refresh" to load statistics...</td></tr>
+            </tbody>
+        </table>
     </div>
 
 <script>
@@ -53,13 +78,11 @@ async function startUpload() {
 
     let newEntries = [];
 
-    // Önce dosyaları yükle
     for (let file of files) {
         const cat = getCat(file.name);
         const path = `assets/${cat}/${file.name}`;
         
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'progress-item';
         itemDiv.innerText = `Processing: ${file.name}...`;
         status.appendChild(itemDiv);
         status.scrollTop = status.scrollHeight;
@@ -83,12 +106,10 @@ async function startUpload() {
             });
 
             if(res.ok) {
-                itemDiv.innerHTML = `<span class="success">✓ Uploaded: ${file.name} to ${cat}</span>`;
+                itemDiv.innerHTML = `<span class="success">✓ Uploaded: ${file.name}</span>`;
                 
-                // Eğer JPG ise database için hazırla
                 if(file.name.toLowerCase().endsWith('.jpg')) {
                     const baseName = file.name.replace(/\.[^/.]+$/, "");
-                    // Aynı isimli JSON dosyasını bulmaya çalış
                     const jsonFile = files.find(f => f.name === baseName + ".json");
                     let meta = { description: "", keywords: "" };
                     
@@ -106,7 +127,8 @@ async function startUpload() {
                         category: cat,
                         description: meta.description || "Professional stock vector for commercial use.",
                         keywords: meta.keywords || "vector, free, stock",
-                        date: new Date().toISOString().split('T')[0]
+                        date: new Date().toISOString().split('T')[0],
+                        downloads: 0
                     });
                 }
             } else {
@@ -119,63 +141,106 @@ async function startUpload() {
         status.scrollTop = status.scrollHeight;
     }
 
-    // Database.json güncelleme
     if(newEntries.length > 0) {
-        const dbDiv = document.createElement('div');
-        dbDiv.className = 'progress-item';
-        dbDiv.innerText = "Updating database.json...";
-        status.appendChild(dbDiv);
-
-        try {
-            const dbPath = "database.json";
-            const dbSha = await getSha(dbPath, token);
-            let currentDb = [];
-
-            if(dbSha) {
-                const dbRes = await fetch(`https://api.github.com/repos/${repo}/contents/${dbPath}`, {
-                    headers: { "Authorization": `token ${token}` }
-                });
-                const dbData = await dbRes.json();
-                currentDb = JSON.parse(decodeURIComponent(escape(atob(dbData.content))));
-            }
-
-            // Yeni verileri ekle (varsa eskileri güncelle, yoksa ekle)
-            newEntries.forEach(entry => {
-                const idx = currentDb.findIndex(item => item.name === entry.name && item.category === entry.category);
-                if(idx > -1) currentDb[idx] = entry;
-                else currentDb.push(entry);
-            });
-
-            // Tarihe göre sırala (en yeni en üstte)
-            currentDb.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            const updateRes = await fetch(`https://api.github.com/repos/${repo}/contents/${dbPath}`, {
-                method: "PUT",
-                headers: { 
-                    "Authorization": `token ${token}`, 
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message: "Update database.json with new entries and metadata",
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify(currentDb, null, 2)))),
-                    sha: dbSha || undefined
-                })
-            });
-
-            if(updateRes.ok) {
-                dbDiv.innerHTML = `<span class="success">✓ Database updated successfully!</span>`;
-            } else {
-                throw new Error("Database update failed");
-            }
-        } catch(e) {
-            dbDiv.innerHTML = `<span class="error">✗ Database Error: ${e.message}</span>`;
-        }
+        await updateDatabase(newEntries, token);
     }
     
     btn.disabled = false;
     btn.innerText = "START MULTI-UPLOAD & UPDATE DB";
     status.innerHTML += "<br><b>Process completed.</b>";
-    status.scrollTop = status.scrollHeight;
+    loadStats();
+}
+
+async function updateDatabase(newEntries, token) {
+    const status = document.getElementById('status');
+    const dbDiv = document.createElement('div');
+    dbDiv.innerText = "Updating database.json...";
+    status.appendChild(dbDiv);
+
+    try {
+        const dbPath = "database.json";
+        const dbSha = await getSha(dbPath, token);
+        let currentDb = [];
+
+        if(dbSha) {
+            const dbRes = await fetch(`https://api.github.com/repos/${repo}/contents/${dbPath}`, {
+                headers: { "Authorization": `token ${token}` }
+            });
+            const dbData = await dbRes.json();
+            currentDb = JSON.parse(decodeURIComponent(escape(atob(dbData.content))));
+        }
+
+        newEntries.forEach(entry => {
+            const idx = currentDb.findIndex(item => item.name === entry.name && item.category === entry.category);
+            if(idx > -1) {
+                const oldDownloads = currentDb[idx].downloads || 0;
+                currentDb[idx] = {...entry, downloads: oldDownloads};
+            } else {
+                currentDb.push(entry);
+            }
+        });
+
+        currentDb.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const updateRes = await fetch(`https://api.github.com/repos/${repo}/contents/${dbPath}`, {
+            method: "PUT",
+            headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+                message: "Update database.json",
+                content: btoa(unescape(encodeURIComponent(JSON.stringify(currentDb, null, 2)))),
+                sha: dbSha || undefined
+            })
+        });
+
+        if(updateRes.ok) dbDiv.innerHTML = `<span class="success">✓ Database updated!</span>`;
+        else throw new Error("DB update failed");
+    } catch(e) {
+        dbDiv.innerHTML = `<span class="error">✗ DB Error: ${e.message}</span>`;
+    }
+}
+
+async function loadStats() {
+    const body = document.getElementById('statsBody');
+    body.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Loading statistics...</td></tr>";
+    
+    try {
+        const res = await fetch(`https://raw.githubusercontent.com/${repo}/main/database.json?t=${new Date().getTime()}`);
+        if(!res.ok) throw new Error("Database not found");
+        const data = await res.json();
+        
+        // Kategori bazlı özetleme
+        const summary = {};
+        cats.forEach(c => summary[c] = { downloads: 0, count: 0 });
+        
+        data.forEach(item => {
+            if(summary[item.category]) {
+                summary[item.category].downloads += (item.downloads || 0);
+                summary[item.category].count += 1;
+            } else {
+                // Eğer listede olmayan bir kategori varsa (Miscellaneous gibi)
+                if(!summary["Miscellaneous"]) summary["Miscellaneous"] = { downloads: 0, count: 0 };
+                summary["Miscellaneous"].downloads += (item.downloads || 0);
+                summary["Miscellaneous"].count += 1;
+            }
+        });
+
+        body.innerHTML = "";
+        
+        // Sadece verisi olan kategorileri veya tüm listeyi gösterelim
+        cats.sort().forEach(cat => {
+            const tr = document.createElement('tr');
+            const stats = summary[cat];
+            tr.innerHTML = `
+                <td><span class="badge">${cat}</span></td>
+                <td style="text-align:center;" class="count-cell">${stats.downloads}</td>
+                <td style="text-align:center; color:#666;">${stats.count} Vectors</td>
+            `;
+            body.appendChild(tr);
+        });
+        
+    } catch(e) {
+        body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">Error: ${e.message}</td></tr>`;
+    }
 }
 
 const toBase64 = file => new Promise((resolve, reject) => {
@@ -190,13 +255,12 @@ async function getSha(path, token) {
         const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
             headers: { "Authorization": `token ${token}` }
         });
-        if (res.ok) { 
-            const data = await res.json(); 
-            return data.sha; 
-        }
+        if (res.ok) { const data = await res.json(); return data.sha; }
     } catch (e) {}
     return null;
 }
+
+window.onload = loadStats;
 </script>
 </body>
 </html>
