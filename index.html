@@ -2,69 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FREE VECTOR STOCK | Professional Free Vector Graphics & Illustrations</title>
-    <meta name="description" content="Download high-quality free vectors, EPS10, SVG, and stock photos for personal and commercial use. 7,000+ free graphic resources.">
-    <meta name="keywords" content="free vector download, free eps10, free svg icons, professional stock illustrations, graphic design resources">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FREE VECTOR STOCK | 7000+ Professional Free Vector Graphics & EPS10</title>
+    <meta name="description" content="Download premium quality free vectors, stock illustrations, icons and EPS10 files. Professional resources for designers.">
+    <meta name="keywords" content="free vector download, free eps10, stock illustrations, svg icons, free graphic design assets">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --black: #000000; --white: #ffffff; --grey: #f4f4f4; --border: #e0e0e0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--white); overflow-x: hidden; -webkit-user-select: none; user-select: none; }
-        
-        /* BANNERS MUST BE VISIBLE */
-        header { position: fixed; top: 0; width: 100%; background: var(--black); color: var(--white); z-index: 2000; padding: 10px 0; height: 120px; text-align: center; }
-        footer { position: fixed; bottom: 0; width: 100%; background: var(--black); color: var(--white); z-index: 2000; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: 13px; }
+        :root { --black: #000000; --white: #ffffff; --grey: #f8f8f8; --border: #ececec; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        html, body { height: 100%; width: 100%; background: var(--white); overflow: hidden; }
+        body { display: flex; flex-direction: column; -webkit-user-select: none; user-select: none; }
 
-        .logo { font-size: 28px; font-weight: 900; letter-spacing: 2px; text-decoration: none; color: white; display: block; margin-bottom: 5px; }
-        .nav-lines { display: flex; justify-content: center; gap: 10px; margin-bottom: 8px; }
+        /* HEADER & FOOTER - GUARANTEED VISIBILITY */
+        header { background: var(--black); color: var(--white); padding: 15px 0; text-align: center; flex-shrink: 0; z-index: 100; border-bottom: 2px solid #333; }
+        footer { background: var(--black); color: var(--white); height: 60px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 100; border-top: 2px solid #333; }
+
+        .logo { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: var(--white); text-decoration: none; display: block; margin-bottom: 8px; }
+        .nav-lines { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
         .line { width: 35px; height: 3px; background: #444; cursor: pointer; transition: 0.3s; }
-        .line.active { background: white; }
-        #top-msg { font-size: 11px; max-width: 800px; margin: 0 auto; color: #ccc; line-height: 1.3; height: 30px; }
+        .line.active { background: var(--white); }
+        #top-info { font-size: 11px; max-width: 900px; margin: 0 auto; color: #bbb; line-height: 1.4; min-height: 32px; padding: 0 10px; }
 
-        .layout { display: flex; margin-top: 120px; margin-bottom: 60px; width: 100%; min-height: calc(100vh - 180px); }
+        /* MAIN CONTENT AREA */
+        .wrapper { display: flex; flex: 1; overflow: hidden; width: 100%; }
         
-        /* SIDEBAR ALIGNED LEFT */
-        .sidebar { width: 260px; background: #fff; border-right: 1px solid var(--border); padding: 20px; position: sticky; top: 120px; height: calc(100vh - 180px); overflow-y: auto; }
+        /* SIDEBAR - FULL LEFT ALIGN */
+        .sidebar { width: 260px; border-right: 1px solid var(--border); overflow-y: auto; background: var(--white); flex-shrink: 0; padding: 20px 0; }
+        .cat-head { padding: 0 20px 10px; font-size: 12px; font-weight: 800; color: #aaa; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
         .cat-list { list-style: none; }
-        .cat-item { padding: 10px; font-size: 14px; cursor: pointer; transition: 0.2s; border-radius: 4px; color: #333; }
-        .cat-item:hover { background: var(--black); color: var(--white); }
+        .cat-item { padding: 12px 25px; font-size: 14px; color: #333; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; }
+        .cat-item:hover, .cat-item.active { background: #f0f0f0; border-left-color: var(--black); font-weight: bold; }
 
-        /* MAIN AREA FULL WIDTH */
-        .content { flex: 1; padding: 20px; position: relative; }
-        .search-container { max-width: 700px; margin: 0 auto 30px; position: relative; }
-        .search-container input { width: 100%; padding: 15px 50px 15px 20px; border: 1px solid var(--black); border-radius: 30px; font-size: 16px; outline: none; }
-        .search-container i { position: absolute; right: 20px; top: 18px; font-size: 18px; }
+        /* GRID AREA */
+        .main-content { flex: 1; overflow-y: auto; padding: 25px; scroll-behavior: smooth; }
+        .search-section { max-width: 800px; margin: 0 auto 30px; position: relative; }
+        .search-box { width: 100%; padding: 16px 55px 16px 25px; border: 2px solid var(--black); border-radius: 50px; font-size: 16px; outline: none; }
+        .search-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: 20px; cursor: pointer; }
 
-        .ad-area { background: #f9f9f9; border: 1px dashed #ccc; text-align: center; color: #999; font-size: 11px; padding: 10px; margin: 15px 0; overflow: hidden; }
+        .ad-slot { background: #fafafa; border: 1px dashed #ddd; text-align: center; color: #999; font-size: 11px; display: flex; align-items: center; justify-content: center; margin: 20px 0; overflow: hidden; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .item-card { border: 1px solid var(--border); background: #fff; overflow: hidden; transition: 0.3s; cursor: pointer; }
-        .item-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .item-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
-        .item-card .dl-label { padding: 10px; text-align: center; font-weight: bold; font-size: 12px; background: #f4f4f4; }
+        .vector-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .card { background: var(--white); border: 1px solid var(--border); overflow: hidden; transition: 0.3s; cursor: pointer; position: relative; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); }
+        .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; background: #eee; }
+        .card .hover-btn { position: absolute; bottom: 0; width: 100%; padding: 12px; background: var(--black); color: white; text-align: center; font-weight: bold; font-size: 12px; transform: translateY(100%); transition: 0.3s; }
+        .card:hover .hover-btn { transform: translateY(0); }
 
-        .pagination { display: flex; justify-content: center; gap: 5px; margin: 40px 0; }
-        .pagination button { padding: 10px 15px; border: 1px solid var(--black); background: #fff; cursor: pointer; }
-        .pagination button.active { background: var(--black); color: #fff; }
+        .pagination { display: flex; justify-content: center; gap: 10px; margin: 40px 0; }
+        .pagination button { padding: 10px 18px; border: 2px solid var(--black); background: white; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        .pagination button.active { background: var(--black); color: white; }
 
-        /* DOWNLOAD OVERLAY */
-        #download-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 3000; overflow-y: auto; padding: 40px; }
-        .dl-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 350px; gap: 40px; }
-        .dl-main img { width: 100%; border: 1px solid var(--border); }
-        .dl-sidebar { background: #f9f9f9; padding: 30px; border: 1px solid var(--border); height: fit-content; }
-        .dl-btn { display: block; width: 100%; padding: 20px; background: var(--black); color: #fff; text-align: center; font-weight: bold; text-decoration: none; margin-bottom: 10px; cursor: pointer; border: none; }
+        /* DOWNLOAD PAGE OVERLAY */
+        #view-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 500; overflow-y: auto; padding-top: 20px; }
+        .view-content { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 380px; gap: 40px; padding: 40px 20px; }
+        .preview-box img { width: 100%; border: 1px solid var(--border); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .dl-sidebar { background: #f9f9f9; padding: 30px; border: 1px solid var(--border); border-radius: 4px; }
+        .dl-btn { display: block; width: 100%; padding: 20px; background: var(--black); color: white; border: none; font-weight: bold; margin-bottom: 15px; cursor: pointer; text-decoration: none; text-align: center; font-size: 14px; }
 
-        /* TIMER */
-        #wait-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: #fff; z-index: 4000; flex-direction: column; align-items: center; justify-content: center; }
-        #timer { font-size: 80px; font-weight: 900; margin: 20px; }
+        /* LOADING TIMER */
+        #timer-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #timer-count { font-size: 120px; font-weight: 900; color: var(--black); margin: 20px 0; }
 
-        @media (max-width: 768px) {
-            .layout { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; display: flex; overflow-x: auto; white-space: nowrap; }
-            .dl-container { grid-template-columns: 1fr; }
-            header { height: 140px; }
-            .layout { margin-top: 140px; }
+        @media (max-width: 900px) {
+            .wrapper { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; display: flex; overflow-x: auto; padding: 10px; border-right: none; border-bottom: 1px solid var(--border); }
+            .cat-item { white-space: nowrap; padding: 8px 15px; border: 1px solid #ddd; border-radius: 20px; margin-right: 10px; border-left: none; }
+            .view-content { grid-template-columns: 1fr; }
+            footer { flex-direction: column; height: auto; padding: 15px; text-align: center; gap: 10px; }
         }
     </style>
 </head>
@@ -72,71 +76,77 @@
 
     <header>
         <a href="index.html" class="logo">FREE VECTOR STOCK</a>
-        <div class="nav-lines" id="lines"></div>
-        <div id="top-msg"></div>
+        <div class="nav-lines" id="lines-box"></div>
+        <div id="top-info"></div>
     </header>
 
-    <div class="layout">
+    <div class="wrapper">
         <aside class="sidebar">
-            <h3 style="font-size: 12px; color: #999; margin-bottom: 15px;">CATEGORIES</h3>
-            <ul class="cat-list" id="categories"></ul>
+            <div class="cat-head">Asset Categories</div>
+            <ul class="cat-list" id="cat-menu"></ul>
+            <div class="ad-slot" style="height: 300px; margin: 20px;">SIDEBAR AD</div>
         </aside>
 
-        <main class="content">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search vectors, icons, illustrations..." onkeyup="search()">
-                <i class="fa-solid fa-magnifying-glass"></i>
+        <main class="main-content">
+            <div class="search-section">
+                <input type="text" class="search-box" id="search-input" placeholder="Search across 7,000+ vectors..." onkeyup="doSearch()">
+                <button class="search-btn"><i class="fa fa-search"></i></button>
             </div>
 
-            <div class="ad-area" style="height: 90px;">TOP BANNER ADVERTISEMENT</div>
+            <div class="ad-slot" style="height: 90px;">TOP LEADERBOARD AD</div>
 
-            <div class="grid" id="mainGrid"></div>
-            <div class="pagination" id="pager"></div>
+            <div class="vector-grid" id="main-grid"></div>
+            <div class="pagination" id="pager-box"></div>
 
-            <h3 style="margin: 40px 0 20px; font-size: 18px; border-bottom: 2px solid #000; padding-bottom: 10px;">Related Stock Vectors</h3>
-            <div class="grid" id="relatedGrid"></div>
+            <h3 style="margin: 50px 0 20px; text-transform: uppercase; font-size: 16px; border-bottom: 2px solid #000; padding-bottom: 5px;">Related Stock Vectors</h3>
+            <div class="vector-grid" id="related-grid"></div>
 
-            <div class="ad-area" style="height: 150px;">BOTTOM BANNER ADVERTISEMENT</div>
+            <div class="ad-slot" style="height: 150px;">BOTTOM REVENUE AD</div>
         </main>
     </div>
 
     <footer>
-        <span>2026 © FREE VECTOR STOCK™ - All Rights Reserved.</span>
-        <a href="mailto:hakankacar2014@gmail.com" style="color: #fff; text-decoration: none; border: 1px solid #555; padding: 5px 15px;">Info: hakankacar2014@gmail.com</a>
+        <span style="font-weight: bold;">2026 © FREE VECTOR STOCK™ - Registered Brand. All Rights Reserved.</span>
+        <a href="mailto:hakankacar2014@gmail.com" style="color:white; text-decoration:none; border:1px solid #444; padding:5px 15px; border-radius:4px; font-size:12px;">Contact: hakankacar2014@gmail.com</a>
     </footer>
 
-    <div id="download-page">
-        <button onclick="closeDl()" style="margin-bottom: 20px; cursor: pointer; padding: 10px;">← BACK TO GALLERY</button>
-        <div class="dl-container">
-            <div class="dl-main">
-                <div class="ad-area" style="height: 90px;">CONTENT TOP AD</div>
-                <img id="previewImg" src="">
-                <div id="metaInfo" style="margin-top: 20px;"></div>
-                <h4 style="margin-top: 30px;">SIMILAR ASSETS</h4>
-                <div class="grid" id="similarGrid"></div>
+    <div id="view-panel">
+        <div style="padding: 10px 30px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <button onclick="closePanel()" style="background:none; border:2px solid #000; padding:8px 20px; font-weight:900; cursor:pointer;">BACK TO GALLERY</button>
+            <span style="font-weight:900;">FREE VECTOR STOCK</span>
+        </div>
+        <div class="view-content">
+            <div class="view-left">
+                <div class="ad-slot" style="height: 90px; margin-bottom: 20px;">TOP CONTENT AD</div>
+                <div class="preview-box"><img id="preview-img" src=""></div>
+                <div id="meta-box" style="margin-top:25px;"></div>
+                <h3 style="margin:40px 0 20px;">SIMILAR VECTOR ASSETS</h3>
+                <div class="vector-grid" id="similar-grid"></div>
             </div>
-            <div class="dl-sidebar">
-                <div class="ad-area" style="height: 250px;">SIDEBAR AD</div>
-                <p style="font-weight: bold; margin-bottom: 15px;">DOWNLOAD OPTIONS</p>
-                <button class="dl-btn" onclick="startTimer('jpg')">DOWNLOAD JPG</button>
-                <button class="dl-btn" onclick="startTimer('eps')">DOWNLOAD EPS10</button>
-                <button class="dl-btn" onclick="startTimer('svg')">DOWNLOAD SVG</button>
-                <div class="ad-area" style="height: 100px; margin-top: 20px;">DOWNLOAD BUTTON AD</div>
+            <div class="view-right">
+                <div class="dl-sidebar">
+                    <div class="ad-slot" style="height: 250px;">SIDEBAR AD AREA</div>
+                    <p style="font-weight:bold; margin-bottom:15px; font-size:12px; color:#666;">SELECT FORMAT:</p>
+                    <button class="dl-btn" onclick="triggerDownload('jpg')">DOWNLOAD JPEG (High Res)</button>
+                    <button class="dl-btn" onclick="triggerDownload('eps')">DOWNLOAD EPS10 (Vector)</button>
+                    <button class="dl-btn" onclick="triggerDownload('svg')">DOWNLOAD SVG (Web)</button>
+                    <div class="ad-slot" style="height: 100px; margin-top:20px;">BUTTON NEAR AD</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="wait-screen">
-        <div class="ad-area" style="width: 728px; height: 90px;">HIGH VALUE REVENUE AD</div>
-        <h2>Preparing your download...</h2>
-        <div id="timer">10</div>
-        <p>Please wait while we process your high-resolution file.</p>
-        <div class="ad-area" style="width: 300px; height: 250px; margin-top: 20px;">SPONSOR AD</div>
+    <div id="timer-screen">
+        <div class="ad-slot" style="width: 728px; height: 90px;">PREMIUM ADVERTISEMENT</div>
+        <h1 style="margin-top:40px;">Your file is being prepared...</h1>
+        <div id="timer-count">10</div>
+        <p style="max-width: 500px; color:#666;">Our service is free thanks to ads. Please wait while we generate your secure download link.</p>
+        <div class="ad-slot" style="width: 300px; height: 250px; margin-top:40px;">SPONSOR AD</div>
     </div>
 
     <script>
         const USER = "free-vector-stock", REPO = "free-vector-stock";
-        const msgList = [
+        const messages = [
             "We operate our own in-house studio to produce graphic designs and offer them free of charge for both personal and commercial projects.",
             "Our goal is to provide a comprehensive and ideal platform for those seeking graphic resources.",
             "We aim to offer a wide archive of graphics, including vector illustrations, stock photos, icons, logos, and various design elements.",
@@ -145,41 +155,42 @@
             "Our website's sustainability depends on advertising revenue. Some features may be restricted while an ad blocker is active. Please disable the blocker and refresh the page."
         ];
 
-        const cats = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"].sort();
+        const categories = ["Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures","Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities","Education","Food","Drink","Healthcare/Medical","Holidays","Industrial","Interiors","Miscellaneous","Nature","Objects","Parks/Outdoor","People","Religion","Science","Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage","Logo","Font","Icon"].sort();
 
-        let allData = [], currentData = [], currentPage = 1;
+        let db = [], filtered = [], page = 1;
 
         async function init() {
-            // Header Logic
-            const lineBox = document.getElementById('lines');
-            msgList.forEach((m, i) => {
+            // Header Lines
+            const lb = document.getElementById('lines-box');
+            messages.forEach((m, i) => {
                 const l = document.createElement('div');
                 l.className = `line ${i===0?'active':''}`;
                 l.onclick = () => {
-                    document.getElementById('top-msg').innerText = m;
+                    document.getElementById('top-info').innerText = m;
                     document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
                     l.classList.add('active');
                 };
-                lineBox.appendChild(l);
+                lb.appendChild(l);
             });
-            document.getElementById('top-msg').innerText = msgList[0];
+            document.getElementById('top-info').innerText = messages[0];
 
-            // Categories
-            const catBox = document.getElementById('categories');
-            cats.forEach(c => {
+            // Sidebar
+            const menu = document.getElementById('cat-menu');
+            categories.forEach(c => {
                 const li = document.createElement('li');
                 li.className = 'cat-item';
                 li.innerText = c;
-                li.onclick = () => filterCat(c);
-                catBox.appendChild(li);
+                li.onclick = () => filterCat(c, li);
+                menu.appendChild(li);
             });
 
-            await fetchData();
+            await loadAll();
         }
 
-        async function fetchData() {
+        async function loadAll() {
             let items = [];
-            for (let c of cats) {
+            // Optimize: Load metadata from GitHub API
+            for (let c of categories) {
                 try {
                     const r = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/assets/${c}`);
                     if (!r.ok) continue;
@@ -189,109 +200,121 @@
                         const id = f.name.split('.')[0];
                         const ext = f.name.split('.').pop().toLowerCase();
                         if(!grouped[id]) grouped[id] = { id, cat: c };
+                        // Direct RAW links to fix the "not loading" issue
                         grouped[id][ext] = `https://raw.githubusercontent.com/${USER}/${REPO}/main/assets/${c}/${f.name}`;
                     });
                     items = [...items, ...Object.values(grouped).filter(x => x.jpg)];
                 } catch(e) {}
             }
-            allData = items;
-            currentData = [...allData];
+            db = items;
+            filtered = [...db];
             render();
             renderRelated();
         }
 
         function render() {
-            const grid = document.getElementById('mainGrid');
+            const grid = document.getElementById('main-grid');
             grid.innerHTML = "";
-            const start = (currentPage - 1) * 30;
-            const slice = currentData.slice(start, start + 30);
+            const start = (page - 1) * 30;
+            const slice = filtered.slice(start, start + 30);
+
             slice.forEach(item => {
                 const div = document.createElement('div');
-                div.className = 'item-card';
-                div.onclick = () => openDl(item);
-                div.innerHTML = `<img src="${item.jpg}" loading="lazy"><div class="dl-label">FREE DOWNLOAD</div>`;
+                div.className = 'card';
+                div.onclick = () => openItem(item);
+                div.innerHTML = `
+                    <img src="${item.jpg}" loading="lazy">
+                    <div class="hover-btn">FREE DOWNLOAD</div>
+                `;
                 grid.appendChild(div);
             });
             renderPager();
         }
 
         function renderPager() {
-            const pager = document.getElementById('pager');
-            pager.innerHTML = "";
-            const total = Math.ceil(currentData.length / 30);
+            const box = document.getElementById('pager-box');
+            box.innerHTML = "";
+            const total = Math.ceil(filtered.length / 30);
             for(let i=1; i<=total; i++) {
                 const b = document.createElement('button');
                 b.innerText = i;
-                if(i === currentPage) b.className = 'active';
-                b.onclick = () => { currentPage = i; render(); window.scrollTo(0,0); };
-                pager.appendChild(b);
+                if(i === page) b.className = 'active';
+                b.onclick = () => { page = i; render(); document.querySelector('.main-content').scrollTop = 0; };
+                box.appendChild(b);
             }
         }
 
-        let activeItem = null;
-        async function openDl(item) {
-            activeItem = item;
-            document.getElementById('previewImg').src = item.jpg;
-            document.getElementById('download-page').style.display = 'block';
-            document.body.style.overflow = 'hidden';
-
-            const meta = document.getElementById('metaInfo');
-            meta.innerHTML = "Loading information...";
+        let active = null;
+        async function openItem(item) {
+            active = item;
+            document.getElementById('preview-img').src = item.jpg;
+            document.getElementById('view-panel').style.display = 'block';
+            
+            const meta = document.getElementById('meta-box');
+            meta.innerHTML = "<h4>Processing metadata...</h4>";
+            
             if(item.json) {
                 try {
-                    const res = await fetch(item.json);
-                    const data = await res.json();
-                    meta.innerHTML = `<h2>${data.title}</h2><p>${data.description}</p><p style="color:#888;font-size:12px;margin-top:10px;">Keywords: ${data.keywords}</p>`;
+                    const r = await fetch(item.json);
+                    const d = await r.json();
+                    meta.innerHTML = `<h2 style="font-size:28px;">${d.title}</h2><p style="margin-top:10px; color:#555;">${d.description}</p><p style="margin-top:10px; font-size:12px; color:#999;">Keywords: ${d.keywords}</p>`;
                 } catch(e) {}
             } else {
-                meta.innerHTML = `<h2>${item.id}</h2><p>Free vector illustration for your projects.</p>`;
+                meta.innerHTML = `<h2>${item.id}</h2><p>Professional free vector stock illustration.</p>`;
             }
 
-            const sim = document.getElementById('similarGrid');
+            const sim = document.getElementById('similar-grid');
             sim.innerHTML = "";
-            allData.sort(() => 0.5 - Math.random()).slice(0, 8).forEach(s => {
+            db.sort(() => 0.5 - Math.random()).slice(0, 8).forEach(s => {
                 const d = document.createElement('div');
-                d.className = 'item-card';
-                d.onclick = () => openDl(s);
+                d.className = 'card';
+                d.onclick = () => openItem(s);
                 d.innerHTML = `<img src="${s.jpg}">`;
                 sim.appendChild(d);
             });
         }
 
-        function startTimer(ext) {
-            const url = activeItem[ext];
-            if(!url) { alert("Format not available."); return; }
-            const screen = document.getElementById('wait-screen');
-            const timer = document.getElementById('timer');
-            screen.style.display = 'flex';
+        function triggerDownload(ext) {
+            const url = active[ext];
+            if(!url) { alert("Format not found."); return; }
+            const ts = document.getElementById('timer-screen');
+            const tc = document.getElementById('timer-count');
+            ts.style.display = 'flex';
             let count = 10;
-            timer.innerText = count;
+            tc.innerText = count;
             const intv = setInterval(() => {
                 count--;
-                timer.innerText = count;
+                tc.innerText = count;
                 if(count <= 0) {
                     clearInterval(intv);
-                    screen.style.display = 'none';
+                    ts.style.display = 'none';
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${activeItem.id}.${ext}`;
+                    a.download = `${active.id}.${ext}`;
                     document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 }
             }, 1000);
         }
 
-        function closeDl() { document.getElementById('download-page').style.display = 'none'; document.body.style.overflow = 'auto'; }
-        function filterCat(c) { currentData = allData.filter(x => x.cat === c); currentPage = 1; render(); closeDl(); }
-        function search() { const q = document.getElementById('searchInput').value.toLowerCase(); currentData = allData.filter(x => x.id.toLowerCase().includes(q)); currentPage = 1; render(); }
+        function closePanel() { document.getElementById('view-panel').style.display = 'none'; }
+        function filterCat(c, el) { 
+            document.querySelectorAll('.cat-item').forEach(x => x.classList.remove('active'));
+            el.classList.add('active');
+            filtered = db.filter(x => x.cat === c); page = 1; render(); 
+        }
+        function doSearch() { 
+            const q = document.getElementById('search-input').value.toLowerCase(); 
+            filtered = db.filter(x => x.id.toLowerCase().includes(q)); page = 1; render(); 
+        }
         function renderRelated() {
-            const grid = document.getElementById('relatedGrid');
-            grid.innerHTML = "";
-            allData.sort(() => 0.5 - Math.random()).slice(0, 20).forEach(item => {
+            const rg = document.getElementById('related-grid');
+            rg.innerHTML = "";
+            db.sort(() => 0.5 - Math.random()).slice(0, 20).forEach(item => {
                 const div = document.createElement('div');
-                div.className = 'item-card';
-                div.onclick = () => openDl(item);
+                div.className = 'card';
+                div.onclick = () => openItem(item);
                 div.innerHTML = `<img src="${item.jpg}" loading="lazy">`;
-                grid.appendChild(div);
+                rg.appendChild(div);
             });
         }
 
