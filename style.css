@@ -1,0 +1,23 @@
+/* Core Layout */
+body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #fff; color: #333; }
+.top-black-bar { background: #000; color: #fff; text-align: center; padding: 12px 0; min-height: 50px; }
+.dash-indicators span { display: inline-block; width: 15px; height: 2px; background: #fff; margin: 0 4px 8px; }
+
+/* BLACK SEARCH ICON RULE */
+.black-magnifier { color: #000; font-size: 20px; font-weight: bold; margin-right: 12px; }
+.search-input-wrapper { display: flex; align-items: center; border: 1px solid #ccc; border-radius: 4px; padding: 6px 15px; }
+
+/* Hybrid Pagination Styling (From REVÝZE ANA SAYFA DÜZENÝ.jpg) */
+.hybrid-nav-container { border-top: 2px solid #000; margin-top: 50px; padding: 30px 0; text-align: center; }
+.next-page-btn { background: #fff; border: 1px solid #ccc; padding: 12px 60px; border-radius: 30px; margin-bottom: 20px; cursor: pointer; font-weight: 600; }
+.pagination-controls { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.page-indicator input { width: 45px; text-align: center; border: 1px solid #ddd; padding: 5px; font-size: 18px; }
+
+/* Download Page Rule: 100% Force Image */
+.dl-preview-image { width: 100% !important; height: auto !important; display: block; }
+@media (max-width: 768px) {
+    .dl-preview-image { max-width: 100%; max-height: 350px; object-fit: contain; }
+}
+
+/* Footer aligned to edges */
+.main-footer { background: #000; color: #fff; padding: 20px; display: flex; justify-content: space-between; font-size: 13px; }
