@@ -1,0 +1,50 @@
+name = "frevector-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Routes
+routes = [
+  { pattern = "api.frevector.com/*", zone_name = "frevector.com" }
+]
+
+# Environment Variables
+env.production.vars = { ENVIRONMENT = "production" }
+env.development.vars = { ENVIRONMENT = "development" }
+
+# R2 Bucket Binding
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "frevector-vectors"
+jurisdiction = "eu"
+
+# KV Namespace Bindings
+[[kv_namespaces]]
+binding = "KV"
+id = "your-kv-namespace-id"
+preview_id = "your-kv-preview-id"
+
+# D1 Database (Optional - for future use)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "frevector"
+# database_id = "your-database-id"
+
+# Triggers (Optional - for scheduled tasks)
+# [triggers]
+# crons = ["0 0 * * *"]
+
+# Build Configuration
+[build]
+command = "npm install"
+cwd = "./"
+watch_paths = ["src/**/*.js"]
+
+# Observability
+[observability]
+enabled = true
+
+# Limits
+limits = { cpu_ms = 50 }
+
+# Compatibility Flags
+compatibility_flags = ["nodejs_compat"]

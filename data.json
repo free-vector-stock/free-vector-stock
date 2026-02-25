@@ -1,0 +1,101 @@
+{
+  "vectors": [
+    {
+      "id": "food-00001",
+      "title": "Fresh Vegetables Collection",
+      "description": "A vibrant collection of fresh vegetables including tomatoes, peppers, carrots, and leafy greens. Perfect for food-related designs, restaurant menus, and healthy lifestyle content.",
+      "keywords": ["free", "vector", "svg", "eps", "vegetables", "food", "fresh", "organic", "healthy"],
+      "category": "Food",
+      "formats": ["EPS", "SVG", "JPEG"],
+      "resolution": "High Quality / Fully Scalable",
+      "license": "Free for Personal & Commercial Use",
+      "fileSize": "2.1 MB",
+      "thumbnail": "https://example.com/thumbnails/food-00001.jpg",
+      "zipFile": "https://example.com/vectors/food-00001.zip",
+      "uploadDate": "2026-02-25T00:00:00Z"
+    },
+    {
+      "id": "food-00002",
+      "title": "Tropical Fruits Vector Set",
+      "description": "Colorful tropical fruits including mangoes, pineapples, coconuts, and papayas. Ideal for summer designs, juice packaging, and tropical-themed projects.",
+      "keywords": ["free", "vector", "svg", "eps", "fruits", "tropical", "food", "summer"],
+      "category": "Food",
+      "formats": ["EPS", "SVG", "JPEG"],
+      "resolution": "High Quality / Fully Scalable",
+      "license": "Free for Personal & Commercial Use",
+      "fileSize": "1.9 MB",
+      "thumbnail": "https://example.com/thumbnails/food-00002.jpg",
+      "zipFile": "https://example.com/vectors/food-00002.zip",
+      "uploadDate": "2026-02-24T00:00:00Z"
+    },
+    {
+      "id": "abstract-00001",
+      "title": "Modern Abstract Shapes",
+      "description": "Contemporary abstract geometric shapes and patterns. Perfect for modern design projects, backgrounds, and creative compositions.",
+      "keywords": ["free", "vector", "svg", "eps", "abstract", "geometric", "modern", "shapes"],
+      "category": "Abstract",
+      "formats": ["EPS", "SVG", "JPEG"],
+      "resolution": "High Quality / Fully Scalable",
+      "license": "Free for Personal & Commercial Use",
+      "fileSize": "1.5 MB",
+      "thumbnail": "https://example.com/thumbnails/abstract-00001.jpg",
+      "zipFile": "https://example.com/vectors/abstract-00001.zip",
+      "uploadDate": "2026-02-23T00:00:00Z"
+    },
+    {
+      "id": "nature-00001",
+      "title": "Forest Landscape Collection",
+      "description": "Beautiful forest landscapes with trees, mountains, and natural scenery. Great for environmental projects, travel designs, and nature-themed content.",
+      "keywords": ["free", "vector", "svg", "eps", "nature", "forest", "landscape", "trees"],
+      "category": "Nature",
+      "formats": ["EPS", "SVG", "JPEG"],
+      "resolution": "High Quality / Fully Scalable",
+      "license": "Free for Personal & Commercial Use",
+      "fileSize": "2.3 MB",
+      "thumbnail": "https://example.com/thumbnails/nature-00001.jpg",
+      "zipFile": "https://example.com/vectors/nature-00001.zip",
+      "uploadDate": "2026-02-22T00:00:00Z"
+    },
+    {
+      "id": "icon-00001",
+      "title": "Business Icons Set",
+      "description": "Professional business icons including office, finance, and corporate symbols. Perfect for business applications, websites, and professional designs.",
+      "keywords": ["free", "vector", "svg", "eps", "icon", "business", "office", "professional"],
+      "category": "Icon",
+      "formats": ["EPS", "SVG", "JPEG"],
+      "resolution": "High Quality / Fully Scalable",
+      "license": "Free for Personal & Commercial Use",
+      "fileSize": "1.2 MB",
+      "thumbnail": "https://example.com/thumbnails/icon-00001.jpg",
+      "zipFile": "https://example.com/vectors/icon-00001.zip",
+      "uploadDate": "2026-02-21T00:00:00Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "category-abstract",
+      "name": "Abstract",
+      "description": "Modern and creative abstract designs for contemporary projects"
+    },
+    {
+      "id": "category-food",
+      "name": "Food",
+      "description": "Food-related vectors including fruits, vegetables, and culinary items"
+    },
+    {
+      "id": "category-nature",
+      "name": "Nature",
+      "description": "Natural landscapes, plants, and environmental designs"
+    },
+    {
+      "id": "category-icon",
+      "name": "Icon",
+      "description": "Professional icon sets for various applications"
+    },
+    {
+      "id": "category-technology",
+      "name": "Technology",
+      "description": "Tech-related vectors and digital designs"
+    }
+  ]
+}
