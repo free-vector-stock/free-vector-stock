@@ -1,18 +1,15 @@
-// FREVECTOR - DYNAMIC WORKER LOADER
-const state = {
-    allVectors: [],
-    selectedCategory: 'Food'
-};
+// FREVECTOR - FINAL KV LOADER
+const state = { allVectors: [], selectedCategory: 'Food' };
 
 async function init() {
     try {
-        // BURASI KRİTİK: Veriyi GitHub'dan değil, az önce bağladığın KV'den çeker.
+        // BURASI ÇOK ÖNEMLİ: Veriyi bağladığın KV veritabanından çeker
         const response = await fetch('/api/vectors'); 
         const data = await response.json();
         state.allVectors = data.vectors || [];
         render();
     } catch (e) {
-        console.error("Yükleme başarısız:", e);
+        console.error("Veri çekilemedi:", e);
     }
     setupCategories();
 }
@@ -27,9 +24,9 @@ function render() {
     filtered.forEach(v => {
         const card = document.createElement('div');
         card.className = 'vector-card';
-        // R2'ye bağladığımız görselleri burada ekranda canlandırır.
+        // R2 deposundaki resimleri canlandırır
         card.innerHTML = `
-            <img src="${v.thumbnail}" onerror="this.src='https://via.placeholder.com/300x200?text=Gorsel+Yuklenemedi'">
+            <img src="${v.thumbnail}" onerror="this.src='https://via.placeholder.com/300x200?text=Resim+Yok'">
             <div class="vector-info"><div class="vector-title">${v.title}</div></div>
         `;
         grid.appendChild(card);
