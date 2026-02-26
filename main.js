@@ -1,6 +1,5 @@
 /**
  * frevector.com - Frontend Logic
- * Mevcut KV verilerine (all_vectors) tam uyumlu ve "ANASAYFA DÜZENİ" görseline uygun
  */
 
 const state = {
@@ -112,7 +111,7 @@ function renderFeatured() {
     document.getElementById('featuredTitle').textContent = v.title;
     document.getElementById('featuredDescription').textContent = v.description;
     document.getElementById('featuredCategory').textContent = v.category;
-    document.getElementById('featuredFileSize').textContent = v.fileSize || '1.8 MB';
+    document.getElementById('featuredFileSize').textContent = v.fileSize || '-';
 
     const kwList = document.getElementById('featuredKeywords');
     kwList.innerHTML = '';
