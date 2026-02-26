@@ -4,97 +4,477 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frevector Admin Panel</title>
-    <link rel="stylesheet" href="admin-style.css">
+    <style>
+        :root {
+            --black: #000;
+            --white: #fff;
+            --gray: #f5f5f5;
+            --border: #e0e0e0;
+            --red: #e53e3e;
+            --green: #38a169;
+            --blue: #3182ce;
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font); background: #f8f8f8; color: #1a1a1a; }
+
+        /* LOGIN */
+        #loginScreen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--black);
+        }
+        .login-box {
+            background: var(--white);
+            padding: 48px 40px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        .login-box h1 { font-size: 22px; margin-bottom: 8px; }
+        .login-box p { font-size: 13px; color: #666; margin-bottom: 28px; }
+        .login-box input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+        .login-box input:focus { outline: none; border-color: var(--black); }
+        .login-box button {
+            width: 100%;
+            padding: 11px;
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .login-box button:hover { opacity: 0.85; }
+        .login-error { color: var(--red); font-size: 13px; margin-top: 10px; display: none; }
+
+        /* ADMIN LAYOUT */
+        #adminApp { display: none; min-height: 100vh; }
+        .admin-wrap { display: flex; min-height: 100vh; }
+
+        /* SIDEBAR */
+        .admin-sidebar {
+            width: 220px;
+            background: var(--black);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-logo {
+            padding: 0 20px 24px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 16px;
+        }
+        .sidebar-logo h2 { font-size: 16px; font-weight: 700; }
+        .sidebar-logo p { font-size: 11px; color: #888; margin-top: 4px; }
+        .sidebar-nav { flex: 1; }
+        .nav-btn {
+            display: block;
+            width: 100%;
+            padding: 11px 20px;
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 13px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .nav-btn:hover { color: var(--white); background: #111; }
+        .nav-btn.active { color: var(--white); border-left-color: var(--white); background: #111; }
+        .sidebar-footer { padding: 16px 20px; border-top: 1px solid #333; }
+        .logout-btn {
+            width: 100%;
+            padding: 9px;
+            background: #222;
+            color: #aaa;
+            border: 1px solid #333;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .logout-btn:hover { background: var(--red); color: var(--white); border-color: var(--red); }
+
+        /* MAIN */
+        .admin-main {
+            margin-left: 220px;
+            flex: 1;
+            padding: 32px;
+        }
+        .admin-header {
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .admin-header h1 { font-size: 22px; font-weight: 700; }
+
+        /* SECTIONS */
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+
+        /* STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-value { font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+        .stat-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* CATEGORY TABLE */
+        .cat-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .cat-table th {
+            background: var(--black);
+            color: var(--white);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .cat-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+        .cat-table tr:last-child td { border-bottom: none; }
+        .cat-table tr:hover td { background: var(--gray); }
+
+        /* UPLOAD FORM */
+        .upload-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 28px;
+            max-width: 600px;
+        }
+        .upload-card h2 { font-size: 18px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+        }
+        .form-group small { display: block; font-size: 11px; color: #888; margin-top: 4px; }
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px dashed var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--gray);
+            cursor: pointer;
+        }
+        .form-group input[type="file"]:hover { border-color: var(--black); }
+        .btn-upload {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .btn-upload:hover { opacity: 0.8; }
+        .btn-upload:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* STATUS BOX */
+        .status-box {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+        .status-box.info { background: #ebf8ff; border: 1px solid #bee3f8; color: #2b6cb0; display: block; }
+        .status-box.success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; display: block; }
+        .status-box.error { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; display: block; }
+        .status-box.warning { background: #fffbeb; border: 1px solid #fbd38d; color: #b7791f; display: block; }
+
+        /* PROGRESS */
+        .progress-wrap { margin-top: 14px; display: none; }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--black);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .progress-text { font-size: 12px; color: #666; margin-top: 6px; }
+
+        /* MANAGE */
+        .manage-toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .manage-toolbar input {
+            flex: 1;
+            max-width: 320px;
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .manage-toolbar input:focus { outline: none; border-color: var(--black); }
+        .manage-toolbar select {
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--white);
+        }
+
+        /* VECTORS TABLE */
+        .vectors-table-wrap { overflow-x: auto; }
+        .vectors-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .vectors-table th {
+            background: var(--black);
+            color: var(--white);
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .vectors-table td {
+            padding: 10px 12px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .vectors-table tr:last-child td { border-bottom: none; }
+        .vectors-table tr:hover td { background: var(--gray); }
+        .vt-thumb {
+            width: 48px;
+            height: 36px;
+            object-fit: cover;
+            border-radius: 3px;
+            background: var(--gray);
+        }
+        .vt-name { font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vt-cat { color: #666; }
+        .vt-date { color: #888; white-space: nowrap; }
+        .vt-dl { font-weight: 600; }
+        .btn-delete {
+            background: var(--red);
+            color: var(--white);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .btn-delete:hover { opacity: 0.8; }
+        .pagination-admin {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            align-items: center;
+        }
+        .pag-admin-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--white);
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .pag-admin-btn:hover { background: var(--black); color: var(--white); border-color: var(--black); }
+        .pag-admin-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
+        .pag-admin-info { font-size: 12px; color: #666; }
+
+        /* LOADING */
+        .loading-row td { text-align: center; padding: 40px; color: #666; }
+    </style>
 </head>
 <body>
-    <div class="admin-container">
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+    <div class="login-box">
+        <h1>Frevector Admin</h1>
+        <p>Enter your admin password to continue</p>
+        <input type="password" id="loginPassword" placeholder="Admin Password" autocomplete="current-password">
+        <button id="loginBtn">Login</button>
+        <div class="login-error" id="loginError">Incorrect password. Please try again.</div>
+    </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp">
+    <div class="admin-wrap">
         <!-- SIDEBAR -->
         <aside class="admin-sidebar">
-            <div class="admin-logo">
+            <div class="sidebar-logo">
                 <h2>Frevector Admin</h2>
+                <p>Content Management</p>
             </div>
-            <nav class="admin-nav">
-                <a href="#" class="nav-link active" data-section="dashboard">Dashboard</a>
-                <a href="#" class="nav-link" data-section="upload">Upload Vector</a>
-                <a href="#" class="nav-link" data-section="manage">Manage Vectors</a>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-section="dashboard">Dashboard</button>
+                <button class="nav-btn" data-section="upload">Upload Vector</button>
+                <button class="nav-btn" data-section="manage">Manage Vectors</button>
             </nav>
-            <div class="admin-footer">
-                <button id="logoutBtn" class="logout-btn">Logout</button>
+            <div class="sidebar-footer">
+                <button class="logout-btn" id="logoutBtn">Logout</button>
             </div>
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main class="admin-content">
-            <!-- HEADER -->
-            <header class="admin-header">
-                <h1>Frevector Admin Panel</h1>
-            </header>
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1 id="sectionTitle">Dashboard</h1>
+            </div>
 
-            <!-- DASHBOARD SECTION -->
+            <!-- DASHBOARD -->
             <section id="dashboard" class="admin-section active">
-                <h2>Dashboard</h2>
-                <div class="dashboard-stats">
+                <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-value" id="totalVectors">0</div>
+                        <div class="stat-value" id="totalVectors">-</div>
                         <div class="stat-label">Total Vectors</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="totalDownloads">0</div>
+                        <div class="stat-value" id="totalDownloads">-</div>
                         <div class="stat-label">Total Downloads</div>
                     </div>
-                </div>
-                <div class="category-stats">
-                    <h3>Category Statistics</h3>
-                    <div id="categoriesList" class="categories-list-admin">
-                        <p>Loading statistics...</p>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCategories">-</div>
+                        <div class="stat-label">Categories</div>
                     </div>
                 </div>
+                <h3 style="margin-bottom:12px; font-size:15px;">Category Breakdown</h3>
+                <table class="cat-table" id="catTable">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Vectors</th>
+                            <th>Downloads</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catTableBody">
+                        <tr><td colspan="3" style="text-align:center;padding:20px;color:#666;">Loading...</td></tr>
+                    </tbody>
+                </table>
             </section>
 
-            <!-- UPLOAD SECTION -->
+            <!-- UPLOAD -->
             <section id="upload" class="admin-section">
-                <h2>Upload Vector</h2>
-                <form id="uploadForm" class="upload-form">
-                    <div class="form-group">
-                        <label for="vectorJson">JSON Metadata File</label>
-                        <input type="file" id="vectorJson" accept=".json" required>
-                        <small>Example: food-00000010.json</small>
+                <div class="upload-card">
+                    <h2>Upload New Vector</h2>
+                    <form id="uploadForm">
+                        <div class="form-group">
+                            <label>JSON Metadata File (.json)</label>
+                            <input type="file" id="vectorJson" accept=".json" required>
+                            <small>Example: food-00000010.json — Contains title, description, keywords, category</small>
+                        </div>
+                        <div class="form-group">
+                            <label>JPEG Preview Image (.jpg)</label>
+                            <input type="file" id="vectorJpeg" accept="image/jpeg,.jpg" required>
+                            <small>Thumbnail preview image for the vector</small>
+                        </div>
+                        <div class="form-group">
+                            <label>ZIP File (.zip) — Contains EPS, SVG, JPEG</label>
+                            <input type="file" id="vectorZip" accept=".zip" required>
+                            <small>Archive containing all vector formats</small>
+                        </div>
+                        <button type="submit" class="btn-upload" id="uploadBtn">Upload to Cloudflare</button>
+                    </form>
+                    <div class="status-box" id="uploadStatus"></div>
+                    <div class="progress-wrap" id="progressWrap">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">Uploading...</div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="vectorJpeg">JPEG Preview Image</label>
-                        <input type="file" id="vectorJpeg" accept="image/jpeg" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="vectorZip">ZIP File (EPS, SVG, JPEG)</label>
-                        <input type="file" id="vectorZip" accept=".zip" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Upload to Cloudflare</button>
-                </form>
-                <div id="uploadStatus" class="upload-status">Ready...</div>
-                <div id="uploadProgress" class="upload-progress" style="display: none;">
-                    <div class="progress-bar">
-                        <div id="progressFill" class="progress-fill"></div>
-                    </div>
-                    <p id="progressText">Uploading... 0%</p>
                 </div>
             </section>
 
-            <!-- MANAGE SECTION -->
+            <!-- MANAGE -->
             <section id="manage" class="admin-section">
-                <h2>Manage Vectors</h2>
-                <div class="search-manage">
-                    <input type="text" id="searchManage" class="search-input-manage" placeholder="Search vectors...">
+                <div class="manage-toolbar">
+                    <input type="text" id="searchManage" placeholder="Search by name, category, keyword...">
+                    <select id="filterCategory">
+                        <option value="">All Categories</option>
+                    </select>
                 </div>
-                <div id="vectorsList" class="vectors-list">
-                    <p>Loading vectors...</p>
+                <div class="vectors-table-wrap">
+                    <table class="vectors-table">
+                        <thead>
+                            <tr>
+                                <th>Preview</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th>Downloads</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vectorsTableBody">
+                            <tr class="loading-row"><td colspan="6">Loading vectors...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
+                <div class="pagination-admin" id="managePagination"></div>
             </section>
         </main>
     </div>
+</div>
 
-    <script src="admin.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
