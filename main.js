@@ -125,6 +125,16 @@ function renderFeatured() {
 }
 
 function renderSelectedForYou() {
+    const section = document.getElementById('selectedSection');
+    if (!section) return;
+
+    // Only show on page 1
+    if (state.currentPage !== 1) {
+        section.style.display = 'none';
+        return;
+    }
+    
+    section.style.display = 'block';
     const grid = document.getElementById('selectedGrid');
     if (!grid) return;
 
