@@ -72,6 +72,40 @@ export async function onRequestGet(context) {
 
     const allVectorsRaw = await kv.get("all_vectors");
     const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
+
+    if (action === "migrate") {
+      const results = { total: allVectors.length, migrated: 0, alreadySeo: 0, failed: 0 };
+      const updated = [];
+      const r2 = context.env.VECTOR_ASSETS;
+
+      for (const v of allVectors) {
+        if (v.name.startsWith("free-vector-")) {
+          results.alreadySeo++;
+          updated.push(v);
+          continue;
+        }
+        const newSlug = v.title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        const finalSlug = `free-vector-${newSlug}`;
+        
+        try {
+          const cat = v.category || "Miscellaneous";
+          const oldJpg = await r2.get(`assets/${cat}/${v.name}.jpg`);
+          const oldZip = await r2.get(`assets/${cat}/${v.name}.zip`);
+          if (oldJpg) await r2.put(`assets/${cat}/${finalSlug}.jpg`, await oldJpg.arrayBuffer(), { httpMetadata: { contentType: "image/jpeg" } });
+          if (oldZip) await r2.put(`assets/${cat}/${finalSlug}.zip`, await oldZip.arrayBuffer(), { httpMetadata: { contentType: "application/zip" } });
+          await r2.delete(`assets/${cat}/${v.name}.jpg`);
+          await r2.delete(`assets/${cat}/${v.name}.zip`);
+          v.name = finalSlug;
+          results.migrated++;
+        } catch (e) {
+          results.failed++;
+        }
+        updated.push(v);
+      }
+      await kv.put("all_vectors", JSON.stringify(updated));
+      return new Response(JSON.stringify({ success: true, results }), { status: 200, headers });
+    }
+
     return new Response(JSON.stringify({ vectors: allVectors }), { status: 200, headers });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
