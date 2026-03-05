@@ -96,10 +96,26 @@ export async function onRequestGet(context) {
         const newSlug = title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
         const finalSlug = `free-vector-${newSlug}`;
         
-        // For now, just update the name in KV to verify logic
-        // We will handle R2 renaming in a separate step or via a different method
-        v.name = finalSlug;
-        results.migrated++;
+        try {
+          const cat = v.category || "Miscellaneous";
+          const oldJpg = await r2.get(`assets/${cat}/${v.name}.jpg`);
+          const oldZip = await r2.get(`assets/${cat}/${v.name}.zip`);
+          
+          if (oldJpg) {
+            await r2.put(`assets/${cat}/${finalSlug}.jpg`, await oldJpg.arrayBuffer(), { httpMetadata: { contentType: "image/jpeg" } });
+            await r2.delete(`assets/${cat}/${v.name}.jpg`);
+          }
+          if (oldZip) {
+            await r2.put(`assets/${cat}/${finalSlug}.zip`, await oldZip.arrayBuffer(), { httpMetadata: { contentType: "application/zip" } });
+            await r2.delete(`assets/${cat}/${v.name}.zip`);
+          }
+          
+          v.name = finalSlug;
+          results.migrated++;
+        } catch (e) {
+          results.failed++;
+          results.logs.push(`Error migrating ${v.name}: ${e.message}`);
+        }
         updated.push(v);
       }
       await kv.put("all_vectors", JSON.stringify(updated));
