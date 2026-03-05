@@ -79,12 +79,16 @@ export async function onRequestGet(context) {
       const r2 = context.env.VECTOR_ASSETS;
 
       for (const v of allVectors) {
+        if (!v || !v.name) {
+          results.failed++;
+          continue;
+        }
         if (v.name.startsWith("free-vector-")) {
           results.alreadySeo++;
           updated.push(v);
           continue;
         }
-        const title = v.title || v.name || "vector";
+        const title = (v.title || v.name || "vector").toString();
         const newSlug = title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
         const finalSlug = `free-vector-${newSlug}`;
         
