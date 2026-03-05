@@ -45,6 +45,19 @@ function authenticate(request) {
   return key === ADMIN_PASSWORD;
 }
 
+function generateSeoSlug(title) {
+  if (!title) return null;
+  const titleStr = (title || "").toString();
+  const slug = titleStr
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')  // Remove special characters
+    .replace(/\s+/g, '-')            // Replace spaces with dashes
+    .replace(/-+/g, '-')              // Replace multiple dashes
+    .replace(/^-|-$/g, '');           // Remove leading/trailing dashes
+  return slug ? `free-vector-${slug}` : null;
+}
+
 export async function onRequestGet(context) {
   const headers = { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" };
   if (!authenticate(context.request)) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
@@ -73,7 +86,66 @@ export async function onRequestGet(context) {
     const allVectorsRaw = await kv.get("all_vectors");
     const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
 
+    // Bulk rename action for old vectors
+    if (action === "bulk-rename") {
+      const r2 = context.env.VECTOR_ASSETS;
+      const results = { total: allVectors.length, renamed: 0, skipped: 0, failed: 0, limit: 50 };
+      const updated = [];
+      let count = 0;
 
+      for (const v of allVectors) {
+        if (count >= 50) {
+          updated.push(...allVectors.slice(allVectors.indexOf(v)));
+          break;
+        }
+
+        // Skip if already in SEO format
+        if (v.name && v.name.startsWith("free-vector-")) {
+          results.skipped++;
+          updated.push(v);
+          continue;
+        }
+
+        // Generate new SEO slug from title
+        const newSlug = generateSeoSlug(v.title || v.name);
+        if (!newSlug || newSlug === v.name) {
+          results.failed++;
+          updated.push(v);
+          continue;
+        }
+
+        try {
+          const cat = v.category || "Miscellaneous";
+          const oldName = v.name;
+
+          // Get old files from R2
+          const oldJpg = await r2.get(`assets/${cat}/${oldName}.jpg`);
+          const oldZip = await r2.get(`assets/${cat}/${oldName}.zip`);
+
+          // Copy to new location
+          if (oldJpg) {
+            await r2.put(`assets/${cat}/${newSlug}.jpg`, await oldJpg.arrayBuffer(), { httpMetadata: { contentType: "image/jpeg" } });
+            await r2.delete(`assets/${cat}/${oldName}.jpg`);
+          }
+          if (oldZip) {
+            await r2.put(`assets/${cat}/${newSlug}.zip`, await oldZip.arrayBuffer(), { httpMetadata: { contentType: "application/zip" } });
+            await r2.delete(`assets/${cat}/${oldName}.zip`);
+          }
+
+          // Update the vector record
+          v.name = newSlug;
+          results.renamed++;
+          count++;
+        } catch (e) {
+          results.failed++;
+        }
+        updated.push(v);
+      }
+
+      // Save updated vectors
+      await kv.put("all_vectors", JSON.stringify(updated));
+      return new Response(JSON.stringify({ success: true, results }), { status: 200, headers });
+    }
 
     return new Response(JSON.stringify({ vectors: allVectors }), { status: 200, headers });
   } catch (e) {
@@ -101,19 +173,7 @@ export async function onRequestPost(context) {
     // Generate SEO-friendly slug from title
     // Format: free-vector-[title-in-lowercase-with-dashes]
     let slug;
-    if (metadata.title) {
-      const titleSlug = metadata.title
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, '')  // Remove special characters
-        .replace(/\s+/g, '-')            // Replace spaces with dashes
-        .replace(/-+/g, '-')              // Replace multiple dashes with single dash
-        .replace(/^-|-$/g, '');           // Remove leading/trailing dashes
-      slug = `free-vector-${titleSlug}`;
-    } else {
-      // Fallback: use filename if no title
-      slug = jsonFile.name.replace(/\.json$/, "");
-    }
+    slug = generateSeoSlug(metadata.title) || jsonFile.name.replace(/\.json$/, "");
 
     // Validate category
     const category = metadata.category || "Miscellaneous";
