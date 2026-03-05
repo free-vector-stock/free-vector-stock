@@ -513,41 +513,97 @@
 
             <!-- UPLOAD -->
             <section id="upload" class="admin-section">
-                <div class="upload-card">
-                    <h2>Upload New Vector</h2>
-                    <p class="upload-subtitle">All three files are required. The system will automatically validate before uploading.</p>
-                    <form id="uploadForm">
-                        <div class="form-group">
-                            <label>JSON Metadata File (.json)</label>
-                            <input type="file" id="vectorJson" accept=".json" required>
-                            <small>Must contain: title, category, description, keywords</small>
-                        </div>
-                        <div class="form-group">
-                            <label>JPEG Preview Image (.jpg)</label>
-                            <input type="file" id="vectorJpeg" accept="image/jpeg,.jpg" required>
-                            <small>Thumbnail preview image for the vector</small>
-                        </div>
-                        <div class="form-group">
-                            <label>ZIP File (.zip) — Contains EPS, SVG, JPEG</label>
-                            <input type="file" id="vectorZip" accept=".zip" required>
-                            <small>Archive must contain EPS, SVG, and JPEG files</small>
-                        </div>
-                        <button type="submit" class="btn-upload" id="uploadBtn">Validate &amp; Upload</button>
-                    </form>
+                <!-- UPLOAD MODE TABS -->
+                <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                    <button class="upload-mode-tab active" data-mode="single" style="background: none; border: none; padding: 8px 16px; font-size: 14px; font-weight: 600; color: var(--black); cursor: pointer; border-bottom: 2px solid var(--black); margin-bottom: -17px;">
+                        Tek Yükleme
+                    </button>
+                    <button class="upload-mode-tab" data-mode="bulk" style="background: none; border: none; padding: 8px 16px; font-size: 14px; font-weight: 600; color: #999; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -17px;">
+                        Toplu Yükleme
+                    </button>
+                </div>
 
-                    <!-- VALIDATION CHECKLIST -->
-                    <div class="validation-checklist" id="validationChecklist">
-                        <h4>Pre-Upload Validation</h4>
-                        <div id="checkItems"></div>
-                    </div>
+                <!-- SINGLE UPLOAD MODE -->
+                <div id="singleUploadMode" class="upload-mode-content">
+                    <div class="upload-card">
+                        <h2>Tek Vektör Yükle</h2>
+                        <p class="upload-subtitle">Üç dosyanın tamamı gereklidir. Sistem yükleme öncesinde otomatik olarak doğrulama yapacaktır.</p>
+                        <form id="uploadForm">
+                            <div class="form-group">
+                                <label>JSON Metadata Dosyası (.json)</label>
+                                <input type="file" id="vectorJson" accept=".json" required>
+                                <small>İçermesi gereken alanlar: title, category, description, keywords</small>
+                            </div>
+                            <div class="form-group">
+                                <label>JPEG Önizleme Görseli (.jpg)</label>
+                                <input type="file" id="vectorJpeg" accept="image/jpeg,.jpg" required>
+                                <small>Vektörün küçük resim önizlemesi</small>
+                            </div>
+                            <div class="form-group">
+                                <label>ZIP Dosyası (.zip) — EPS, SVG, JPEG içerir</label>
+                                <input type="file" id="vectorZip" accept=".zip" required>
+                                <small>Arşiv EPS, SVG ve JPEG dosyalarını içermelidir</small>
+                            </div>
+                            <button type="submit" class="btn-upload" id="uploadBtn">Doğrula &amp; Yükle</button>
+                        </form>
 
-                    <div class="status-box" id="uploadStatus"></div>
-                    <div class="progress-wrap" id="progressWrap">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                        <!-- VALIDATION CHECKLIST -->
+                        <div class="validation-checklist" id="validationChecklist">
+                            <h4>Yükleme Öncesi Doğrulama</h4>
+                            <div id="checkItems"></div>
                         </div>
-                        <div class="progress-text" id="progressText">Uploading...</div>
+
+                        <div class="status-box" id="uploadStatus"></div>
+                        <div class="progress-wrap" id="progressWrap">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">Yükleniyor...</div>
+                        </div>
                     </div>
+                </div>
+
+                <!-- BULK UPLOAD MODE -->
+                <div id="bulkUploadMode" class="upload-mode-content" style="display: none;">
+                    <div class="upload-card" style="max-width: 100%;">
+                        <h2>Toplu Vektör Yükleme</h2>
+                        <p class="upload-subtitle">Birden fazla vektör paketini aynı anda yükleyin. Sistem otomatik olarak dosyaları eşleştirir, metadataları doğrular ve önizlemeleri normalize eder.</p>
+                        
+                        <div class="form-group">
+                            <label>Dosyaları Seçin (JSON, JPEG, ZIP)</label>
+                            <input type="file" id="bulkFileInput" multiple accept=".json,.jpg,.jpeg,.zip" required>
+                            <small>Aynı isimli dosyaları otomatik olarak gruplandırır. Örn: flower.json, flower.jpg, flower.zip</small>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                            <button type="button" class="btn-upload" id="bulkAnalyzeBtn" style="flex: 1;">Analiz Et</button>
+                            <button type="button" class="btn-upload" id="bulkUploadBtn" style="flex: 1; background: var(--green);" disabled>Tümünü Yükle</button>
+                        </div>
+
+                        <!-- BULK ANALYSIS RESULTS -->
+                        <div id="bulkAnalysisResults" style="display: none; margin-top: 20px;">
+                            <h3 style="font-size: 15px; margin-bottom: 12px;">Analiz Sonuçları</h3>
+                            <div id="bulkPackagesList" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--gray);">
+                            </div>
+                            <div id="bulkSummary" style="margin-top: 16px; padding: 12px; background: var(--gray); border-radius: 4px; font-size: 13px;">
+                            </div>
+                        </div>
+
+                        <div class="status-box" id="bulkUploadStatus"></div>
+                        <div class="progress-wrap" id="bulkProgressWrap">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="bulkProgressFill" style="width:0%"></div>
+                            </div>
+                            <div class="progress-text" id="bulkProgressText">Yükleniyor...</div>
+                        </div>
+
+                        <!-- UPLOAD REPORT -->
+                        <div id="bulkUploadReport" style="display: none; margin-top: 20px; padding: 16px; background: var(--gray); border-radius: 4px;">
+                            <h3 style="font-size: 15px; margin-bottom: 12px;">Yükleme Raporu</h3>
+                            <div id="reportContent" style="font-size: 13px; line-height: 1.6;"></div>
+                        </div>
+                    </div>
+                </div>
                 </div>
             </section>
 

@@ -82,6 +82,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('vectorJpeg').addEventListener('change', previewValidation);
     document.getElementById('vectorZip').addEventListener('change', previewValidation);
 
+    // Bulk upload mode tabs
+    document.querySelectorAll('.upload-mode-tab').forEach(tab => {
+        tab.addEventListener('click', () => switchUploadMode(tab.dataset.mode));
+    });
+
+    // Bulk upload handlers
+    document.getElementById('bulkAnalyzeBtn')?.addEventListener('click', handleBulkAnalyze);
+    document.getElementById('bulkUploadBtn')?.addEventListener('click', handleBulkUpload);
+    document.getElementById('bulkFileInput')?.addEventListener('change', () => {
+        document.getElementById('bulkAnalysisResults').style.display = 'none';
+        document.getElementById('bulkUploadBtn').disabled = true;
+    });
+
     // Manage search/filter
     document.getElementById('searchManage').addEventListener('input', (e) => {
         state.searchQuery = e.target.value.toLowerCase();
@@ -651,4 +664,280 @@ function escHtml(str) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+}
+
+/* ===========================
+   BULK UPLOAD HANDLERS
+   =========================== */
+function switchUploadMode(mode) {
+    document.querySelectorAll('.upload-mode-tab').forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.color = '#999';
+        tab.style.borderBottomColor = 'transparent';
+    });
+    document.querySelectorAll('.upload-mode-content').forEach(content => {
+        content.style.display = 'none';
+    });
+
+    if (mode === 'single') {
+        document.querySelector('[data-mode="single"]').classList.add('active');
+        document.querySelector('[data-mode="single"]').style.color = 'var(--black)';
+        document.querySelector('[data-mode="single"]').style.borderBottomColor = 'var(--black)';
+        document.getElementById('singleUploadMode').style.display = 'block';
+    } else {
+        document.querySelector('[data-mode="bulk"]').classList.add('active');
+        document.querySelector('[data-mode="bulk"]').style.color = 'var(--black)';
+        document.querySelector('[data-mode="bulk"]').style.borderBottomColor = 'var(--black)';
+        document.getElementById('bulkUploadMode').style.display = 'block';
+    }
+}
+
+async function handleBulkAnalyze() {
+    const fileInput = document.getElementById('bulkFileInput');
+    const files = Array.from(fileInput.files);
+
+    if (files.length === 0) {
+        showBulkStatus('error', 'Lütfen en az bir dosya seçin.');
+        return;
+    }
+
+    // Group files by name
+    const groups = {};
+    for (const file of files) {
+        const baseName = file.name.replace(/\.[^/.]+$/, '');
+        if (!groups[baseName]) {
+            groups[baseName] = { json: null, jpeg: null, zip: null };
+        }
+        const ext = file.name.match(/\.[^/.]+$/)?.[0]?.toLowerCase();
+        if (ext === '.json') groups[baseName].json = file;
+        else if (['.jpg', '.jpeg'].includes(ext)) groups[baseName].jpeg = file;
+        else if (ext === '.zip') groups[baseName].zip = file;
+    }
+
+    // Analyze each group
+    const results = [];
+    for (const [baseName, group] of Object.entries(groups)) {
+        const result = {
+            baseName,
+            hasJson: !!group.json,
+            hasJpeg: !!group.jpeg,
+            hasZip: !!group.zip,
+            status: 'pending',
+            issues: []
+        };
+
+        if (!group.json) result.issues.push('JSON eksik');
+        if (!group.jpeg) result.issues.push('JPEG eksik');
+        if (!group.zip) result.issues.push('ZIP eksik');
+
+        // Validate JSON if present
+        if (group.json) {
+            try {
+                const text = await group.json.text();
+                const meta = JSON.parse(text);
+                const required = ['title', 'category', 'description', 'keywords'];
+                const missing = required.filter(f => !meta[f] || (Array.isArray(meta[f]) && meta[f].length === 0));
+                if (missing.length > 0) {
+                    result.issues.push(`Metadata eksik: ${missing.join(', ')}`);
+                }
+                if (meta.category && !CATEGORIES.includes(meta.category)) {
+                    result.issues.push(`Geçersiz kategori: ${meta.category}`);
+                }
+                result.metadata = meta;
+            } catch (e) {
+                result.issues.push('JSON parse hatası');
+            }
+        }
+
+        result.status = result.issues.length === 0 ? 'ready' : 'warning';
+        results.push(result);
+    }
+
+    // Display results
+    displayBulkAnalysisResults(results);
+}
+
+function displayBulkAnalysisResults(results) {
+    const packagesList = document.getElementById('bulkPackagesList');
+    const summary = document.getElementById('bulkSummary');
+    const resultsDiv = document.getElementById('bulkAnalysisResults');
+
+    packagesList.innerHTML = '';
+    results.forEach(result => {
+        const statusBadge = result.status === 'ready' ? '✓ Hazır' : '⚠ Uyarı';
+        const statusColor = result.status === 'ready' ? '#38a169' : '#dd6b20';
+        const div = document.createElement('div');
+        div.style.cssText = `padding: 12px; border-bottom: 1px solid var(--border); background: var(--white);`;
+        div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="font-size: 13px;">${escHtml(result.baseName)}</strong>
+                <span style="color: ${statusColor}; font-weight: 600; font-size: 12px;">${statusBadge}</span>
+            </div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 6px;">
+                ${result.hasJson ? '✓' : '✗'} JSON | 
+                ${result.hasJpeg ? '✓' : '✗'} JPEG | 
+                ${result.hasZip ? '✓' : '✗'} ZIP
+            </div>
+            ${result.issues.length > 0 ? `<div style="font-size: 11px; color: #c53030;">${result.issues.map(i => '• ' + escHtml(i)).join('<br>')}</div>` : ''}
+        `;
+        packagesList.appendChild(div);
+    });
+
+    const ready = results.filter(r => r.status === 'ready').length;
+    const warning = results.filter(r => r.status === 'warning').length;
+    summary.innerHTML = `
+        <strong>Özet:</strong> ${results.length} paket | 
+        <span style="color: #38a169;">✓ ${ready} hazır</span> | 
+        <span style="color: #dd6b20;">⚠ ${warning} uyarı</span>
+    `;
+
+    resultsDiv.style.display = 'block';
+    document.getElementById('bulkUploadBtn').disabled = ready === 0;
+}
+
+async function handleBulkUpload() {
+    const fileInput = document.getElementById('bulkFileInput');
+    const files = Array.from(fileInput.files);
+
+    if (files.length === 0) {
+        showBulkStatus('error', 'Dosya seçilmedi.');
+        return;
+    }
+
+    document.getElementById('bulkUploadBtn').disabled = true;
+    showBulkProgress(true, 5, 'Hazırlanıyor...');
+    showBulkStatus('info', 'Yükleme başlıyor...');
+
+    // Group files
+    const groups = {};
+    for (const file of files) {
+        const baseName = file.name.replace(/\.[^/.]+$/, '');
+        if (!groups[baseName]) {
+            groups[baseName] = { json: null, jpeg: null, zip: null };
+        }
+        const ext = file.name.match(/\.[^/.]+$/)?.[0]?.toLowerCase();
+        if (ext === '.json') groups[baseName].json = file;
+        else if (['.jpg', '.jpeg'].includes(ext)) groups[baseName].jpeg = file;
+        else if (ext === '.zip') groups[baseName].zip = file;
+    }
+
+    const uploadResults = [];
+    const totalGroups = Object.keys(groups).length;
+    let uploadedCount = 0;
+
+    for (const [baseName, group] of Object.entries(groups)) {
+        // Skip incomplete groups
+        if (!group.json || !group.jpeg || !group.zip) {
+            uploadResults.push({
+                name: baseName,
+                status: 'skipped',
+                reason: 'Eksik dosya'
+            });
+            uploadedCount++;
+            const pct = Math.round((uploadedCount / totalGroups) * 90) + 5;
+            showBulkProgress(true, pct, `${uploadedCount}/${totalGroups} işleniyor...`);
+            continue;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('json', group.json);
+            formData.append('jpeg', group.jpeg);
+            formData.append('zip', group.zip);
+
+            const res = await fetch('/api/admin', {
+                method: 'POST',
+                headers: { 'X-Admin-Key': ADMIN_KEY },
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (res.status === 409) {
+                uploadResults.push({
+                    name: baseName,
+                    status: 'duplicate',
+                    reason: 'Zaten yüklü'
+                });
+            } else if (res.ok) {
+                uploadResults.push({
+                    name: baseName,
+                    status: 'success',
+                    message: data.message
+                });
+            } else {
+                uploadResults.push({
+                    name: baseName,
+                    status: 'error',
+                    reason: data.error || 'Bilinmeyen hata'
+                });
+            }
+        } catch (e) {
+            uploadResults.push({
+                name: baseName,
+                status: 'error',
+                reason: e.message
+            });
+        }
+
+        uploadedCount++;
+        const pct = Math.round((uploadedCount / totalGroups) * 90) + 5;
+        showBulkProgress(true, pct, `${uploadedCount}/${totalGroups} işleniyor...`);
+    }
+
+    // Display report
+    displayBulkUploadReport(uploadResults);
+    showBulkProgress(true, 100, 'Tamamlandı!');
+    document.getElementById('bulkUploadBtn').disabled = false;
+
+    // Refresh data
+    setTimeout(() => {
+        showBulkProgress(false);
+        loadDashboard();
+        loadManageVectors();
+    }, 1500);
+}
+
+function displayBulkUploadReport(results) {
+    const successful = results.filter(r => r.status === 'success').length;
+    const failed = results.filter(r => r.status === 'error').length;
+    const duplicates = results.filter(r => r.status === 'duplicate').length;
+    const skipped = results.filter(r => r.status === 'skipped').length;
+
+    let html = `
+        <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+            <strong>Toplam:</strong> ${results.length} | 
+            <span style="color: #38a169;">✓ ${successful} başarılı</span> | 
+            <span style="color: #c53030;">✗ ${failed} hata</span> | 
+            <span style="color: #dd6b20;">⚠ ${duplicates} duplicate</span> | 
+            <span style="color: #666;">○ ${skipped} atlandı</span>
+        </div>
+    `;
+
+    results.forEach(r => {
+        const icon = r.status === 'success' ? '✓' : r.status === 'error' ? '✗' : r.status === 'duplicate' ? '⚠' : '○';
+        const color = r.status === 'success' ? '#38a169' : r.status === 'error' ? '#c53030' : r.status === 'duplicate' ? '#dd6b20' : '#999';
+        html += `<div style="margin-bottom: 6px; font-size: 12px;"><span style="color: ${color}; font-weight: 600;">${icon}</span> ${escHtml(r.name)} — ${escHtml(r.message || r.reason)}</div>`;
+    });
+
+    document.getElementById('reportContent').innerHTML = html;
+    document.getElementById('bulkUploadReport').style.display = 'block';
+}
+
+function showBulkStatus(type, msg) {
+    const box = document.getElementById('bulkUploadStatus');
+    box.className = 'status-box ' + type;
+    box.style.whiteSpace = 'pre-line';
+    box.textContent = msg;
+}
+
+function showBulkProgress(show, pct, text) {
+    pct = pct || 0;
+    text = text || '';
+    const wrap = document.getElementById('bulkProgressWrap');
+    wrap.style.display = show ? 'block' : 'none';
+    if (show) {
+        document.getElementById('bulkProgressFill').style.width = pct + '%';
+        document.getElementById('bulkProgressText').textContent = text;
+    }
 }
