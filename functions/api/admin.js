@@ -84,7 +84,8 @@ export async function onRequestGet(context) {
           updated.push(v);
           continue;
         }
-        const newSlug = v.title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        const title = v.title || v.name || "vector";
+        const newSlug = title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
         const finalSlug = `free-vector-${newSlug}`;
         
         try {
