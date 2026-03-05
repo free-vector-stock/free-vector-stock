@@ -273,16 +273,31 @@ async function handleBulkAnalyze() {
                     return key ? obj[key] : null;
                 };
 
-                const metaCategory = getField(meta, 'category');
+                let metaCategory = getField(meta, 'category');
                 const metaTitle = getField(meta, 'title');
                 
                 if (!metaTitle) result.issues.push('Metadata uyarısı: title bulunamadı');
                 
+                // Dosya isminden kategori tahmini yapalım (Örn: transportation-0001 -> Transportation)
+                const fileNameParts = baseName.split(/[-_]/);
+                const categoryFromFileName = fileNameParts[0];
+                const matchedCatFromFileName = CATEGORIES.find(c => c.toLowerCase() === categoryFromFileName.toLowerCase());
+
+                if (!metaCategory && matchedCatFromFileName) {
+                    metaCategory = matchedCatFromFileName;
+                    meta.category = matchedCatFromFileName;
+                    result.issues.push(`Kategori dosya isminden çıkarıldı: ${matchedCatFromFileName}`);
+                }
+
                 if (!metaCategory) {
                     result.issues.push('Metadata uyarısı: category bulunamadı');
                 } else {
                     const matchedCat = CATEGORIES.find(c => c.toLowerCase() === String(metaCategory).toLowerCase());
-                    if (matchedCat) meta.category = matchedCat;
+                    if (matchedCat) {
+                        meta.category = matchedCat;
+                    } else if (matchedCatFromFileName) {
+                        meta.category = matchedCatFromFileName;
+                    }
                 }
                 
                 if (!getField(meta, 'description')) result.issues.push('Metadata uyarısı: description bulunamadı');
