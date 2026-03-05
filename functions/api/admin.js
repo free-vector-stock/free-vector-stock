@@ -2,7 +2,7 @@
  * Admin API - Protected endpoints for managing vectors
  */
 
-const ADMIN_PASSWORD = "Frevector@2026!";
+const ADMIN_PASSWORD = "vector2026";
 
 const VALID_CATEGORIES = [
   "Abstract",

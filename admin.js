@@ -3,7 +3,7 @@
  * Revised: English duplicate warning, validation checklist, System Health tab
  */
 
-const ADMIN_KEY = "Frevector@2026!";
+const ADMIN_KEY = "vector2026";
 // Categories list - MUST match categories-config.js exactly
 const CATEGORIES = [
     'Abstract',
