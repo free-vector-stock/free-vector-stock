@@ -569,10 +569,10 @@
                         <h2>Toplu Vektör Yükleme</h2>
                         <p class="upload-subtitle">Birden fazla vektör paketini aynı anda yükleyin. Sistem otomatik olarak dosyaları eşleştirir, metadataları doğrular ve önizlemeleri normalize eder.</p>
                         
-                        <div class="form-group">
-                            <label>Dosyaları Seçin (JSON, JPEG, ZIP)</label>
-                            <input type="file" id="bulkFileInput" multiple accept=".json,.jpg,.jpeg,.zip" required>
-                            <small>Aynı isimli dosyaları otomatik olarak gruplandırır. Örn: flower.json, flower.jpg, flower.zip</small>
+                        <div id="drop-zone" style="border: 2px dashed #ccc; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 20px; background-color: #f9f9f9;">
+                            <p style="font-size: 16px; color: #555;">Dosyaları buraya sürükleyip bırakın veya seçmek için tıklayın</p>
+                            <p style="font-size: 12px; color: #888; margin-top: 8px;">JSON, JPEG ve ZIP dosyalarını aynı anda seçebilirsiniz.</p>
+                            <input type="file" id="bulkFileInput" multiple accept=".json,.jpg,.jpeg,.zip" style="display: none;">
                         </div>
 
                         <div style="display: flex; gap: 12px; margin-bottom: 16px;">
