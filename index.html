@@ -11,19 +11,14 @@
 <body>
     <!-- TOP BANNER WITH LOGO ONLY -->
     <div class="top-banner">
-        <div class="banner-logo-container">
-            <img src="logo.svg" alt="Frevector" class="banner-logo" onerror="this.style.display='none'">
-        </div>
+        <a href="/" id="logoLink" class="banner-logo-link">
+            <img src="logo.svg" alt="Frevector" class="banner-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'">
+            <span class="banner-logo-text" style="display:none">frevector</span>
+        </a>
     </div>
 
-    <!-- HEADER -->
+    <!-- HEADER (search + sort) -->
     <header class="header">
-        <div class="logo-container">
-            <a href="/" class="logo" id="logoLink">
-                <img src="logo.svg" alt="Frevector" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                <span class="logo-fallback" style="display:none">frevector</span>
-            </a>
-        </div>
         <div class="header-center">
             <div class="search-container">
                 <button class="search-icon-btn" id="searchBtn" aria-label="Search">
@@ -59,7 +54,12 @@
             <!-- H1 TITLE -->
             <h1 id="categoryTitle" class="category-title">Free Vector, SVG, EPS &amp; JPEG Downloads</h1>
 
-            <!-- INLINE DETAIL PANEL (shown when image clicked) -->
+            <!-- VECTORS GRID -->
+            <div id="vectorsGrid" class="vectors-grid">
+                <div class="loading-msg">Loading vectors...</div>
+            </div>
+
+            <!-- INLINE DETAIL PANEL (inserted after clicked card's row) -->
             <div id="detailPanel" class="detail-panel" style="display:none;">
                 <div class="detail-inner">
                     <div class="detail-left">
@@ -77,18 +77,14 @@
                         <p id="detailDescription" class="detail-desc"></p>
                         <div id="detailKeywords" class="detail-keywords"></div>
                         <button id="detailDownloadBtn" class="download-btn">DOWNLOAD</button>
-                        <button id="detailCloseBtn" class="detail-close-btn">✕ Close</button>
+                        <button id="detailCloseBtn" class="detail-close-btn">&#10005; Close</button>
                     </div>
                 </div>
             </div>
 
-            <!-- VECTORS GRID -->
-            <div id="vectorsGrid" class="vectors-grid">
-                <div class="loading-msg">Loading vectors...</div>
-            </div>
-
-            <!-- OUR PICKS SECTION (page 1 only) -->
+            <!-- OUR SELECTIONS SECTION (page 1 only) -->
             <section class="our-picks-section" id="ourPicksSection" style="display:none;">
+                <div class="our-picks-label">Our Selections For You</div>
                 <div class="our-picks-track-wrap">
                     <button class="picks-arrow picks-prev" id="picksPrev">&#8249;</button>
                     <div class="our-picks-track" id="ourPicksTrack"></div>
@@ -117,7 +113,7 @@
     <!-- FOOTER -->
     <footer class="footer">
         <div class="footer-left">
-            <span class="copyright">© 2026 frevector.com Registered Trademark</span>
+            <span class="copyright">&#169; 2026 &#174; frevector.com Registered Trademark</span>
         </div>
         <div class="footer-right">
             <nav class="footer-nav">
@@ -145,6 +141,7 @@
             </div>
             <div class="dp-right">
                 <h2 id="dpTitle" class="dp-title"></h2>
+                <p id="dpDescription" class="dp-desc"></p>
                 <div id="dpKeywords" class="dp-keywords"></div>
                 <table class="dp-table">
                     <tr><td class="dp-label">FILE FORMAT</td><td class="dp-value">EPS, SVG, JPEG</td></tr>

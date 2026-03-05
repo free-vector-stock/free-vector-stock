@@ -13,6 +13,7 @@
             --red: #e53e3e;
             --green: #38a169;
             --blue: #3182ce;
+            --orange: #dd6b20;
             --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -180,9 +181,10 @@
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 28px;
-            max-width: 600px;
+            max-width: 640px;
         }
-        .upload-card h2 { font-size: 18px; margin-bottom: 20px; }
+        .upload-card h2 { font-size: 18px; margin-bottom: 6px; }
+        .upload-card .upload-subtitle { font-size: 12px; color: #888; margin-bottom: 20px; }
         .form-group { margin-bottom: 18px; }
         .form-group label {
             display: block;
@@ -216,6 +218,28 @@
         .btn-upload:hover { opacity: 0.8; }
         .btn-upload:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* VALIDATION CHECKLIST */
+        .validation-checklist {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--gray);
+            border-radius: 4px;
+            display: none;
+        }
+        .validation-checklist h4 { font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            padding: 4px 0;
+            color: #666;
+        }
+        .check-item.pass { color: var(--green); }
+        .check-item.fail { color: var(--red); }
+        .check-item.warn { color: var(--orange); }
+        .check-icon { font-size: 14px; flex-shrink: 0; }
+
         /* STATUS BOX */
         .status-box {
             margin-top: 16px;
@@ -223,11 +247,13 @@
             border-radius: 4px;
             font-size: 13px;
             display: none;
+            line-height: 1.5;
         }
         .status-box.info { background: #ebf8ff; border: 1px solid #bee3f8; color: #2b6cb0; display: block; }
         .status-box.success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; display: block; }
         .status-box.error { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; display: block; }
         .status-box.warning { background: #fffbeb; border: 1px solid #fbd38d; color: #b7791f; display: block; }
+        .status-box.duplicate { background: #fff5f5; border: 2px solid var(--red); color: #c53030; display: block; font-weight: 600; }
 
         /* PROGRESS */
         .progress-wrap { margin-top: 14px; display: none; }
@@ -307,7 +333,6 @@
         }
         .vt-name { font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .vt-cat { color: #666; }
-        .vt-date { color: #888; white-space: nowrap; }
         .vt-dl { font-weight: 600; }
         .btn-delete {
             background: var(--red);
@@ -339,6 +364,79 @@
         .pag-admin-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
         .pag-admin-info { font-size: 12px; color: #666; }
 
+        /* SYSTEM HEALTH */
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .health-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+        .health-card.ok { border-color: var(--green); }
+        .health-card.warn { border-color: var(--orange); }
+        .health-card.error { border-color: var(--red); }
+        .health-icon { font-size: 28px; margin-bottom: 6px; }
+        .health-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .health-value { font-size: 22px; font-weight: 800; }
+        .health-card.ok .health-value { color: var(--green); }
+        .health-card.warn .health-value { color: var(--orange); }
+        .health-card.error .health-value { color: var(--red); }
+
+        .health-issues-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+        .health-issues-table th {
+            background: var(--black);
+            color: var(--white);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .health-issues-table td {
+            padding: 10px 14px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .health-issues-table tr:last-child td { border-bottom: none; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-red { background: #fff5f5; color: var(--red); border: 1px solid #feb2b2; }
+        .badge-orange { background: #fffbeb; color: var(--orange); border: 1px solid #fbd38d; }
+        .badge-green { background: #f0fff4; color: var(--green); border: 1px solid #9ae6b4; }
+
+        .btn-refresh {
+            background: var(--white);
+            color: var(--black);
+            border: 1px solid var(--border);
+            padding: 9px 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin-bottom: 16px;
+        }
+        .btn-refresh:hover { background: var(--black); color: var(--white); border-color: var(--black); }
+
         /* LOADING */
         .loading-row td { text-align: center; padding: 40px; color: #666; }
     </style>
@@ -369,6 +467,7 @@
                 <button class="nav-btn active" data-section="dashboard">Dashboard</button>
                 <button class="nav-btn" data-section="upload">Upload Vector</button>
                 <button class="nav-btn" data-section="manage">Manage Vectors</button>
+                <button class="nav-btn" data-section="health">System Health</button>
             </nav>
             <div class="sidebar-footer">
                 <button class="logout-btn" id="logoutBtn">Logout</button>
@@ -416,11 +515,12 @@
             <section id="upload" class="admin-section">
                 <div class="upload-card">
                     <h2>Upload New Vector</h2>
+                    <p class="upload-subtitle">All three files are required. The system will automatically validate before uploading.</p>
                     <form id="uploadForm">
                         <div class="form-group">
                             <label>JSON Metadata File (.json)</label>
                             <input type="file" id="vectorJson" accept=".json" required>
-                            <small>Example: food-00000010.json — Contains title, description, keywords, category</small>
+                            <small>Must contain: title, category, description, keywords</small>
                         </div>
                         <div class="form-group">
                             <label>JPEG Preview Image (.jpg)</label>
@@ -430,10 +530,17 @@
                         <div class="form-group">
                             <label>ZIP File (.zip) — Contains EPS, SVG, JPEG</label>
                             <input type="file" id="vectorZip" accept=".zip" required>
-                            <small>Archive containing all vector formats</small>
+                            <small>Archive must contain EPS, SVG, and JPEG files</small>
                         </div>
-                        <button type="submit" class="btn-upload" id="uploadBtn">Upload to Cloudflare</button>
+                        <button type="submit" class="btn-upload" id="uploadBtn">Validate &amp; Upload</button>
                     </form>
+
+                    <!-- VALIDATION CHECKLIST -->
+                    <div class="validation-checklist" id="validationChecklist">
+                        <h4>Pre-Upload Validation</h4>
+                        <div id="checkItems"></div>
+                    </div>
+
                     <div class="status-box" id="uploadStatus"></div>
                     <div class="progress-wrap" id="progressWrap">
                         <div class="progress-bar">
@@ -457,7 +564,7 @@
                         <thead>
                             <tr>
                                 <th>Preview</th>
-                                <th>Name</th>
+                                <th>Title</th>
                                 <th>Category</th>
                                 <th>Date</th>
                                 <th>Downloads</th>
@@ -470,6 +577,31 @@
                     </table>
                 </div>
                 <div class="pagination-admin" id="managePagination"></div>
+            </section>
+
+            <!-- SYSTEM HEALTH -->
+            <section id="health" class="admin-section">
+                <button class="btn-refresh" id="refreshHealthBtn">&#8635; Refresh Health Report</button>
+                <div class="health-grid" id="healthGrid">
+                    <div class="health-card">
+                        <div class="health-icon">&#9203;</div>
+                        <div class="health-label">Loading...</div>
+                        <div class="health-value">-</div>
+                    </div>
+                </div>
+                <h3 style="margin-bottom:12px; font-size:15px;">Issues Detected</h3>
+                <table class="health-issues-table">
+                    <thead>
+                        <tr>
+                            <th>Vector Slug</th>
+                            <th>Problem Type</th>
+                            <th>Suggested Fix</th>
+                        </tr>
+                    </thead>
+                    <tbody id="healthIssuesBody">
+                        <tr><td colspan="3" style="text-align:center;padding:20px;color:#666;">Run health check to see results.</td></tr>
+                    </tbody>
+                </table>
             </section>
         </main>
     </div>

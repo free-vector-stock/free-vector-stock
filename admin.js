@@ -1,5 +1,6 @@
 /**
  * Frevector Admin Panel - Frontend Logic
+ * Revised: English duplicate warning, validation checklist, System Health tab
  */
 
 const ADMIN_KEY = "Frevector@2026!";
@@ -76,6 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Upload form
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
 
+    // File input change - show validation preview
+    document.getElementById('vectorJson').addEventListener('change', previewValidation);
+    document.getElementById('vectorJpeg').addEventListener('change', previewValidation);
+    document.getElementById('vectorZip').addEventListener('change', previewValidation);
+
     // Manage search/filter
     document.getElementById('searchManage').addEventListener('input', (e) => {
         state.searchQuery = e.target.value.toLowerCase();
@@ -97,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
         opt.textContent = cat;
         filterSel.appendChild(opt);
     });
+
+    // System Health refresh
+    document.getElementById('refreshHealthBtn')?.addEventListener('click', loadHealthReport);
 });
 
 /* ===========================
@@ -133,9 +142,14 @@ function switchSection(name) {
     const titles = {
         dashboard: 'Dashboard',
         upload: 'Upload Vector',
-        manage: 'Manage Vectors'
+        manage: 'Manage Vectors',
+        health: 'System Health'
     };
     document.getElementById('sectionTitle').textContent = titles[name] || name;
+
+    if (name === 'health') {
+        loadHealthReport();
+    }
 }
 
 /* ===========================
@@ -173,6 +187,81 @@ async function loadDashboard() {
 }
 
 /* ===========================
+   PRE-UPLOAD VALIDATION PREVIEW
+   =========================== */
+async function previewValidation() {
+    const jsonFile = document.getElementById('vectorJson').files[0];
+    const jpegFile = document.getElementById('vectorJpeg').files[0];
+    const zipFile = document.getElementById('vectorZip').files[0];
+
+    if (!jsonFile && !jpegFile && !zipFile) return;
+
+    const checklist = document.getElementById('validationChecklist');
+    const checkItems = document.getElementById('checkItems');
+    checklist.style.display = 'block';
+    checkItems.innerHTML = '';
+
+    const checks = [];
+
+    // JSON validation
+    if (jsonFile) {
+        try {
+            const text = await jsonFile.text();
+            const meta = JSON.parse(text);
+            const required = ['title', 'category', 'description', 'keywords'];
+            const missing = required.filter(f => !meta[f] || (Array.isArray(meta[f]) && meta[f].length === 0));
+
+            if (missing.length === 0) {
+                checks.push({ status: 'pass', msg: `JSON valid — Title: "${meta.title}"` });
+            } else {
+                checks.push({ status: 'fail', msg: `JSON missing fields: ${missing.join(', ')}` });
+            }
+
+            if (meta.category && !CATEGORIES.includes(meta.category)) {
+                checks.push({ status: 'fail', msg: `Invalid category: "${meta.category}"` });
+            } else if (meta.category) {
+                checks.push({ status: 'pass', msg: `Category valid: ${meta.category}` });
+            }
+        } catch (err) {
+            checks.push({ status: 'fail', msg: 'JSON parse error — invalid JSON format' });
+        }
+    } else {
+        checks.push({ status: 'warn', msg: 'JSON file not selected' });
+    }
+
+    // JPEG validation
+    if (jpegFile) {
+        if (jpegFile.type === 'image/jpeg' || jpegFile.name.toLowerCase().endsWith('.jpg')) {
+            checks.push({ status: 'pass', msg: `JPEG valid — ${(jpegFile.size / 1024).toFixed(0)} KB` });
+        } else {
+            checks.push({ status: 'fail', msg: 'File is not a valid JPEG image' });
+        }
+    } else {
+        checks.push({ status: 'warn', msg: 'JPEG file not selected' });
+    }
+
+    // ZIP validation
+    if (zipFile) {
+        if (zipFile.type === 'application/zip' || zipFile.name.toLowerCase().endsWith('.zip')) {
+            checks.push({ status: 'pass', msg: `ZIP valid — ${(zipFile.size / 1024 / 1024).toFixed(2)} MB` });
+        } else {
+            checks.push({ status: 'fail', msg: 'File is not a valid ZIP archive' });
+        }
+    } else {
+        checks.push({ status: 'warn', msg: 'ZIP file not selected' });
+    }
+
+    // Render checks
+    checks.forEach(c => {
+        const div = document.createElement('div');
+        div.className = `check-item ${c.status}`;
+        const icon = c.status === 'pass' ? '&#10003;' : c.status === 'fail' ? '&#10007;' : '&#9679;';
+        div.innerHTML = `<span class="check-icon">${icon}</span><span>${escHtml(c.msg)}</span>`;
+        checkItems.appendChild(div);
+    });
+}
+
+/* ===========================
    UPLOAD
    =========================== */
 async function handleUpload(e) {
@@ -197,20 +286,35 @@ async function handleUpload(e) {
         return;
     }
 
-    if (!metadata.category) {
-        showStatus('error', 'JSON file must contain a "category" field.');
+    // Validate required fields
+    const requiredFields = ['title', 'category', 'description', 'keywords'];
+    const missingFields = requiredFields.filter(f => !metadata[f] || (Array.isArray(metadata[f]) && metadata[f].length === 0));
+    if (missingFields.length > 0) {
+        showStatus('error', `JSON is missing required fields: ${missingFields.join(', ')}. Upload rejected.`);
         return;
     }
 
-    // Validate category against predefined list
+    // Validate category
     if (!CATEGORIES.includes(metadata.category)) {
         showStatus('error', `Invalid category: "${metadata.category}". Must be one of: ${CATEGORIES.join(', ')}`);
         return;
     }
 
+    // Validate JPEG
+    if (jpegFile.type !== 'image/jpeg' && !jpegFile.name.toLowerCase().endsWith('.jpg')) {
+        showStatus('error', 'The preview image must be a valid JPEG file (.jpg).');
+        return;
+    }
+
+    // Validate ZIP
+    if (zipFile.type !== 'application/zip' && !zipFile.name.toLowerCase().endsWith('.zip')) {
+        showStatus('error', 'The archive must be a valid ZIP file (.zip).');
+        return;
+    }
+
     const uploadBtn = document.getElementById('uploadBtn');
     uploadBtn.disabled = true;
-    showStatus('info', 'Uploading to Cloudflare... Please wait.');
+    showStatus('info', 'Validating and uploading to Cloudflare... Please wait.');
     showProgress(true, 10, 'Preparing upload...');
 
     try {
@@ -232,7 +336,13 @@ async function handleUpload(e) {
         const data = await res.json();
 
         if (res.status === 409) {
-            showStatus('warning', 'This file has already been uploaded. Duplicate entries are not allowed.');
+            // DUPLICATE WARNING - English, prominent
+            showStatus('duplicate',
+                '⚠ DUPLICATE UPLOAD DETECTED\n\n' +
+                'This file has already been uploaded. Duplicate upload is not allowed.\n\n' +
+                'The system detected that a vector with the same title or slug already exists in the database. ' +
+                'Please check the Manage Vectors section to find the existing entry.'
+            );
             showProgress(false);
             uploadBtn.disabled = false;
             return;
@@ -246,10 +356,14 @@ async function handleUpload(e) {
         }
 
         showProgress(true, 100, 'Upload complete!');
-        showStatus('success', 'Successfully uploaded: ' + jsonFile.name.replace('.json', '') + '. The vector is now live on the site.');
+        showStatus('success',
+            '✓ Successfully uploaded: ' + (metadata.title || jsonFile.name.replace('.json', '')) +
+            '\n\nThe vector is now live on the site.'
+        );
 
-        // Reset form
+        // Reset form and checklist
         document.getElementById('uploadForm').reset();
+        document.getElementById('validationChecklist').style.display = 'none';
         uploadBtn.disabled = false;
 
         // Refresh dashboard and manage
@@ -269,6 +383,8 @@ async function handleUpload(e) {
 function showStatus(type, msg) {
     const box = document.getElementById('uploadStatus');
     box.className = 'status-box ' + type;
+    // Support newlines
+    box.style.whiteSpace = 'pre-line';
     box.textContent = msg;
 }
 
@@ -306,7 +422,7 @@ function filterAndRenderManage() {
 
     if (state.searchQuery) {
         filtered = filtered.filter(function(v) {
-            var text = [v.name, v.category].concat(v.keywords || []).join(' ').toLowerCase();
+            var text = [v.name, v.title, v.category].concat(v.keywords || []).join(' ').toLowerCase();
             return text.indexOf(state.searchQuery) !== -1;
         });
     }
@@ -337,9 +453,11 @@ function renderManageTable() {
     page.forEach(function(v) {
         var tr = document.createElement('tr');
         var thumbUrl = '/api/asset?key=assets/' + encodeURIComponent(v.category) + '/' + encodeURIComponent(v.name) + '.jpg';
+        // Show title (not slug/filename)
+        var displayTitle = (v.title && !isFileSlug(v.title)) ? v.title : v.name;
         tr.innerHTML =
-            '<td><img class="vt-thumb" src="' + thumbUrl + '" alt="" onerror="this.src=\'https://placehold.co/48x36/f5f5f5/999?text=?\'"></td>' +
-            '<td class="vt-name">' + escHtml(v.title || v.name) + '</td>' +
+            '<td><img class="vt-thumb" src="' + thumbUrl + '" alt="" onerror="this.style.opacity=\'0.3\'"></td>' +
+            '<td class="vt-name" title="' + escHtml(displayTitle) + '">' + escHtml(displayTitle) + '</td>' +
             '<td class="vt-cat">' + escHtml(v.category || '-') + '</td>' +
             '<td class="vt-date">' + (v.date || '-') + '</td>' +
             '<td class="vt-dl">' + (v.downloads || 0) + '</td>' +
@@ -408,8 +526,125 @@ async function deleteVector(slug) {
 }
 
 /* ===========================
+   SYSTEM HEALTH
+   =========================== */
+async function loadHealthReport() {
+    const grid = document.getElementById('healthGrid');
+    const issuesBody = document.getElementById('healthIssuesBody');
+    grid.innerHTML = '<div class="health-card"><div class="health-icon">&#9203;</div><div class="health-label">Loading...</div><div class="health-value">-</div></div>';
+    issuesBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#666;">Running health check...</td></tr>';
+
+    try {
+        const res = await fetch('/api/admin?action=stats', {
+            headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const data = await res.json();
+
+        const vectorsRes = await fetch('/api/admin', {
+            headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const vectorsData = await vectorsRes.json();
+        const vectors = vectorsData.vectors || [];
+
+        // Analyze issues
+        const issues = [];
+        let brokenImages = 0;
+        let missingTitles = 0;
+        let duplicateSlugs = 0;
+        let categoryMismatches = 0;
+
+        const slugSet = new Set();
+        vectors.forEach(v => {
+            // Check for duplicate slugs
+            if (slugSet.has(v.name)) {
+                duplicateSlugs++;
+                issues.push({ slug: v.name, problem: 'Duplicate Slug', fix: 'Delete one of the duplicate entries' });
+            }
+            slugSet.add(v.name);
+
+            // Check for missing/bad title
+            if (!v.title || isFileSlug(v.title)) {
+                missingTitles++;
+                issues.push({ slug: v.name, problem: 'Missing or invalid title (shows filename)', fix: 'Update JSON metadata with proper title' });
+            }
+
+            // Check for invalid category
+            if (!CATEGORIES.includes(v.category)) {
+                categoryMismatches++;
+                issues.push({ slug: v.name, problem: `Invalid category: "${v.category}"`, fix: 'Update category to a valid value' });
+            }
+        });
+
+        // Render health cards
+        const totalVectors = data.totalVectors || 0;
+        const totalDownloads = data.totalDownloads || 0;
+        const totalIssues = issues.length;
+
+        grid.innerHTML = `
+            <div class="health-card ${totalVectors > 0 ? 'ok' : 'warn'}">
+                <div class="health-icon">&#128248;</div>
+                <div class="health-label">Total Vectors</div>
+                <div class="health-value">${totalVectors}</div>
+            </div>
+            <div class="health-card ${totalDownloads >= 0 ? 'ok' : 'warn'}">
+                <div class="health-icon">&#11015;</div>
+                <div class="health-label">Total Downloads</div>
+                <div class="health-value">${totalDownloads}</div>
+            </div>
+            <div class="health-card ${duplicateSlugs === 0 ? 'ok' : 'error'}">
+                <div class="health-icon">&#128260;</div>
+                <div class="health-label">Duplicates</div>
+                <div class="health-value">${duplicateSlugs}</div>
+            </div>
+            <div class="health-card ${missingTitles === 0 ? 'ok' : 'warn'}">
+                <div class="health-icon">&#128462;</div>
+                <div class="health-label">Missing Titles</div>
+                <div class="health-value">${missingTitles}</div>
+            </div>
+            <div class="health-card ${categoryMismatches === 0 ? 'ok' : 'error'}">
+                <div class="health-icon">&#128193;</div>
+                <div class="health-label">Category Errors</div>
+                <div class="health-value">${categoryMismatches}</div>
+            </div>
+            <div class="health-card ${totalIssues === 0 ? 'ok' : 'error'}">
+                <div class="health-icon">${totalIssues === 0 ? '&#10003;' : '&#9888;'}</div>
+                <div class="health-label">Total Issues</div>
+                <div class="health-value">${totalIssues}</div>
+            </div>
+        `;
+
+        // Render issues table
+        issuesBody.innerHTML = '';
+        if (issues.length === 0) {
+            issuesBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#38a169;font-weight:600;">&#10003; No issues detected. System is healthy.</td></tr>';
+        } else {
+            issues.slice(0, 100).forEach(issue => {
+                const tr = document.createElement('tr');
+                const badgeClass = issue.problem.includes('Duplicate') ? 'badge-red' :
+                                   issue.problem.includes('category') ? 'badge-red' : 'badge-orange';
+                tr.innerHTML = `
+                    <td><code style="font-size:11px;">${escHtml(issue.slug)}</code></td>
+                    <td><span class="badge ${badgeClass}">${escHtml(issue.problem)}</span></td>
+                    <td style="color:#666;">${escHtml(issue.fix)}</td>
+                `;
+                issuesBody.appendChild(tr);
+            });
+        }
+
+    } catch (e) {
+        grid.innerHTML = '<div class="health-card error"><div class="health-icon">&#10007;</div><div class="health-label">Error</div><div class="health-value">!</div></div>';
+        issuesBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#c53030;">Failed to load health report: ' + escHtml(e.message) + '</td></tr>';
+    }
+}
+
+/* ===========================
    UTILS
    =========================== */
+function isFileSlug(str) {
+    if (!str) return true;
+    return /\d{5,}/.test(str);
+}
+
 function escHtml(str) {
     return String(str || '')
         .replace(/&/g, '&amp;')
