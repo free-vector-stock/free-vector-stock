@@ -78,15 +78,8 @@ async function init() {
 function startBannerAnimation() {
     const el = document.getElementById('bannerText');
     if (!el) return;
-    el.style.transition = 'opacity 0.4s ease';
-    setInterval(() => {
-        el.style.opacity = '0';
-        setTimeout(() => {
-            state.bannerIndex = (state.bannerIndex + 1) % BANNER_TEXTS.length;
-            el.textContent = BANNER_TEXTS[state.bannerIndex];
-            el.style.opacity = '1';
-        }, 400);
-    }, 5000);
+    // Display only the first banner text, no animation
+    el.textContent = BANNER_TEXTS[0];
 }
 
 /* ===========================
@@ -256,8 +249,8 @@ function openDetailPanel(v) {
 
     panel.style.display = 'block';
 
-    // Scroll panel into view
-    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Scroll panel into view - center in viewport
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function closeDetailPanel() {
