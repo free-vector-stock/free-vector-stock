@@ -265,11 +265,31 @@ async function handleBulkAnalyze() {
             try {
                 const text = await group.json.text();
                 const meta = JSON.parse(text);
-                const required = ['title', 'category', 'description', 'keywords'];
-                const missing = required.filter(f => !meta[f] || (Array.isArray(meta[f]) && meta[f].length === 0));
-                if (missing.length > 0) result.issues.push(`Metadata eksik: ${missing.join(', ')}`);
-                if (meta.category && !CATEGORIES.includes(meta.category)) result.issues.push(`Geçersiz kategori: ${meta.category}`);
-            } catch (e) { result.issues.push('JSON parse hatası'); }
+                
+                // Kategori kontrolünü daha esnek yapalım (büyük/küçük harf duyarlılığı vb.)
+                const metaCategory = meta.category || meta.Category || meta.CATEGORY;
+                const metaTitle = meta.title || meta.Title || meta.TITLE;
+                
+                if (!metaTitle) result.issues.push('Metadata eksik: title');
+                if (!metaCategory) {
+                    result.issues.push('Metadata eksik: category');
+                } else {
+                    // Mevcut kategorilerle eşleşiyor mu? (Case-insensitive kontrol)
+                    const matchedCat = CATEGORIES.find(c => c.toLowerCase() === metaCategory.toLowerCase());
+                    if (!matchedCat) {
+                        result.issues.push(`Geçersiz kategori: ${metaCategory}`);
+                    } else {
+                        // Eşleşen kategoriyi orijinal haliyle set edelim (backend için önemli olabilir)
+                        meta.category = matchedCat;
+                    }
+                }
+                
+                if (!meta.description && !meta.Description) result.issues.push('Metadata eksik: description');
+                if (!meta.keywords && !meta.Keywords) result.issues.push('Metadata eksik: keywords');
+                
+            } catch (e) { 
+                result.issues.push('JSON parse hatası: ' + e.message); 
+            }
         }
         result.status = result.issues.length === 0 ? 'ready' : 'warning';
         results.push(result);
