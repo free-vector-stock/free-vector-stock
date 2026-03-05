@@ -94,12 +94,33 @@ export async function onRequestPost(context) {
     if (!jsonFile || !jpegFile || !zipFile) return new Response(JSON.stringify({ error: "Missing files" }), { status: 400, headers });
 
     const metadata = JSON.parse(await jsonFile.text());
-    const slug = jsonFile.name.replace(/\.json$/, "");
+    
+    // Generate SEO-friendly slug from title
+    // Format: free-vector-[title-in-lowercase-with-dashes]
+    let slug;
+    if (metadata.title) {
+      const titleSlug = metadata.title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')  // Remove special characters
+        .replace(/\s+/g, '-')            // Replace spaces with dashes
+        .replace(/-+/g, '-')              // Replace multiple dashes with single dash
+        .replace(/^-|-$/g, '');           // Remove leading/trailing dashes
+      slug = `free-vector-${titleSlug}`;
+    } else {
+      // Fallback: use filename if no title
+      slug = jsonFile.name.replace(/\.json$/, "");
+    }
 
     // Validate category
     const category = metadata.category || "Miscellaneous";
     if (!VALID_CATEGORIES.includes(category)) {
       return new Response(JSON.stringify({ error: `Invalid category: ${category}. Must be one of: ${VALID_CATEGORIES.join(", ")}` }), { status: 400, headers });
+    }
+    
+    // Ensure slug is not empty
+    if (!slug || slug === "free-vector-") {
+      return new Response(JSON.stringify({ error: "Title is required to generate a valid slug" }), { status: 400, headers });
     }
 
     const allVectorsRaw = await kv.get("all_vectors");
