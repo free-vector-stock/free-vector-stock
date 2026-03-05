@@ -1,6 +1,6 @@
 /**
  * Frevector Admin Panel - Frontend Logic
- * Revised: English duplicate warning, validation checklist, System Health tab, Bulk Upload with Drag & Drop
+ * Revised: Bulk Upload Only, Drag & Drop, Error Fixes
  */
 
 const ADMIN_KEY = "vector2026";
@@ -19,8 +19,7 @@ const state = {
     managePage: 1,
     manageLimit: 20,
     searchQuery: '',
-    filterCat: '',
-    bulkPackages: {}
+    filterCat: ''
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,15 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', () => switchSection(btn.dataset.section));
-    });
-
-    document.getElementById('uploadForm').addEventListener('submit', handleUpload);
-    document.getElementById('vectorJson').addEventListener('change', previewValidation);
-    document.getElementById('vectorJpeg').addEventListener('change', previewValidation);
-    document.getElementById('vectorZip').addEventListener('change', previewValidation);
-
-    document.querySelectorAll('.upload-mode-tab').forEach(tab => {
-        tab.addEventListener('click', () => switchUploadMode(tab.dataset.mode));
     });
 
     // --- Bulk Upload Handlers ---
@@ -72,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dropZone.style.backgroundColor = '#f9f9f9';
             if (e.dataTransfer.files.length > 0) {
                 bulkInput.files = e.dataTransfer.files;
-                handleBulkAnalyze(); // Automatically analyze on drop
+                handleBulkAnalyze();
             }
         });
         bulkInput.addEventListener('change', handleBulkAnalyze);
@@ -131,137 +121,252 @@ function switchSection(name) {
     if (name === 'health') loadHealthReport();
 }
 
-function switchUploadMode(mode) {
-    document.querySelectorAll('.upload-mode-content').forEach(c => c.style.display = 'none');
-    document.getElementById(`${mode}UploadMode`).style.display = 'block';
-    document.querySelectorAll('.upload-mode-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+async function loadDashboard() {
+    try {
+        const res = await fetch('/api/admin?action=stats', {
+            headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const data = await res.json();
+        document.getElementById('totalVectors').textContent = data.totalVectors || 0;
+        document.getElementById('totalDownloads').textContent = data.totalDownloads || 0;
+        document.getElementById('totalCategories').textContent = (data.categories || []).length;
+        const tbody = document.getElementById('catTableBody');
+        tbody.innerHTML = '';
+        (data.categories || []).forEach(cat => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${escHtml(cat.name)}</td><td>${cat.count}</td><td>${cat.downloads}</td>`;
+            tbody.appendChild(tr);
+        });
+    } catch (e) { console.error(e); }
 }
 
-// ... (loadDashboard, previewValidation, handleUpload, etc. remain mostly the same)
+async function loadManageVectors() {
+    try {
+        const res = await fetch('/api/admin', {
+            headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const data = await res.json();
+        state.vectors = data.vectors || [];
+        filterAndRenderManage();
+    } catch (e) { console.error(e); }
+}
 
-async function handleBulkAnalyze() {
-    const files = document.getElementById('bulkFileInput').files;
-    if (!files.length) {
-        showBulkStatus('warn', 'Lütfen yüklenecek dosyaları seçin.');
+function filterAndRenderManage() {
+    state.filteredVectors = state.vectors.filter(v => {
+        const matchesSearch = !state.searchQuery || 
+            v.name.toLowerCase().includes(state.searchQuery) || 
+            v.title.toLowerCase().includes(state.searchQuery) ||
+            (v.keywords && v.keywords.some(k => k.toLowerCase().includes(state.searchQuery)));
+        const matchesCat = !state.filterCat || v.category === state.filterCat;
+        return matchesSearch && matchesCat;
+    });
+    renderManageTable();
+}
+
+function renderManageTable() {
+    const tbody = document.getElementById('vectorsTableBody');
+    const pag = document.getElementById('managePagination');
+    tbody.innerHTML = '';
+    
+    const start = (state.managePage - 1) * state.manageLimit;
+    const end = start + state.manageLimit;
+    const pageItems = state.filteredVectors.slice(start, end);
+
+    if (pageItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No vectors found</td></tr>';
+        pag.innerHTML = '';
         return;
     }
 
-    showBulkStatus('info', `Analiz ediliyor: ${files.length} dosya...`);
-    document.getElementById('bulkAnalysisResults').style.display = 'block';
-    document.getElementById('bulkUploadReport').style.display = 'none';
+    pageItems.forEach(v => {
+        const tr = document.createElement('tr');
+        const previewUrl = `/api/asset?category=${v.category}&slug=${v.name}&type=jpg`;
+        tr.innerHTML = `
+            <td><img src="${previewUrl}" class="preview-img" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='"></td>
+            <td><div style="font-weight:600;">${escHtml(v.title)}</div><div style="font-size:11px;color:#888;">${escHtml(v.name)}</div></td>
+            <td><span class="badge badge-orange">${escHtml(v.category)}</span></td>
+            <td>${v.date}</td>
+            <td>${v.downloads}</td>
+            <td><button class="btn-delete" onclick="deleteVector('${v.name}')">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    renderPagination();
+}
+
+function renderPagination() {
+    const pag = document.getElementById('managePagination');
+    const totalPages = Math.ceil(state.filteredVectors.length / state.manageLimit);
+    pag.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'pag-admin-btn';
+    prevBtn.textContent = '‹';
+    prevBtn.disabled = state.managePage === 1;
+    prevBtn.onclick = () => { state.managePage--; renderManageTable(); };
+    pag.appendChild(prevBtn);
+
+    const info = document.createElement('span');
+    info.className = 'pag-admin-info';
+    info.textContent = `Page ${state.managePage} / ${totalPages}`;
+    pag.appendChild(info);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'pag-admin-btn';
+    nextBtn.textContent = '›';
+    nextBtn.disabled = state.managePage === totalPages;
+    nextBtn.onclick = () => { state.managePage++; renderManageTable(); };
+    pag.appendChild(nextBtn);
+}
+
+async function deleteVector(slug) {
+    if (!confirm(`Are you sure you want to delete "${slug}"?`)) return;
+    try {
+        const res = await fetch(`/api/admin?slug=${encodeURIComponent(slug)}`, {
+            method: 'DELETE',
+            headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const data = await res.json();
+        if (data.success) {
+            state.vectors = state.vectors.filter(v => v.name !== slug);
+            filterAndRenderManage();
+            loadDashboard();
+        } else { alert('Delete failed: ' + data.error); }
+    } catch (e) { alert(e.message); }
+}
+
+async function handleBulkAnalyze() {
+    const fileInput = document.getElementById('bulkFileInput');
+    const files = Array.from(fileInput.files);
+    if (files.length === 0) {
+        showBulkStatus('error', 'Lütfen en az bir dosya seçin.');
+        return;
+    }
 
     const groups = {};
     for (const file of files) {
         const baseName = file.name.replace(/\.[^/.]+$/, '');
-        if (!groups[baseName]) {
-            groups[baseName] = { name: baseName, files: {}, status: 'Eksik', errors: [] };
-        }
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (['json', 'jpg', 'jpeg', 'zip'].includes(ext)) {
-            if (ext === 'jpeg') groups[baseName].files['jpg'] = file; // Normalize jpeg to jpg
-            else groups[baseName].files[ext] = file;
-        }
+        if (!groups[baseName]) groups[baseName] = { json: null, jpeg: null, zip: null };
+        const ext = file.name.match(/\.[^/.]+$/)?.[0]?.toLowerCase();
+        if (ext === '.json') groups[baseName].json = file;
+        else if (['.jpg', '.jpeg'].includes(ext)) groups[baseName].jpeg = file;
+        else if (ext === '.zip') groups[baseName].zip = file;
     }
 
-    state.bulkPackages = groups;
+    const results = [];
+    for (const [baseName, group] of Object.entries(groups)) {
+        const result = { baseName, hasJson: !!group.json, hasJpeg: !!group.jpeg, hasZip: !!group.zip, issues: [] };
+        if (!group.json) result.issues.push('JSON eksik');
+        if (!group.jpeg) result.issues.push('JPEG eksik');
+        if (!group.zip) result.issues.push('ZIP eksik');
+        if (group.json) {
+            try {
+                const text = await group.json.text();
+                const meta = JSON.parse(text);
+                const required = ['title', 'category', 'description', 'keywords'];
+                const missing = required.filter(f => !meta[f] || (Array.isArray(meta[f]) && meta[f].length === 0));
+                if (missing.length > 0) result.issues.push(`Metadata eksik: ${missing.join(', ')}`);
+                if (meta.category && !CATEGORIES.includes(meta.category)) result.issues.push(`Geçersiz kategori: ${meta.category}`);
+            } catch (e) { result.issues.push('JSON parse hatası'); }
+        }
+        result.status = result.issues.length === 0 ? 'ready' : 'warning';
+        results.push(result);
+    }
+    displayBulkAnalysisResults(results);
+}
+
+function displayBulkAnalysisResults(results) {
     const list = document.getElementById('bulkPackagesList');
+    const summary = document.getElementById('bulkSummary');
     list.innerHTML = '';
-    let readyCount = 0;
-
-    for (const name in state.bulkPackages) {
-        const pkg = state.bulkPackages[name];
-        // Validation
-        const hasJSON = pkg.files.json;
-        const hasJPEG = pkg.files.jpg;
-        const hasZIP = pkg.files.zip;
-
-        if (!hasJSON) pkg.errors.push('JSON eksik');
-        if (!hasJPEG) pkg.errors.push('JPEG eksik');
-        if (!hasZIP) pkg.errors.push('ZIP eksik');
-
-        if (hasJSON && hasJPEG && hasZIP) {
-            pkg.status = 'Hazır';
-            readyCount++;
-        } else {
-            pkg.status = 'Eksik';
-        }
-        
-        const item = document.createElement('div');
-        item.className = 'bulk-item';
-        item.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 13px;">${escHtml(name)}</strong>
-                <span style="color: ${pkg.status === 'Hazır' ? 'var(--green)' : 'var(--red)'}; font-weight: 600; font-size: 12px;">${pkg.status}</span>
+    results.forEach(r => {
+        const div = document.createElement('div');
+        div.style.cssText = `padding: 12px; border-bottom: 1px solid var(--border); background: var(--white);`;
+        const statusColor = r.status === 'ready' ? 'var(--green)' : 'var(--orange)';
+        const statusText = r.status === 'ready' ? 'Hazır' : 'Uyarı';
+        div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <strong style="font-size: 13px;">${escHtml(r.baseName)}</strong>
+                <span style="color: ${statusColor}; font-weight: 600; font-size: 12px;">${statusText}</span>
             </div>
-            ${pkg.errors.length > 0 ? `<div style="font-size: 11px; color: var(--red); margin-top: 4px;">${pkg.errors.join(', ')}</div>` : ''}
+            <div style="font-size: 11px; color: #666;">
+                ${r.hasJson ? '✓' : '✗'} JSON | ${r.hasJpeg ? '✓' : '✗'} JPEG | ${r.hasZip ? '✓' : '✗'} ZIP
+            </div>
+            ${r.issues.length > 0 ? `<div style="font-size: 11px; color: var(--red); margin-top: 4px;">${r.issues.map(i => '• ' + escHtml(i)).join('<br>')}</div>` : ''}
         `;
-        list.appendChild(item);
-    }
-
-    document.getElementById('bulkSummary').innerHTML = `<strong>Toplam:</strong> ${Object.keys(groups).length} | <strong style="color: var(--green);">Hazır:</strong> ${readyCount}`;
-    document.getElementById('bulkUploadBtn').disabled = readyCount === 0;
-    showBulkStatus('info', `${readyCount} paket yüklemeye hazır.`);
+        list.appendChild(div);
+    });
+    const ready = results.filter(r => r.status === 'ready').length;
+    summary.innerHTML = `<strong>Özet:</strong> ${results.length} paket | <span style="color: var(--green);">✓ ${ready} hazır</span>`;
+    document.getElementById('bulkAnalysisResults').style.display = 'block';
+    document.getElementById('bulkUploadBtn').disabled = ready === 0;
 }
 
 async function handleBulkUpload() {
-    const uploadBtn = document.getElementById('bulkUploadBtn');
-    uploadBtn.disabled = true;
-    showBulkStatus('info', 'Yükleme işlemi başlatılıyor...');
+    const fileInput = document.getElementById('bulkFileInput');
+    const files = Array.from(fileInput.files);
+    const groups = {};
+    for (const file of files) {
+        const baseName = file.name.replace(/\.[^/.]+$/, '');
+        if (!groups[baseName]) groups[baseName] = { json: null, jpeg: null, zip: null };
+        const ext = file.name.match(/\.[^/.]+$/)?.[0]?.toLowerCase();
+        if (ext === '.json') groups[baseName].json = file;
+        else if (['.jpg', '.jpeg'].includes(ext)) groups[baseName].jpeg = file;
+        else if (ext === '.zip') groups[baseName].zip = file;
+    }
+
+    const readyGroups = Object.entries(groups).filter(([_, g]) => g.json && g.jpeg && g.zip);
+    if (readyGroups.length === 0) return;
+
+    document.getElementById('bulkUploadBtn').disabled = true;
     showBulkProgress(true, 0, 'Başlatılıyor...');
-
-    const readyPackages = Object.values(state.bulkPackages).filter(p => p.status === 'Hazır');
-    const total = readyPackages.length;
     const report = [];
-    let completed = 0;
+    let done = 0;
 
-    for (const pkg of readyPackages) {
-        const formData = new FormData();
-        formData.append('json', pkg.files.json);
-        formData.append('jpeg', pkg.files.jpg);
-        formData.append('zip', pkg.files.zip);
-
+    for (const [name, group] of readyGroups) {
         try {
-            const res = await fetch('/api/admin-bulk', { // Using new bulk endpoint
+            const formData = new FormData();
+            formData.append('json', group.json);
+            formData.append('jpeg', group.jpeg);
+            formData.append('zip', group.zip);
+            const res = await fetch('/api/admin', {
                 method: 'POST',
                 headers: { 'X-Admin-Key': ADMIN_KEY },
                 body: formData
             });
-            const result = await res.json();
-            if (!res.ok) throw new Error(result.error || `HTTP error! status: ${res.status}`);
-            report.push({ name: pkg.name, status: 'success', message: result.message });
-        } catch (e) {
-            report.push({ name: pkg.name, status: 'error', message: e.message });
-        }
-        completed++;
-        const progress = Math.round((completed / total) * 100);
-        showBulkProgress(true, progress, `${completed} / ${total} yüklendi...`);
+            const data = await res.json();
+            if (res.status === 409) report.push({ name, status: 'duplicate', msg: 'Zaten yüklü' });
+            else if (res.ok) report.push({ name, status: 'success', msg: 'Başarılı' });
+            else report.push({ name, status: 'error', msg: data.error || 'Hata' });
+        } catch (e) { report.push({ name, status: 'error', msg: e.message }); }
+        done++;
+        showBulkProgress(true, Math.round((done / readyGroups.length) * 100), `${done}/${readyGroups.length} yüklendi...`);
     }
 
-    showBulkProgress(true, 100, 'Tamamlandı!');
     displayBulkUploadReport(report);
-    uploadBtn.disabled = false;
-    loadDashboard(); // Refresh stats
-    loadManageVectors(); // Refresh list
+    document.getElementById('bulkUploadBtn').disabled = false;
+    loadDashboard();
+    loadManageVectors();
 }
 
-function displayBulkUploadReport(report) {
-    const reportContent = document.getElementById('reportContent');
-    const successCount = report.filter(r => r.status === 'success').length;
-    const errorCount = report.filter(r => r.status === 'error').length;
-
-    let html = `<p><strong>Yükleme Tamamlandı:</strong> ${successCount} başarılı, ${errorCount} hatalı.</p><hr style="margin: 8px 0; border: 0; border-top: 1px solid #ddd;">`;
-    report.forEach(r => {
-        html += `<div style="font-size: 12px; color: ${r.status === 'error' ? 'var(--red)' : '#333'}; margin-bottom: 4px;"><strong>${escHtml(r.name)}:</strong> ${escHtml(r.message)}</div>`;
+function displayBulkUploadReport(results) {
+    const successful = results.filter(r => r.status === 'success').length;
+    const failed = results.filter(r => r.status === 'error').length;
+    const duplicates = results.filter(r => r.status === 'duplicate').length;
+    let html = `<div style="margin-bottom: 10px; font-weight: 600;">Sonuç: ${successful} başarılı, ${failed} hata, ${duplicates} duplicate</div>`;
+    results.forEach(r => {
+        const color = r.status === 'success' ? 'var(--green)' : (r.status === 'duplicate' ? 'var(--orange)' : 'var(--red)');
+        html += `<div style="font-size: 12px; color: ${color};"><strong>${escHtml(r.name)}:</strong> ${escHtml(r.msg)}</div>`;
     });
-
-    reportContent.innerHTML = html;
+    document.getElementById('reportContent').innerHTML = html;
     document.getElementById('bulkUploadReport').style.display = 'block';
 }
 
 function showBulkStatus(type, msg) {
     const box = document.getElementById('bulkUploadStatus');
-    box.className = `status-box ${type}`;
+    box.className = 'status-box ' + type;
     box.textContent = msg;
     box.style.display = 'block';
 }
@@ -270,25 +375,38 @@ function showBulkProgress(show, pct, text) {
     const wrap = document.getElementById('bulkProgressWrap');
     wrap.style.display = show ? 'block' : 'none';
     if (show) {
-        document.getElementById('bulkProgressFill').style.width = `${pct}%`;
+        document.getElementById('bulkProgressFill').style.width = pct + '%';
         document.getElementById('bulkProgressText').textContent = text;
     }
 }
 
-function escHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+async function loadHealthReport() {
+    const grid = document.getElementById('healthGrid');
+    const issuesBody = document.getElementById('healthIssuesBody');
+    try {
+        const res = await fetch('/api/admin?action=stats', { headers: { 'X-Admin-Key': ADMIN_KEY } });
+        const data = await res.json();
+        const vRes = await fetch('/api/admin', { headers: { 'X-Admin-Key': ADMIN_KEY } });
+        const vData = await vRes.json();
+        const vectors = vData.vectors || [];
+        const issues = [];
+        let dups = 0, noTitle = 0, badCat = 0;
+        const slugs = new Set();
+        vectors.forEach(v => {
+            if (slugs.has(v.name)) { dups++; issues.push({ slug: v.name, problem: 'Duplicate Slug', fix: 'Delete duplicate' }); }
+            slugs.add(v.name);
+            if (!v.title || /\d{5,}/.test(v.title)) { noTitle++; issues.push({ slug: v.name, problem: 'Invalid Title', fix: 'Update JSON' }); }
+            if (!CATEGORIES.includes(v.category)) { badCat++; issues.push({ slug: v.name, problem: 'Bad Category', fix: 'Update Category' }); }
+        });
+        grid.innerHTML = `
+            <div class="health-card ok"><div class="health-icon">📦</div><div class="health-label">Total</div><div class="health-value">${data.totalVectors}</div></div>
+            <div class="health-card ${dups === 0 ? 'ok' : 'error'}"><div class="health-icon">🔄</div><div class="health-label">Dups</div><div class="health-value">${dups}</div></div>
+            <div class="health-card ${noTitle === 0 ? 'ok' : 'warn'}"><div class="health-icon">📝</div><div class="health-label">No Title</div><div class="health-value">${noTitle}</div></div>
+        `;
+        issuesBody.innerHTML = issues.length ? issues.map(i => `<tr><td>${escHtml(i.slug)}</td><td><span class="badge badge-red">${escHtml(i.problem)}</span></td><td>${escHtml(i.fix)}</td></tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--green);">No issues</td></tr>';
+    } catch (e) { console.error(e); }
 }
 
-// Keep other functions like loadManageVectors, filterAndRenderManage, etc.
-// Make sure to have the escHtml utility function available.
-// The backend needs a new endpoint /api/admin-bulk to handle these requests.
-
-// Dummy functions for completion, assuming they exist from original file
-async function loadManageVectors() { console.log("loadManageVectors called"); }
-function filterAndRenderManage() { console.log("filterAndRenderManage called"); }
-async function loadHealthReport() { console.log("loadHealthReport called"); }
-async function handleUpload(e) { e.preventDefault(); console.log("handleUpload called"); }
-async function previewValidation() { console.log("previewValidation called"); }
-
+function escHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}

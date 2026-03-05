@@ -181,29 +181,10 @@
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 28px;
-            max-width: 640px;
+            max-width: 100%;
         }
         .upload-card h2 { font-size: 18px; margin-bottom: 6px; }
         .upload-card .upload-subtitle { font-size: 12px; color: #888; margin-bottom: 20px; }
-        .form-group { margin-bottom: 18px; }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #333;
-        }
-        .form-group small { display: block; font-size: 11px; color: #888; margin-top: 4px; }
-        .form-group input[type="file"] {
-            width: 100%;
-            padding: 9px 12px;
-            border: 1px dashed var(--border);
-            border-radius: 4px;
-            font-size: 13px;
-            background: var(--gray);
-            cursor: pointer;
-        }
-        .form-group input[type="file"]:hover { border-color: var(--black); }
         .btn-upload {
             background: var(--black);
             color: var(--white);
@@ -218,28 +199,6 @@
         .btn-upload:hover { opacity: 0.8; }
         .btn-upload:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* VALIDATION CHECKLIST */
-        .validation-checklist {
-            margin-top: 16px;
-            padding: 16px;
-            background: var(--gray);
-            border-radius: 4px;
-            display: none;
-        }
-        .validation-checklist h4 { font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
-        .check-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            padding: 4px 0;
-            color: #666;
-        }
-        .check-item.pass { color: var(--green); }
-        .check-item.fail { color: var(--red); }
-        .check-item.warn { color: var(--orange); }
-        .check-icon { font-size: 14px; flex-shrink: 0; }
-
         /* STATUS BOX */
         .status-box {
             margin-top: 16px;
@@ -253,7 +212,6 @@
         .status-box.success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; display: block; }
         .status-box.error { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; display: block; }
         .status-box.warning { background: #fffbeb; border: 1px solid #fbd38d; color: #b7791f; display: block; }
-        .status-box.duplicate { background: #fff5f5; border: 2px solid var(--red); color: #c53030; display: block; font-weight: 600; }
 
         /* PROGRESS */
         .progress-wrap { margin-top: 14px; display: none; }
@@ -304,163 +262,144 @@
             background: var(--white);
             border: 1px solid var(--border);
             border-radius: 6px;
-            overflow: hidden;
         }
         .vectors-table th {
             background: var(--black);
             color: var(--white);
-            padding: 10px 12px;
+            padding: 12px 16px;
             text-align: left;
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
-            white-space: nowrap;
         }
         .vectors-table td {
-            padding: 10px 12px;
-            font-size: 12px;
+            padding: 12px 16px;
+            font-size: 13px;
             border-bottom: 1px solid var(--border);
-            vertical-align: middle;
         }
         .vectors-table tr:last-child td { border-bottom: none; }
         .vectors-table tr:hover td { background: var(--gray); }
-        .vt-thumb {
-            width: 48px;
-            height: 36px;
+
+        .preview-img {
+            width: 60px;
+            height: 45px;
             object-fit: cover;
-            border-radius: 3px;
-            background: var(--gray);
+            border-radius: 4px;
+            background: #eee;
         }
-        .vt-name { font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .vt-cat { color: #666; }
-        .vt-dl { font-weight: 600; }
+
         .btn-delete {
-            background: var(--red);
-            color: var(--white);
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
+            padding: 6px 12px;
+            background: #fff;
+            border: 1px solid var(--red);
+            color: var(--red);
+            border-radius: 4px;
             font-size: 11px;
+            font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.15s;
         }
-        .btn-delete:hover { opacity: 0.8; }
+        .btn-delete:hover { background: var(--red); color: #fff; }
+
         .pagination-admin {
+            margin-top: 20px;
             display: flex;
             justify-content: center;
-            gap: 8px;
-            margin-top: 16px;
             align-items: center;
+            gap: 12px;
         }
         .pag-admin-btn {
-            padding: 6px 14px;
+            padding: 6px 12px;
             border: 1px solid var(--border);
+            background: #fff;
             border-radius: 4px;
-            background: var(--white);
             cursor: pointer;
             font-size: 13px;
         }
-        .pag-admin-btn:hover { background: var(--black); color: var(--white); border-color: var(--black); }
-        .pag-admin-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
-        .pag-admin-info { font-size: 12px; color: #666; }
+        .pag-admin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pag-admin-info { font-size: 13px; color: #666; }
 
-        /* SYSTEM HEALTH */
+        /* HEALTH */
         .health-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
         .health-card {
-            background: var(--white);
+            background: #fff;
             border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 16px;
+            border-radius: 8px;
+            padding: 20px;
             text-align: center;
         }
-        .health-card.ok { border-color: var(--green); }
-        .health-card.warn { border-color: var(--orange); }
-        .health-card.error { border-color: var(--red); }
-        .health-icon { font-size: 28px; margin-bottom: 6px; }
-        .health-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-        .health-value { font-size: 22px; font-weight: 800; }
-        .health-card.ok .health-value { color: var(--green); }
-        .health-card.warn .health-value { color: var(--orange); }
-        .health-card.error .health-value { color: var(--red); }
+        .health-card.ok { border-top: 4px solid var(--green); }
+        .health-card.warn { border-top: 4px solid var(--orange); }
+        .health-card.error { border-top: 4px solid var(--red); }
+        .health-icon { font-size: 24px; margin-bottom: 8px; }
+        .health-label { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+        .health-value { font-size: 24px; font-weight: 800; }
 
         .health-issues-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--white);
+            background: #fff;
             border: 1px solid var(--border);
             border-radius: 6px;
-            overflow: hidden;
-            margin-top: 16px;
         }
-        .health-issues-table th {
-            background: var(--black);
-            color: var(--white);
-            padding: 10px 14px;
-            text-align: left;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .health-issues-table td {
-            padding: 10px 14px;
-            font-size: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-        .health-issues-table tr:last-child td { border-bottom: none; }
+        .health-issues-table th { background: #f9f9f9; padding: 12px; text-align: left; font-size: 12px; border-bottom: 1px solid var(--border); }
+        .health-issues-table td { padding: 12px; font-size: 13px; border-bottom: 1px solid var(--border); }
+
         .badge {
-            display: inline-block;
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 11px;
             font-weight: 600;
         }
-        .badge-red { background: #fff5f5; color: var(--red); border: 1px solid #feb2b2; }
-        .badge-orange { background: #fffbeb; color: var(--orange); border: 1px solid #fbd38d; }
-        .badge-green { background: #f0fff4; color: var(--green); border: 1px solid #9ae6b4; }
+        .badge-red { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+        .badge-orange { background: #fffaf0; color: #9c4221; border: 1px solid #fbd38d; }
 
         .btn-refresh {
-            background: var(--white);
-            color: var(--black);
-            border: 1px solid var(--border);
-            padding: 9px 20px;
+            padding: 8px 16px;
+            background: var(--black);
+            color: #fff;
+            border: none;
             border-radius: 4px;
             font-size: 13px;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
-        .btn-refresh:hover { background: var(--black); color: var(--white); border-color: var(--black); }
 
-        /* LOADING */
-        .loading-row td { text-align: center; padding: 40px; color: #666; }
+        #drop-zone {
+            border: 2px dashed #ccc;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        #drop-zone:hover { border-color: var(--black); background-color: #f0f0f0; }
+        #drop-zone p { margin: 0; }
     </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="loginScreen">
     <div class="login-box">
         <h1>Frevector Admin</h1>
-        <p>Enter your admin password to continue</p>
-        <input type="password" id="loginPassword" placeholder="Admin Password" autocomplete="current-password">
+        <p>Please enter your admin password</p>
+        <input type="password" id="loginPassword" placeholder="Password">
         <button id="loginBtn">Login</button>
-        <div class="login-error" id="loginError">Incorrect password. Please try again.</div>
+        <div class="login-error" id="loginError">Invalid password</div>
     </div>
 </div>
 
-<!-- ADMIN APP -->
 <div id="adminApp">
     <div class="admin-wrap">
-        <!-- SIDEBAR -->
         <aside class="admin-sidebar">
             <div class="sidebar-logo">
-                <h2>Frevector Admin</h2>
+                <h2>Frevector</h2>
                 <p>Content Management</p>
             </div>
             <nav class="sidebar-nav">
@@ -474,30 +413,30 @@
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="admin-main">
-            <div class="admin-header">
+            <header class="admin-header">
                 <h1 id="sectionTitle">Dashboard</h1>
-            </div>
+            </header>
 
             <!-- DASHBOARD -->
             <section id="dashboard" class="admin-section active">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-value" id="totalVectors">-</div>
+                        <div class="stat-value" id="totalVectors">0</div>
                         <div class="stat-label">Total Vectors</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="totalDownloads">-</div>
+                        <div class="stat-value" id="totalDownloads">0</div>
                         <div class="stat-label">Total Downloads</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="totalCategories">-</div>
+                        <div class="stat-value" id="totalCategories">0</div>
                         <div class="stat-label">Categories</div>
                     </div>
                 </div>
-                <h3 style="margin-bottom:12px; font-size:15px;">Category Breakdown</h3>
-                <table class="cat-table" id="catTable">
+
+                <h3 style="margin-bottom:16px; font-size:16px;">Vectors by Category</h3>
+                <table class="cat-table">
                     <thead>
                         <tr>
                             <th>Category</th>
@@ -513,95 +452,42 @@
 
             <!-- UPLOAD -->
             <section id="upload" class="admin-section">
-                <!-- UPLOAD MODE TABS -->
-                <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
-                    <button class="upload-mode-tab active" data-mode="single" style="background: none; border: none; padding: 8px 16px; font-size: 14px; font-weight: 600; color: var(--black); cursor: pointer; border-bottom: 2px solid var(--black); margin-bottom: -17px;">
-                        Tek Yükleme
-                    </button>
-                    <button class="upload-mode-tab" data-mode="bulk" style="background: none; border: none; padding: 8px 16px; font-size: 14px; font-weight: 600; color: #999; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -17px;">
-                        Toplu Yükleme
-                    </button>
-                </div>
+                <div class="upload-card">
+                    <h2>Toplu Vektör Yükleme</h2>
+                    <p class="upload-subtitle">Birden fazla vektör paketini aynı anda yükleyin. Sistem otomatik olarak dosyaları eşleştirir, metadataları doğrular ve önizlemeleri normalize eder.</p>
+                    
+                    <div id="drop-zone">
+                        <p style="font-size: 18px; color: #333; font-weight: 600;">Dosyaları buraya sürükleyip bırakın veya seçmek için tıklayın</p>
+                        <p style="font-size: 13px; color: #888; margin-top: 10px;">JSON, JPEG ve ZIP dosyalarını aynı anda seçebilirsiniz.</p>
+                        <input type="file" id="bulkFileInput" multiple accept=".json,.jpg,.jpeg,.zip" style="display: none;">
+                    </div>
 
-                <!-- SINGLE UPLOAD MODE -->
-                <div id="singleUploadMode" class="upload-mode-content">
-                    <div class="upload-card">
-                        <h2>Tek Vektör Yükle</h2>
-                        <p class="upload-subtitle">Üç dosyanın tamamı gereklidir. Sistem yükleme öncesinde otomatik olarak doğrulama yapacaktır.</p>
-                        <form id="uploadForm">
-                            <div class="form-group">
-                                <label>JSON Metadata Dosyası (.json)</label>
-                                <input type="file" id="vectorJson" accept=".json" required>
-                                <small>İçermesi gereken alanlar: title, category, description, keywords</small>
-                            </div>
-                            <div class="form-group">
-                                <label>JPEG Önizleme Görseli (.jpg)</label>
-                                <input type="file" id="vectorJpeg" accept="image/jpeg,.jpg" required>
-                                <small>Vektörün küçük resim önizlemesi</small>
-                            </div>
-                            <div class="form-group">
-                                <label>ZIP Dosyası (.zip) — EPS, SVG, JPEG içerir</label>
-                                <input type="file" id="vectorZip" accept=".zip" required>
-                                <small>Arşiv EPS, SVG ve JPEG dosyalarını içermelidir</small>
-                            </div>
-                            <button type="submit" class="btn-upload" id="uploadBtn">Doğrula &amp; Yükle</button>
-                        </form>
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <button type="button" class="btn-upload" id="bulkAnalyzeBtn" style="flex: 1;">Analiz Et</button>
+                        <button type="button" class="btn-upload" id="bulkUploadBtn" style="flex: 1; background: var(--green);" disabled>Tümünü Yükle</button>
+                    </div>
 
-                        <!-- VALIDATION CHECKLIST -->
-                        <div class="validation-checklist" id="validationChecklist">
-                            <h4>Yükleme Öncesi Doğrulama</h4>
-                            <div id="checkItems"></div>
+                    <!-- BULK ANALYSIS RESULTS -->
+                    <div id="bulkAnalysisResults" style="display: none; margin-top: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px;">Analiz Sonuçları</h3>
+                        <div id="bulkPackagesList" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--gray);">
                         </div>
-
-                        <div class="status-box" id="uploadStatus"></div>
-                        <div class="progress-wrap" id="progressWrap">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill" style="width:0%"></div>
-                            </div>
-                            <div class="progress-text" id="progressText">Yükleniyor...</div>
+                        <div id="bulkSummary" style="margin-top: 16px; padding: 12px; background: var(--gray); border-radius: 4px; font-size: 13px;">
                         </div>
                     </div>
-                </div>
 
-                <!-- BULK UPLOAD MODE -->
-                <div id="bulkUploadMode" class="upload-mode-content" style="display: none;">
-                    <div class="upload-card" style="max-width: 100%;">
-                        <h2>Toplu Vektör Yükleme</h2>
-                        <p class="upload-subtitle">Birden fazla vektör paketini aynı anda yükleyin. Sistem otomatik olarak dosyaları eşleştirir, metadataları doğrular ve önizlemeleri normalize eder.</p>
-                        
-                        <div id="drop-zone" style="border: 2px dashed #ccc; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 20px; background-color: #f9f9f9;">
-                            <p style="font-size: 16px; color: #555;">Dosyaları buraya sürükleyip bırakın veya seçmek için tıklayın</p>
-                            <p style="font-size: 12px; color: #888; margin-top: 8px;">JSON, JPEG ve ZIP dosyalarını aynı anda seçebilirsiniz.</p>
-                            <input type="file" id="bulkFileInput" multiple accept=".json,.jpg,.jpeg,.zip" style="display: none;">
+                    <div class="status-box" id="bulkUploadStatus"></div>
+                    <div class="progress-wrap" id="bulkProgressWrap">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="bulkProgressFill" style="width:0%"></div>
                         </div>
+                        <div class="progress-text" id="bulkProgressText">Yükleniyor...</div>
+                    </div>
 
-                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <button type="button" class="btn-upload" id="bulkAnalyzeBtn" style="flex: 1;">Analiz Et</button>
-                            <button type="button" class="btn-upload" id="bulkUploadBtn" style="flex: 1; background: var(--green);" disabled>Tümünü Yükle</button>
-                        </div>
-
-                        <!-- BULK ANALYSIS RESULTS -->
-                        <div id="bulkAnalysisResults" style="display: none; margin-top: 20px;">
-                            <h3 style="font-size: 15px; margin-bottom: 12px;">Analiz Sonuçları</h3>
-                            <div id="bulkPackagesList" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--gray);">
-                            </div>
-                            <div id="bulkSummary" style="margin-top: 16px; padding: 12px; background: var(--gray); border-radius: 4px; font-size: 13px;">
-                            </div>
-                        </div>
-
-                        <div class="status-box" id="bulkUploadStatus"></div>
-                        <div class="progress-wrap" id="bulkProgressWrap">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="bulkProgressFill" style="width:0%"></div>
-                            </div>
-                            <div class="progress-text" id="bulkProgressText">Yükleniyor...</div>
-                        </div>
-
-                        <!-- UPLOAD REPORT -->
-                        <div id="bulkUploadReport" style="display: none; margin-top: 20px; padding: 16px; background: var(--gray); border-radius: 4px;">
-                            <h3 style="font-size: 15px; margin-bottom: 12px;">Yükleme Raporu</h3>
-                            <div id="reportContent" style="font-size: 13px; line-height: 1.6;"></div>
-                        </div>
+                    <!-- UPLOAD REPORT -->
+                    <div id="bulkUploadReport" style="display: none; margin-top: 20px; padding: 16px; background: var(--gray); border-radius: 4px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px;">Yükleme Raporu</h3>
+                        <div id="reportContent" style="font-size: 13px; line-height: 1.6;"></div>
                     </div>
                 </div>
             </section>
@@ -662,6 +548,6 @@
     </div>
 </div>
 
-<script src="admin.js?v=20260305c"></script>
+<script src="admin.js?v=20260305d"></script>
 </body>
 </html>
