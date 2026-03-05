@@ -4,6 +4,15 @@
 
 const ADMIN_PASSWORD = "Frevector@2026!";
 
+const VALID_CATEGORIES = [
+  "Abstract","Animals/Wildlife","The Arts","Backgrounds/Textures",
+  "Beauty/Fashion","Buildings/Landmarks","Business/Finance","Celebrities",
+  "Drink","Education","Font","Food","Healthcare/Medical","Holidays",
+  "Icon","Industrial","Interiors","Logo","Miscellaneous","Nature",
+  "Objects","Parks/Outdoor","People","Religion","Science",
+  "Signs/Symbols","Sports/Recreation","Technology","Transportation","Vintage"
+];
+
 function authenticate(request) {
   const authHeader = request.headers.get("X-Admin-Key") || request.headers.get("Authorization");
   if (!authHeader) return false;
@@ -62,13 +71,18 @@ export async function onRequestPost(context) {
     const metadata = JSON.parse(await jsonFile.text());
     const slug = jsonFile.name.replace(/\.json$/, "");
 
+    // Validate category
+    const category = metadata.category || "Miscellaneous";
+    if (!VALID_CATEGORIES.includes(category)) {
+      return new Response(JSON.stringify({ error: `Invalid category: ${category}. Must be one of: ${VALID_CATEGORIES.join(", ")}` }), { status: 400, headers });
+    }
+
     const allVectorsRaw = await kv.get("all_vectors");
     const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
 
     const existing = allVectors.find(v => v.name === slug);
     if (existing) return new Response(JSON.stringify({ error: "DUPLICATE" }), { status: 409, headers });
 
-    const category = metadata.category || "Miscellaneous";
     await r2.put(`assets/${category}/${slug}.jpg`, await jpegFile.arrayBuffer(), { httpMetadata: { contentType: "image/jpeg" } });
     await r2.put(`assets/${category}/${slug}.zip`, await zipFile.arrayBuffer(), { httpMetadata: { contentType: "application/zip" } });
 

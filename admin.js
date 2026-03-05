@@ -176,6 +176,12 @@ async function handleUpload(e) {
         return;
     }
 
+    // Validate category against predefined list
+    if (!CATEGORIES.includes(metadata.category)) {
+        showStatus('error', `Invalid category: "${metadata.category}". Must be one of: ${CATEGORIES.join(', ')}`);
+        return;
+    }
+
     const uploadBtn = document.getElementById('uploadBtn');
     uploadBtn.disabled = true;
     showStatus('info', 'Uploading to Cloudflare... Please wait.');
