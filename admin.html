@@ -522,8 +522,9 @@
 
             <!-- SYSTEM HEALTH -->
             <section id="health" class="admin-section">
-                <div style="display:flex;gap:12px;margin-bottom:20px;">
+                <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
                     <button class="btn-refresh" id="refreshHealthBtn" style="margin-bottom:0;">&#8635; Refresh Health Report</button>
+                    <button class="btn-refresh" id="verifySyncBtn" style="margin-bottom:0;background:var(--blue);">&#10003; Verify R2 Sync</button>
                     <button class="btn-refresh" id="runCleanupBtn" style="margin-bottom:0;background:var(--red);">&#128465; Run Cleanup (Remove Orphans)</button>
                 </div>
                 <div class="health-grid" id="healthGrid">

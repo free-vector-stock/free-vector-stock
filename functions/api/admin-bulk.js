@@ -1,9 +1,12 @@
 /**
  * Admin Bulk Upload API Handler
+ * Enhanced: Retry system, upload logging, hash-based duplicate detection
  * Processes bulk vector uploads with advanced analysis and validation
  */
 
 const ADMIN_PASSWORD = "vector2026";
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
 
 const VALID_CATEGORIES = [
   "Abstract",
@@ -45,6 +48,87 @@ function authenticate(request) {
   return key === ADMIN_PASSWORD;
 }
 
+function normalizeCategory(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  const exact = VALID_CATEGORIES.find(c => c.toLowerCase() === s.toLowerCase());
+  if (exact) return exact;
+  const firstWord = s.split(/[/\s]/)[0].toLowerCase();
+  const startsWith = VALID_CATEGORIES.find(c => c.toLowerCase().startsWith(firstWord) && firstWord.length >= 4);
+  if (startsWith) return startsWith;
+  const threshold = s.length <= 6 ? 2 : 3;
+  let best = null, bestDist = Infinity;
+  for (const cat of VALID_CATEGORIES) {
+    const d1 = levenshtein(s.toLowerCase(), cat.toLowerCase());
+    if (d1 < bestDist) { bestDist = d1; best = cat; }
+    const catFirst = cat.split(/[/\s]/)[0].toLowerCase();
+    const d2 = levenshtein(s.toLowerCase(), catFirst);
+    if (d2 < bestDist) { bestDist = d2; best = cat; }
+  }
+  return (best && bestDist <= threshold) ? best : null;
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function simpleHash(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let hash = 2166136261;
+  for (let i = 0; i < Math.min(bytes.length, 65536); i++) {
+    hash ^= bytes[i];
+    hash = (hash * 16777619) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function uploadWithRetry(r2, key, buffer, metadata, retries = MAX_RETRIES) {
+  let lastError;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await r2.put(key, buffer, { httpMetadata: metadata });
+      const check = await r2.head(key);
+      if (check) return { success: true, attempt };
+      throw new Error("Upload verification failed");
+    } catch (e) {
+      lastError = e;
+      if (attempt < retries) {
+        await sleep(RETRY_DELAY_MS * attempt);
+      }
+    }
+  }
+  return { success: false, error: lastError?.message, attempts: retries };
+}
+
+async function logUploadEvent(kv, event) {
+  try {
+    const logKey = `upload-log-${new Date().toISOString().split('T')[0]}`;
+    const logsRaw = await kv.get(logKey);
+    const logs = logsRaw ? JSON.parse(logsRaw) : [];
+    logs.push({
+      ...event,
+      timestamp: new Date().toISOString()
+    });
+    await kv.put(logKey, JSON.stringify(logs));
+  } catch (e) {
+    console.error("Log error:", e);
+  }
+}
+
 function generateSeoSlug(title) {
   if (!title || title.trim() === "") return null;
   
@@ -59,53 +143,25 @@ function generateSeoSlug(title) {
   return slug ? `free-vector-${slug}` : null;
 }
 
-/**
- * Analyze ZIP file contents
- */
-async function analyzeZipContents(zipBuffer) {
-  try {
-    // Simple ZIP analysis - check for common vector file types
-    const zipStr = new TextDecoder().decode(zipBuffer);
-    
-    return {
-      hasEps: zipStr.includes('.eps') || zipStr.includes('.EPS'),
-      hasSvg: zipStr.includes('.svg') || zipStr.includes('.SVG'),
-      hasAi: zipStr.includes('.ai') || zipStr.includes('.AI'),
-      hasJpeg: zipStr.includes('.jpg') || zipStr.includes('.jpeg') || zipStr.includes('.JPG') || zipStr.includes('.JPEG'),
-      analyzed: true
-    };
-  } catch (e) {
-    return { error: e.message, analyzed: false };
+function validateTitle(title) {
+  if (!title || String(title).trim() === "") {
+    return { valid: false, reason: "Title is required." };
   }
+  const t = String(title).trim();
+  if (/^\d+$/.test(t)) {
+    return { valid: false, reason: "Title cannot consist only of numbers." };
+  }
+  if (/\d{5,}/.test(t)) {
+    return { valid: false, reason: "Title contains numeric file ID codes. Please use a descriptive title." };
+  }
+  const wordCount = t.split(/\s+/).filter(w => w.length > 0).length;
+  if (wordCount < 3) {
+    return { valid: false, reason: `Title must contain at least 3 words. Current: "${t}" (${wordCount} word${wordCount !== 1 ? 's' : ''}).` };
+  }
+  return { valid: true };
 }
 
-/**
- * Validate metadata
- */
-function validateMetadata(metadata) {
-  const required = ['title', 'category', 'description', 'keywords'];
-  const missing = [];
-  const issues = [];
-  
-  for (const field of required) {
-    if (!metadata[field]) {
-      missing.push(field);
-    } else if (Array.isArray(metadata[field]) && metadata[field].length === 0) {
-      missing.push(field);
-    }
-  }
-  
-  if (metadata.category && !VALID_CATEGORIES.includes(metadata.category)) {
-    issues.push(`Invalid category: ${metadata.category}`);
-  }
-  
-  return {
-    isValid: missing.length === 0,
-    missing,
-    issues,
-    hasAllFields: missing.length === 0
-  };
-}
+
 
 export async function onRequestPost(context) {
   const headers = { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" };
@@ -128,20 +184,67 @@ export async function onRequestPost(context) {
         return new Response(JSON.stringify({ error: "Missing files" }), { status: 400, headers });
       }
 
-      const metadata = JSON.parse(await jsonFile.text());
+      let metadata;
+      try {
+        metadata = JSON.parse(await jsonFile.text());
+      } catch (e) {
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          status: "error",
+          reason: "json_parse_error",
+          error: e.message
+        });
+        return new Response(JSON.stringify({ error: "Invalid JSON: " + e.message }), { status: 400, headers });
+      }
+      
+      const getField = (obj, field) => {
+        const key = Object.keys(obj).find(k => k.toLowerCase() === field.toLowerCase());
+        return key ? obj[key] : null;
+      };
+      
+      const title = getField(metadata, "title");
+      const keywords = getField(metadata, "keywords");
+      let category = getField(metadata, "category");
+      
+      const titleCheck = validateTitle(title);
+      if (!titleCheck.valid) {
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          status: "error",
+          reason: "invalid_title",
+          error: titleCheck.reason
+        });
+        return new Response(JSON.stringify({ error: "Title validation failed: " + titleCheck.reason }), { status: 400, headers });
+      }
+      
+      if (!keywords || (Array.isArray(keywords) && keywords.length === 0)) {
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          status: "error",
+          reason: "missing_keywords"
+        });
+        return new Response(JSON.stringify({ error: "Keywords are required" }), { status: 400, headers });
+      }
+      
+      let resolvedCategory = null;
+      if (category) {
+        resolvedCategory = normalizeCategory(String(category));
+      }
+      if (!resolvedCategory) {
+        const prefix = jsonFile.name.split(/[-_\s]/)[0];
+        resolvedCategory = normalizeCategory(prefix);
+      }
+      if (!resolvedCategory) {
+        resolvedCategory = "Miscellaneous";
+      }
       
       let slug = null;
-      if (metadata.title && metadata.title.trim()) {
-        slug = generateSeoSlug(metadata.title);
+      if (title && String(title).trim()) {
+        slug = generateSeoSlug(title);
       }
       if (!slug) {
         const filename = jsonFile.name.replace(/\.json$/, "");
         slug = generateSeoSlug(filename) || filename;
-      }
-
-      const category = metadata.category || "Miscellaneous";
-      if (!VALID_CATEGORIES.includes(category)) {
-        return new Response(JSON.stringify({ error: `Invalid category: ${category}` }), { status: 400, headers });
       }
       
       if (!slug || slug === "free-vector-") {
@@ -152,24 +255,83 @@ export async function onRequestPost(context) {
       const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
 
       const existing = allVectors.find(v => v.name === slug);
-      if (existing) return new Response(JSON.stringify({ error: "DUPLICATE" }), { status: 409, headers });
+      if (existing) {
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          slug,
+          category: resolvedCategory,
+          status: "duplicate"
+        });
+        return new Response(JSON.stringify({ error: "DUPLICATE" }), { status: 409, headers });
+      }
 
-      await r2.put(`assets/${category}/${slug}.jpg`, await jpegFile.arrayBuffer(), { httpMetadata: { contentType: "image/jpeg" } });
-      await r2.put(`assets/${category}/${slug}.zip`, await zipFile.arrayBuffer(), { httpMetadata: { contentType: "application/zip" } });
+      const jpegBuffer = await jpegFile.arrayBuffer();
+      const zipBuffer = await zipFile.arrayBuffer();
+      const jpegHash = simpleHash(jpegBuffer);
+      
+      const hashDuplicate = allVectors.find(v => v.imageHash === jpegHash);
+      if (hashDuplicate) {
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          slug,
+          category: resolvedCategory,
+          status: "duplicate",
+          reason: "hash_duplicate"
+        });
+        return new Response(JSON.stringify({ error: "DUPLICATE" }), { status: 409, headers });
+      }
+
+      const jpgUpload = await uploadWithRetry(r2, `assets/${resolvedCategory}/${slug}.jpg`, jpegBuffer, { contentType: "image/jpeg" });
+      if (!jpgUpload.success) {
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          slug,
+          category: resolvedCategory,
+          status: "error",
+          reason: "jpg_upload_failed",
+          error: jpgUpload.error
+        });
+        return new Response(JSON.stringify({ error: "JPEG upload failed: " + jpgUpload.error }), { status: 500, headers });
+      }
+
+      const zipUpload = await uploadWithRetry(r2, `assets/${resolvedCategory}/${slug}.zip`, zipBuffer, { contentType: "application/zip" });
+      if (!zipUpload.success) {
+        try {
+          await r2.delete(`assets/${resolvedCategory}/${slug}.jpg`);
+        } catch (_) {}
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          slug,
+          category: resolvedCategory,
+          status: "error",
+          reason: "zip_upload_failed",
+          error: zipUpload.error
+        });
+        return new Response(JSON.stringify({ error: "ZIP upload failed: " + zipUpload.error }), { status: 500, headers });
+      }
 
       const vectorRecord = {
         name: slug,
-        category,
-        title: metadata.title || slug,
-        description: metadata.description || "",
-        keywords: metadata.keywords || [],
+        category: resolvedCategory,
+        title: String(title).trim(),
+        description: getField(metadata, "description") || "",
+        keywords: Array.isArray(keywords) ? keywords : String(keywords).split(",").map(k => k.trim()).filter(Boolean),
         date: new Date().toISOString().split("T")[0],
         downloads: 0,
-        fileSize: `${(zipFile.size / (1024 * 1024)).toFixed(1)} MB`
+        fileSize: `${(zipBuffer.byteLength / (1024 * 1024)).toFixed(1)} MB`,
+        imageHash: jpegHash
       };
 
       allVectors.unshift(vectorRecord);
       await kv.put("all_vectors", JSON.stringify(allVectors));
+
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        slug,
+        category: resolvedCategory,
+        status: "success",
+        file_size: zipBuffer.byteLength
+      });
 
       return new Response(JSON.stringify({ success: true, message: `Uploaded: ${slug}` }), { status: 200, headers });
     }

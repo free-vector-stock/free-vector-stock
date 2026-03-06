@@ -2,10 +2,13 @@
  * Admin API - Protected endpoints for managing vectors
  * Enhanced: Auto category detection, fuzzy match, upload validation, duplicate check, post-upload tests
  * Updated: Triple existence check (KV + R2 JPG + R2 ZIP), correct upload flow order,
- *          JSON error tolerance, title validation, hash-based duplicate detection
+ *          JSON error tolerance, title validation, hash-based duplicate detection,
+ *          RETRY SYSTEM, UPLOAD LOGGING, OVERWRITE SUPPORT, POST-UPLOAD VERIFICATION
  */
 
 const ADMIN_PASSWORD = "vector2026";
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
 
 const VALID_CATEGORIES = [
   "Abstract",
@@ -156,6 +159,53 @@ function simpleHash(buffer) {
 }
 
 /**
+ * Sleep helper for retry delays
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Upload to R2 with retry logic
+ */
+async function uploadWithRetry(r2, key, buffer, metadata, retries = MAX_RETRIES) {
+  let lastError;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await r2.put(key, buffer, { httpMetadata: metadata });
+      // Verify upload
+      const check = await r2.head(key);
+      if (check) return { success: true, attempt };
+      throw new Error("Upload verification failed");
+    } catch (e) {
+      lastError = e;
+      if (attempt < retries) {
+        await sleep(RETRY_DELAY_MS * attempt);
+      }
+    }
+  }
+  return { success: false, error: lastError?.message, attempts: retries };
+}
+
+/**
+ * Log upload event to KV
+ */
+async function logUploadEvent(kv, event) {
+  try {
+    const logKey = `upload-log-${new Date().toISOString().split('T')[0]}`;
+    const logsRaw = await kv.get(logKey);
+    const logs = logsRaw ? JSON.parse(logsRaw) : [];
+    logs.push({
+      ...event,
+      timestamp: new Date().toISOString()
+    });
+    await kv.put(logKey, JSON.stringify(logs));
+  } catch (e) {
+    console.error("Log error:", e);
+  }
+}
+
+/**
  * Triple existence check: KV record + R2 JPG + R2 ZIP
  * A file is truly "existing" only if ALL THREE are present.
  * If any is missing, it should be re-uploaded.
@@ -287,17 +337,10 @@ export async function onRequestGet(context) {
 
         try {
           const cat = v.category || "Miscellaneous";
-          const oldName = v.name;
-          const oldJpg = await r2.get(`assets/${cat}/${oldName}.jpg`);
-          const oldZip = await r2.get(`assets/${cat}/${oldName}.zip`);
-          if (oldJpg) {
-            await r2.put(`assets/${cat}/${newSlug}.jpg`, await oldJpg.arrayBuffer(), { httpMetadata: { contentType: "image/jpeg" } });
-            await r2.delete(`assets/${cat}/${oldName}.jpg`);
-          }
-          if (oldZip) {
-            await r2.put(`assets/${cat}/${newSlug}.zip`, await oldZip.arrayBuffer(), { httpMetadata: { contentType: "application/zip" } });
-            await r2.delete(`assets/${cat}/${oldName}.zip`);
-          }
+          await Promise.all([
+            r2.put(`assets/${cat}/${newSlug}.jpg`, await r2.get(`assets/${cat}/${v.name}.jpg`)),
+            r2.put(`assets/${cat}/${newSlug}.zip`, await r2.get(`assets/${cat}/${v.name}.zip`))
+          ]);
           v.name = newSlug;
           results.renamed++;
           count++;
@@ -363,6 +406,12 @@ export async function onRequestPost(context) {
       metadata = JSON.parse(await jsonFile.text());
     } catch (e) {
       // JSON error must NOT stop the system - log and reject this file only
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        status: "error",
+        reason: "json_parse_error",
+        error: e.message
+      });
       return new Response(JSON.stringify({
         error: "Invalid JSON file: " + e.message,
         skipped: true,
@@ -383,6 +432,12 @@ export async function onRequestPost(context) {
     // ── 5. Title validation ──
     const titleCheck = validateTitle(title);
     if (!titleCheck.valid) {
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        status: "error",
+        reason: "invalid_title",
+        error: titleCheck.reason
+      });
       return new Response(JSON.stringify({
         error: "Metadata validation failed: " + titleCheck.reason,
         skipped: true,
@@ -392,6 +447,11 @@ export async function onRequestPost(context) {
 
     // Required field: keywords
     if (!keywords || (Array.isArray(keywords) && keywords.length === 0)) {
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        status: "error",
+        reason: "missing_keywords"
+      });
       return new Response(JSON.stringify({
         error: "Metadata validation failed: 'keywords' is required.",
         skipped: true,
@@ -441,6 +501,13 @@ export async function onRequestPost(context) {
     // A file is only "existing" if ALL THREE are present
     const existenceCheck = await checkTripleExistence(kv, r2, slug, resolvedCategory, allVectors);
     if (existenceCheck.exists) {
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        slug,
+        category: resolvedCategory,
+        status: "duplicate",
+        reason: "triple_existence_check"
+      });
       return new Response(JSON.stringify({
         error: "DUPLICATE",
         message: "This file has already been uploaded. Duplicate upload is not allowed."
@@ -452,6 +519,14 @@ export async function onRequestPost(context) {
     const jpegHash = simpleHash(jpegBuffer);
     const hashDuplicate = allVectors.find(v => v.imageHash === jpegHash);
     if (hashDuplicate) {
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        slug,
+        category: resolvedCategory,
+        status: "duplicate",
+        reason: "hash_duplicate",
+        duplicate_of: hashDuplicate.name
+      });
       return new Response(JSON.stringify({
         error: "DUPLICATE",
         message: `This file has already been uploaded. Duplicate upload is not allowed. Same image found as: "${hashDuplicate.title || hashDuplicate.name}"`
@@ -465,15 +540,56 @@ export async function onRequestPost(context) {
       return levenshtein(normalizedNewTitle, existing) <= 3 && normalizedNewTitle.length > 5;
     });
     if (titleDuplicate) {
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        slug,
+        category: resolvedCategory,
+        status: "duplicate",
+        reason: "title_similarity",
+        duplicate_of: titleDuplicate.name
+      });
       return new Response(JSON.stringify({
         error: "DUPLICATE",
         message: `This file has already been uploaded. Duplicate upload is not allowed. Similar title found: "${titleDuplicate.title}"`
       }), { status: 409, headers });
     }
 
-    // ── 12. Upload to R2 ──
-    await r2.put(`assets/${resolvedCategory}/${slug}.jpg`, jpegBuffer, { httpMetadata: { contentType: "image/jpeg" } });
-    await r2.put(`assets/${resolvedCategory}/${slug}.zip`, zipBuffer, { httpMetadata: { contentType: "application/zip" } });
+    // ── 12. Upload to R2 with retry ──
+    const jpgUpload = await uploadWithRetry(r2, `assets/${resolvedCategory}/${slug}.jpg`, jpegBuffer, { contentType: "image/jpeg" });
+    if (!jpgUpload.success) {
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        slug,
+        category: resolvedCategory,
+        status: "error",
+        reason: "jpg_upload_failed",
+        error: jpgUpload.error,
+        attempts: jpgUpload.attempts
+      });
+      return new Response(JSON.stringify({
+        error: "Failed to upload JPEG after " + MAX_RETRIES + " attempts: " + jpgUpload.error
+      }), { status: 500, headers });
+    }
+
+    const zipUpload = await uploadWithRetry(r2, `assets/${resolvedCategory}/${slug}.zip`, zipBuffer, { contentType: "application/zip" });
+    if (!zipUpload.success) {
+      // Rollback JPEG
+      try {
+        await r2.delete(`assets/${resolvedCategory}/${slug}.jpg`);
+      } catch (_) {}
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        slug,
+        category: resolvedCategory,
+        status: "error",
+        reason: "zip_upload_failed",
+        error: zipUpload.error,
+        attempts: zipUpload.attempts
+      });
+      return new Response(JSON.stringify({
+        error: "Failed to upload ZIP after " + MAX_RETRIES + " attempts: " + zipUpload.error
+      }), { status: 500, headers });
+    }
 
     // ── 13. Save to KV ──
     const vectorRecord = {
@@ -516,11 +632,30 @@ export async function onRequestPost(context) {
         const rollbackVectors = cleanedVectors.filter(v => v.name !== slug);
         await kv.put("all_vectors", JSON.stringify(rollbackVectors));
       } catch (_) {}
+      await logUploadEvent(kv, {
+        file_name: jsonFile.name,
+        slug,
+        category: resolvedCategory,
+        status: "error",
+        reason: "post_upload_verification_failed",
+        tests: postTests
+      });
       return new Response(JSON.stringify({
         error: "Post-upload verification failed. Upload rolled back.",
         tests: postTests
       }), { status: 500, headers });
     }
+
+    // ── 15. Log successful upload ──
+    await logUploadEvent(kv, {
+      file_name: jsonFile.name,
+      slug,
+      category: resolvedCategory,
+      status: "success",
+      file_size: zipBuffer.byteLength,
+      jpeg_attempts: jpgUpload.attempt,
+      zip_attempts: zipUpload.attempt
+    });
 
     return new Response(JSON.stringify({
       success: true,

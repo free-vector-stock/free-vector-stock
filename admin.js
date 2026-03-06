@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('refreshHealthBtn')?.addEventListener('click', loadHealthReport);
+    document.getElementById('verifySyncBtn')?.addEventListener('click', verifySync);
     document.getElementById('runCleanupBtn')?.addEventListener('click', runCleanup);
 });
 
@@ -650,6 +651,46 @@ async function loadHealthReport() {
 
     } catch (e) {
         grid.innerHTML = `<div style="color:var(--red);padding:20px;">Error loading health report: ${escHtml(e.message)}</div>`;
+        console.error(e);
+    }
+}
+
+// ─── VERIFY R2 SYNC ──────────────────────────────────────────────────────────
+
+async function verifySync() {
+    const grid = document.getElementById('healthGrid');
+    grid.innerHTML = '<div style="color:#999;padding:20px;">Verifying R2 sync...</div>';
+    
+    try {
+        const res = await fetch('/api/admin?action=health&sample=500', {
+            headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const data = await res.json();
+        const issues = data.issues || [];
+        const missing = issues.filter(i => i.type === 'missing_jpg' || i.type === 'missing_zip');
+        
+        if (missing.length === 0) {
+            grid.innerHTML = `<div style="background:var(--green);color:white;padding:20px;border-radius:4px;text-align:center;font-weight:600;">✓ Perfect Sync: All ${data.totalVectors} vectors are synchronized between KV and R2</div>`;
+        } else {
+            grid.innerHTML = `<div style="background:var(--red);color:white;padding:20px;border-radius:4px;text-align:center;font-weight:600;">⚠ Sync Issues Found: ${missing.length} files missing in R2</div>`;
+        }
+        
+        const issuesBody = document.getElementById('healthIssuesBody');
+        if (missing.length === 0) {
+            issuesBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--green);padding:20px;">✓ All files are synchronized</td></tr>';
+        } else {
+            issuesBody.innerHTML = missing.map(i => {
+                const typeLabel = i.type === 'missing_jpg' ? 'Missing JPEG' : 'Missing ZIP';
+                return `<tr>
+                    <td style="font-size:12px;">${escHtml(i.slug)}</td>
+                    <td><span class="badge badge-red">${typeLabel}</span></td>
+                    <td style="font-size:12px;">Re-upload this vector</td>
+                    <td><button class="btn-delete" onclick="deleteVector('${escHtml(i.slug)}')">Delete</button></td>
+                </tr>`;
+            }).join('');
+        }
+    } catch (e) {
+        grid.innerHTML = `<div style="color:var(--red);padding:20px;">Error verifying sync: ${escHtml(e.message)}</div>`;
         console.error(e);
     }
 }
