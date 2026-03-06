@@ -61,6 +61,14 @@
 
             <!-- INLINE DETAIL PANEL (inserted after clicked card's row) -->
             <div id="detailPanel" class="detail-panel" style="display:none;">
+                <!-- BREADCRUMB -->
+                <nav id="detailBreadcrumb" class="breadcrumb" aria-label="Breadcrumb">
+                    <a href="#" id="breadcrumbHome">Home</a>
+                    <span class="breadcrumb-sep">&#8250;</span>
+                    <a href="#" id="breadcrumbCategory"></a>
+                    <span class="breadcrumb-sep">&#8250;</span>
+                    <span id="breadcrumbTitle" class="breadcrumb-current"></span>
+                </nav>
                 <div class="detail-inner">
                     <div class="detail-left">
                         <img id="detailImage" src="" alt="" class="detail-img">
@@ -79,6 +87,11 @@
                         <button id="detailDownloadBtn" class="download-btn">DOWNLOAD</button>
                         <button id="detailCloseBtn" class="detail-close-btn">&#10005; Close</button>
                     </div>
+                </div>
+                <!-- RELATED VECTORS -->
+                <div id="relatedVectorsSection" class="related-vectors-section" style="display:none;">
+                    <div class="related-vectors-title">Related Vectors</div>
+                    <div id="relatedVectorsGrid" class="related-vectors-grid"></div>
                 </div>
             </div>
 
@@ -151,8 +164,8 @@
                     <tr><td class="dp-label">FILE SIZE</td><td id="dpFileSize" class="dp-value">-</td></tr>
                 </table>
                 <div class="dp-countdown-box">
-                    <p class="dp-countdown-label">Your download will start in:</p>
-                    <div id="dpCountdown" class="dp-countdown-num">4</div>
+                    <p id="dpCountdownStatus" class="dp-countdown-status">Preparing download...</p>
+                    <div id="dpCountdown" class="dp-countdown-num">3</div>
                     <p class="dp-countdown-sub">High-speed secure download from frevector.com</p>
                 </div>
             </div>

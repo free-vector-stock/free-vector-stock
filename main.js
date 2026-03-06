@@ -1,6 +1,7 @@
 /**
  * frevector.com - Frontend Logic
  * Revised: detail panel opens below clicked card row, title from JSON, no filenames shown
+ * Updated: tag limit (15 + expand), improved countdown, breadcrumb, related vectors
  */
 
 const EXTRA_KEYWORDS = ['free vector', 'free svg', 'free svg icon', 'free eps', 'free jpeg', 'free', 'fre', 'vector eps', 'svg', 'jpeg'];
@@ -270,6 +271,7 @@ function openDetailPanel(v, cardEl) {
     // Populate panel content
     const img = document.getElementById('detailImage');
     img.src = v.thumbnail;
+    img.alt = (v.title && !isFileSlug(v.title)) ? v.title : 'Free Vector';
     img.onerror = function() {
         this.src = 'https://placehold.co/400x300/f5f5f5/999?text=Preview';
     };
@@ -281,13 +283,106 @@ function openDetailPanel(v, cardEl) {
     document.getElementById('detailCategory').textContent = v.category || '-';
     document.getElementById('detailFileSize').textContent = v.fileSize || '-';
 
-    // Keywords
+    // Breadcrumb
+    updateBreadcrumb(v, displayTitle);
+
+    // Keywords with 15-tag limit + expand
+    renderDetailKeywords(v);
+
+    // Insert panel AFTER the row containing the clicked card
+    const grid = document.getElementById('vectorsGrid');
+    if (grid && cardEl) {
+        if (panel.parentNode) panel.parentNode.removeChild(panel);
+
+        const cards = Array.from(grid.querySelectorAll('.vector-card'));
+        const cardIndex = cards.indexOf(cardEl);
+
+        const cardTop = cardEl.offsetTop;
+        let lastInRow = cardIndex;
+        for (let i = cardIndex + 1; i < cards.length; i++) {
+            if (cards[i].offsetTop === cardTop) {
+                lastInRow = i;
+            } else {
+                break;
+            }
+        }
+
+        const afterCard = cards[lastInRow];
+        afterCard.after(panel);
+    }
+
+    panel.style.display = 'block';
+
+    // Mark active card
+    document.querySelectorAll('.vector-card').forEach(c => c.classList.remove('card-active'));
+    if (cardEl) cardEl.classList.add('card-active');
+
+    // Render related vectors
+    renderRelatedVectors(v);
+
+    // Scroll panel into view smoothly
+    setTimeout(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+}
+
+/* ===========================
+   BREADCRUMB
+   =========================== */
+function updateBreadcrumb(v, displayTitle) {
+    const catEl = document.getElementById('breadcrumbCategory');
+    const titleEl = document.getElementById('breadcrumbTitle');
+    const homeEl = document.getElementById('breadcrumbHome');
+
+    if (homeEl) {
+        homeEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            state.selectedCategory = 'all';
+            state.currentPage = 1;
+            state.searchQuery = '';
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+            document.querySelectorAll('.category-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.cat === 'all');
+            });
+            closeDetailPanel();
+            updateCategoryTitle();
+            fetchVectors();
+        });
+    }
+
+    if (catEl) {
+        catEl.textContent = v.category || 'All';
+        catEl.onclick = (e) => {
+            e.preventDefault();
+            if (v.category) {
+                selectCategory(v.category);
+            }
+        };
+    }
+
+    if (titleEl) {
+        titleEl.textContent = displayTitle || v.name || '';
+    }
+}
+
+/* ===========================
+   DETAIL KEYWORDS (max 15 + expand)
+   =========================== */
+function renderDetailKeywords(v) {
     const kwContainer = document.getElementById('detailKeywords');
+    if (!kwContainer) return;
     kwContainer.innerHTML = '';
+
     const allKws = [...EXTRA_KEYWORDS, ...(v.keywords || [])];
-    allKws.slice(0, 25).forEach(kw => {
+    const MAX_VISIBLE = 15;
+
+    allKws.forEach((kw, index) => {
         const span = document.createElement('span');
         span.className = 'kw-tag';
+        if (index >= MAX_VISIBLE) {
+            span.classList.add('kw-tags-hidden');
+        }
         span.textContent = kw;
         span.addEventListener('click', () => {
             document.getElementById('searchInput').value = kw;
@@ -299,43 +394,97 @@ function openDetailPanel(v, cardEl) {
         kwContainer.appendChild(span);
     });
 
-    // Insert panel AFTER the row containing the clicked card
-    // Find the grid and determine which row the card is in
-    const grid = document.getElementById('vectorsGrid');
-    if (grid && cardEl) {
-        // Remove panel from wherever it is
-        if (panel.parentNode) panel.parentNode.removeChild(panel);
-
-        // Get all cards in the grid
-        const cards = Array.from(grid.querySelectorAll('.vector-card'));
-        const cardIndex = cards.indexOf(cardEl);
-
-        // Determine how many cards per row by checking offsetTop
-        const cardTop = cardEl.offsetTop;
-        let lastInRow = cardIndex;
-        for (let i = cardIndex + 1; i < cards.length; i++) {
-            if (cards[i].offsetTop === cardTop) {
-                lastInRow = i;
+    // Add "+X more" button if needed
+    if (allKws.length > MAX_VISIBLE) {
+        const remaining = allKws.length - MAX_VISIBLE;
+        const moreBtn = document.createElement('button');
+        moreBtn.className = 'kw-more-btn';
+        moreBtn.textContent = `+${remaining} more`;
+        moreBtn.setAttribute('data-expanded', 'false');
+        moreBtn.addEventListener('click', () => {
+            const isExpanded = moreBtn.getAttribute('data-expanded') === 'true';
+            const hiddenTags = kwContainer.querySelectorAll('.kw-tags-hidden');
+            if (isExpanded) {
+                hiddenTags.forEach(t => t.classList.add('kw-tags-hidden'));
+                moreBtn.textContent = `+${remaining} more`;
+                moreBtn.setAttribute('data-expanded', 'false');
             } else {
-                break;
+                hiddenTags.forEach(t => t.classList.remove('kw-tags-hidden'));
+                moreBtn.textContent = 'Show less';
+                moreBtn.setAttribute('data-expanded', 'true');
             }
-        }
+        });
+        kwContainer.appendChild(moreBtn);
+    }
+}
 
-        // Insert panel after the last card in the same row
-        const afterCard = cards[lastInRow];
-        afterCard.after(panel);
+/* ===========================
+   RELATED VECTORS
+   =========================== */
+function renderRelatedVectors(currentVector) {
+    const section = document.getElementById('relatedVectorsSection');
+    const grid = document.getElementById('relatedVectorsGrid');
+    if (!section || !grid) return;
+
+    // Get all vectors from state
+    const allVectors = state.vectors;
+    if (!allVectors || allVectors.length === 0) {
+        section.style.display = 'none';
+        return;
     }
 
-    panel.style.display = 'block';
+    // Algorithm: first same category, then same tags, max 12
+    const currentSlug = currentVector.name;
+    const currentCategory = currentVector.category || '';
+    const currentKeywords = new Set((currentVector.keywords || []).map(k => k.toLowerCase()));
 
-    // Mark active card
-    document.querySelectorAll('.vector-card').forEach(c => c.classList.remove('card-active'));
-    if (cardEl) cardEl.classList.add('card-active');
+    // Score each vector
+    const scored = allVectors
+        .filter(v => v.name !== currentSlug)
+        .map(v => {
+            let score = 0;
+            if ((v.category || '') === currentCategory) score += 10;
+            const vKws = (v.keywords || []).map(k => k.toLowerCase());
+            vKws.forEach(kw => {
+                if (currentKeywords.has(kw)) score += 1;
+            });
+            return { v, score };
+        })
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 12);
 
-    // Scroll panel into view smoothly
-    setTimeout(() => {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 50);
+    if (scored.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    grid.innerHTML = '';
+    scored.forEach(({ v }) => {
+        const card = document.createElement('div');
+        card.className = 'related-card';
+        const relTitle = (v.title && !isFileSlug(v.title)) ? v.title : 'Free Vector';
+        card.innerHTML = `
+            <img class="related-card-img" src="${v.thumbnail}" alt="${escHtml(relTitle)}" loading="lazy"
+                 onerror="this.src='https://placehold.co/160x120/f5f5f5/999?text=Preview'">
+            <div class="related-card-title">${escHtml(relTitle)}</div>
+        `;
+        card.addEventListener('click', () => {
+            // Find the card in the main grid
+            const mainGrid = document.getElementById('vectorsGrid');
+            const cards = mainGrid ? mainGrid.querySelectorAll('.vector-card') : [];
+            let found = null;
+            cards.forEach(c => { if (c.dataset.slug === v.name) found = c; });
+            if (found) {
+                openDetailPanel(v, found);
+            } else {
+                openDetailPanel(v, null);
+            }
+        });
+        grid.appendChild(card);
+    });
+
+    section.style.display = 'block';
 }
 
 function closeDetailPanel() {
@@ -386,7 +535,6 @@ function renderPicksTrack() {
         div.innerHTML = `<img src="${v.thumbnail}" alt="${escHtml(displayTitle)}" loading="lazy"
             onerror="this.src='https://placehold.co/160x120/f5f5f5/999?text=Preview'">`;
         div.addEventListener('click', () => {
-            // Find the card in the grid and open detail panel
             const grid = document.getElementById('vectorsGrid');
             const cards = grid ? grid.querySelectorAll('.vector-card') : [];
             let found = null;
@@ -479,6 +627,7 @@ function openDownloadPage(v) {
     // Image - always show
     const img = document.getElementById('dpImage');
     img.src = v.thumbnail;
+    img.alt = (v.title && !isFileSlug(v.title)) ? v.title : 'Free Vector';
     img.onerror = function() {
         this.src = 'https://placehold.co/420x315/f5f5f5/999?text=Preview';
     };
@@ -491,7 +640,7 @@ function openDownloadPage(v) {
     const dpDesc = document.getElementById('dpDescription');
     if (dpDesc) dpDesc.textContent = v.description || '';
 
-    // Keywords
+    // Keywords (all shown in download page)
     const kwContainer = document.getElementById('dpKeywords');
     kwContainer.innerHTML = '';
     const allKws = [...EXTRA_KEYWORDS, ...(v.keywords || [])];
@@ -525,17 +674,23 @@ function closeDownloadPage() {
 
 function startCountdown(v) {
     const el = document.getElementById('dpCountdown');
+    const statusEl = document.getElementById('dpCountdownStatus');
     if (!el) return;
 
-    let count = 4;
+    let count = 3;
     el.textContent = count;
+    if (statusEl) statusEl.textContent = 'Preparing download...';
 
     if (window._countdownTimer) clearInterval(window._countdownTimer);
 
     window._countdownTimer = setInterval(() => {
         count--;
-        el.textContent = count;
-        if (count <= 0) {
+        if (count > 0) {
+            el.textContent = count;
+            if (statusEl) statusEl.textContent = 'Preparing download...';
+        } else {
+            el.textContent = '';
+            if (statusEl) statusEl.textContent = 'Download starting...';
             clearInterval(window._countdownTimer);
             window._countdownTimer = null;
             // Trigger download

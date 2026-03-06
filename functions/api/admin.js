@@ -1,6 +1,8 @@
 /**
  * Admin API - Protected endpoints for managing vectors
  * Enhanced: Auto category detection, fuzzy match, upload validation, duplicate check, post-upload tests
+ * Updated: Triple existence check (KV + R2 JPG + R2 ZIP), correct upload flow order,
+ *          JSON error tolerance, title validation, hash-based duplicate detection
  */
 
 const ADMIN_PASSWORD = "vector2026";
@@ -61,10 +63,8 @@ function normalizeCategory(raw) {
   const threshold = s.length <= 6 ? 2 : 3;
   let best = null, bestDist = Infinity;
   for (const cat of VALID_CATEGORIES) {
-    // Compare against the full category name
     const d1 = levenshtein(s.toLowerCase(), cat.toLowerCase());
     if (d1 < bestDist) { bestDist = d1; best = cat; }
-    // Compare against the first word of the category (e.g. "Animals" from "Animals/Wildlife")
     const catFirst = cat.split(/[/\s]/)[0].toLowerCase();
     const d2 = levenshtein(s.toLowerCase(), catFirst);
     if (d2 < bestDist) { bestDist = d2; best = cat; }
@@ -77,12 +77,11 @@ function normalizeCategory(raw) {
 /**
  * Detect category from filename prefix.
  * e.g. "transportation-00000001" → "Transportation"
- *      "Transportatıon-00000001" → "Transportation"  (typo-tolerant)
  */
 function categoryFromFilename(filename) {
   if (!filename) return null;
-  const base = filename.replace(/\.[^/.]+$/, ""); // remove extension
-  const prefix = base.split(/[-_\s]/)[0];         // first segment
+  const base = filename.replace(/\.[^/.]+$/, "");
+  const prefix = base.split(/[-_\s]/)[0];
   return normalizeCategory(prefix);
 }
 
@@ -117,6 +116,66 @@ function generateSeoSlug(title) {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
   return slug ? `free-vector-${slug}` : null;
+}
+
+/**
+ * Validate title: must have at least 3 words, not be only numbers, not contain 5+ digit codes
+ */
+function validateTitle(title) {
+  if (!title || String(title).trim() === "") {
+    return { valid: false, reason: "Title is required." };
+  }
+  const t = String(title).trim();
+  // Must not be only numbers
+  if (/^\d+$/.test(t)) {
+    return { valid: false, reason: "Title cannot consist only of numbers." };
+  }
+  // Must not contain 5+ digit numeric codes (file IDs)
+  if (/\d{5,}/.test(t)) {
+    return { valid: false, reason: "Title contains numeric file ID codes. Please use a descriptive title." };
+  }
+  // Must have at least 3 words
+  const wordCount = t.split(/\s+/).filter(w => w.length > 0).length;
+  if (wordCount < 3) {
+    return { valid: false, reason: `Title must contain at least 3 words. Current: "${t}" (${wordCount} word${wordCount !== 1 ? 's' : ''}).` };
+  }
+  return { valid: true };
+}
+
+/**
+ * Simple hash of a buffer for duplicate detection (FNV-1a 32-bit)
+ */
+function simpleHash(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let hash = 2166136261;
+  for (let i = 0; i < Math.min(bytes.length, 65536); i++) {
+    hash ^= bytes[i];
+    hash = (hash * 16777619) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+/**
+ * Triple existence check: KV record + R2 JPG + R2 ZIP
+ * A file is truly "existing" only if ALL THREE are present.
+ * If any is missing, it should be re-uploaded.
+ */
+async function checkTripleExistence(kv, r2, slug, category, allVectors) {
+  const kvExists = allVectors.some(v => v.name === slug);
+  if (!kvExists) return { exists: false, reason: "not_in_kv" };
+
+  // Check R2 assets
+  try {
+    const [jpgCheck, zipCheck] = await Promise.all([
+      r2.head(`assets/${category}/${slug}.jpg`),
+      r2.head(`assets/${category}/${slug}.zip`)
+    ]);
+    if (!jpgCheck) return { exists: false, reason: "missing_jpg_in_r2" };
+    if (!zipCheck) return { exists: false, reason: "missing_zip_in_r2" };
+    return { exists: true };
+  } catch (e) {
+    return { exists: false, reason: "r2_check_failed" };
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -157,7 +216,6 @@ export async function onRequestGet(context) {
       const issues = [];
       const slugsSeen = new Set();
 
-      // URL param: sample=N to limit R2 checks (default 50, max 200)
       const url2 = new URL(context.request.url);
       const sampleSize = Math.min(200, Math.max(1, parseInt(url2.searchParams.get("sample") || "50")));
 
@@ -169,9 +227,10 @@ export async function onRequestGet(context) {
         }
         slugsSeen.add(v.name);
 
-        // Invalid title (numeric-only or empty)
-        if (!v.title || /^\d+$/.test(v.title) || /\d{5,}/.test(v.title)) {
-          issues.push({ slug: v.name, type: "invalid_title", fix: "Update title in metadata" });
+        // Invalid title (numeric-only, empty, or contains 5+ digit codes)
+        const titleCheck = validateTitle(v.title);
+        if (!titleCheck.valid) {
+          issues.push({ slug: v.name, type: "invalid_title", reason: titleCheck.reason, fix: "Update title in metadata" });
         }
 
         // Bad category
@@ -181,7 +240,6 @@ export async function onRequestGet(context) {
       }
 
       // Phase 2: R2 file existence check (sampled to avoid Worker CPU timeout)
-      // Checks the most recent N vectors (newest first, as stored in KV)
       if (r2) {
         const sample = allVectors.slice(0, sampleSize);
         const r2Checks = await Promise.all(
@@ -275,15 +333,41 @@ export async function onRequestPost(context) {
 
     // ── 1. File presence check ──
     if (!jsonFile || !jpegFile || !zipFile) {
-      return new Response(JSON.stringify({ error: "Missing files: json, jpeg and zip are all required." }), { status: 400, headers });
+      return new Response(JSON.stringify({
+        error: "Missing required files. Please upload: JSON metadata, JPEG preview, and ZIP archive."
+      }), { status: 400, headers });
     }
 
-    // ── 2. JSON metadata validation ──
+    // ── 2. JPEG validation (FIRST - before JSON parse for performance) ──
+    const jpegBuffer = await jpegFile.arrayBuffer();
+    const jpegBytes  = new Uint8Array(jpegBuffer);
+    // JPEG magic bytes: FF D8 FF
+    if (jpegBytes[0] !== 0xFF || jpegBytes[1] !== 0xD8 || jpegBytes[2] !== 0xFF) {
+      return new Response(JSON.stringify({ error: "Invalid JPEG file: file does not start with JPEG magic bytes." }), { status: 400, headers });
+    }
+    if (jpegBuffer.byteLength < 1024) {
+      return new Response(JSON.stringify({ error: "JPEG file is too small (< 1 KB). Possibly corrupt." }), { status: 400, headers });
+    }
+
+    // ── 3. ZIP validation (BEFORE JSON parse) ──
+    const zipBuffer = await zipFile.arrayBuffer();
+    const zipBytes  = new Uint8Array(zipBuffer);
+    // ZIP magic bytes: 50 4B 03 04
+    if (zipBytes[0] !== 0x50 || zipBytes[1] !== 0x4B) {
+      return new Response(JSON.stringify({ error: "Invalid ZIP file: file does not start with ZIP magic bytes." }), { status: 400, headers });
+    }
+
+    // ── 4. JSON metadata validation (after file checks) ──
     let metadata;
     try {
       metadata = JSON.parse(await jsonFile.text());
     } catch (e) {
-      return new Response(JSON.stringify({ error: "Invalid JSON file: " + e.message }), { status: 400, headers });
+      // JSON error must NOT stop the system - log and reject this file only
+      return new Response(JSON.stringify({
+        error: "Invalid JSON file: " + e.message,
+        skipped: true,
+        reason: "json_parse_error"
+      }), { status: 400, headers });
     }
 
     // Case-insensitive field getter
@@ -296,18 +380,26 @@ export async function onRequestPost(context) {
     const keywords = getField(metadata, "keywords");
     let   category = getField(metadata, "category");
 
-    // Required field: title
-    if (!title || String(title).trim() === "") {
-      return new Response(JSON.stringify({ error: "Metadata validation failed: 'title' is required." }), { status: 400, headers });
+    // ── 5. Title validation ──
+    const titleCheck = validateTitle(title);
+    if (!titleCheck.valid) {
+      return new Response(JSON.stringify({
+        error: "Metadata validation failed: " + titleCheck.reason,
+        skipped: true,
+        reason: "invalid_title"
+      }), { status: 400, headers });
     }
 
     // Required field: keywords
     if (!keywords || (Array.isArray(keywords) && keywords.length === 0)) {
-      return new Response(JSON.stringify({ error: "Metadata validation failed: 'keywords' is required." }), { status: 400, headers });
+      return new Response(JSON.stringify({
+        error: "Metadata validation failed: 'keywords' is required.",
+        skipped: true,
+        reason: "missing_keywords"
+      }), { status: 400, headers });
     }
 
-    // ── 3. Auto category resolution ──
-    // Priority: JSON category → filename prefix → fallback Miscellaneous
+    // ── 6. Auto category resolution ──
     let resolvedCategory = null;
     let categorySource = "";
 
@@ -317,7 +409,6 @@ export async function onRequestPost(context) {
     }
 
     if (!resolvedCategory) {
-      // Try from filename
       const filenameGuess = categoryFromFilename(jsonFile.name);
       if (filenameGuess) {
         resolvedCategory = filenameGuess;
@@ -330,29 +421,9 @@ export async function onRequestPost(context) {
       categorySource = "default fallback";
     }
 
-    // Update metadata with resolved category
     metadata.category = resolvedCategory;
 
-    // ── 4. JPEG validation ──
-    const jpegBuffer = await jpegFile.arrayBuffer();
-    const jpegBytes  = new Uint8Array(jpegBuffer);
-    // JPEG magic bytes: FF D8 FF
-    if (jpegBytes[0] !== 0xFF || jpegBytes[1] !== 0xD8 || jpegBytes[2] !== 0xFF) {
-      return new Response(JSON.stringify({ error: "Invalid JPEG file: file does not start with JPEG magic bytes." }), { status: 400, headers });
-    }
-    if (jpegBuffer.byteLength < 1024) {
-      return new Response(JSON.stringify({ error: "JPEG file is too small (< 1 KB). Possibly corrupt." }), { status: 400, headers });
-    }
-
-    // ── 5. ZIP validation ──
-    const zipBuffer = await zipFile.arrayBuffer();
-    const zipBytes  = new Uint8Array(zipBuffer);
-    // ZIP magic bytes: 50 4B 03 04
-    if (zipBytes[0] !== 0x50 || zipBytes[1] !== 0x4B) {
-      return new Response(JSON.stringify({ error: "Invalid ZIP file: file does not start with ZIP magic bytes." }), { status: 400, headers });
-    }
-
-    // ── 6. Slug generation ──
+    // ── 7. Slug generation ──
     let slug = generateSeoSlug(String(title));
     if (!slug || slug === "free-vector-") {
       const filename = jsonFile.name.replace(/\.json$/, "");
@@ -362,16 +433,32 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "Could not generate a valid slug from title." }), { status: 400, headers });
     }
 
-    // ── 7. Duplicate check (slug + title similarity) ──
+    // ── 8. Load existing vectors ──
     const allVectorsRaw = await kv.get("all_vectors");
     const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
 
-    const existingBySlug = allVectors.find(v => v.name === slug);
-    if (existingBySlug) {
-      return new Response(JSON.stringify({ error: "DUPLICATE", message: "This file has already been uploaded. Duplicate upload is not allowed." }), { status: 409, headers });
+    // ── 9. Triple existence check (KV + R2 JPG + R2 ZIP) ──
+    // A file is only "existing" if ALL THREE are present
+    const existenceCheck = await checkTripleExistence(kv, r2, slug, resolvedCategory, allVectors);
+    if (existenceCheck.exists) {
+      return new Response(JSON.stringify({
+        error: "DUPLICATE",
+        message: "This file has already been uploaded. Duplicate upload is not allowed."
+      }), { status: 409, headers });
+    }
+    // If partial existence (KV but missing R2), we allow re-upload to fix broken state
+
+    // ── 10. Hash-based duplicate detection ──
+    const jpegHash = simpleHash(jpegBuffer);
+    const hashDuplicate = allVectors.find(v => v.imageHash === jpegHash);
+    if (hashDuplicate) {
+      return new Response(JSON.stringify({
+        error: "DUPLICATE",
+        message: `This file has already been uploaded. Duplicate upload is not allowed. Same image found as: "${hashDuplicate.title || hashDuplicate.name}"`
+      }), { status: 409, headers });
     }
 
-    // Title similarity duplicate check (Levenshtein ≤ 3 on normalized titles)
+    // ── 11. Title similarity duplicate check ──
     const normalizedNewTitle = String(title).toLowerCase().replace(/\s+/g, " ").trim();
     const titleDuplicate = allVectors.find(v => {
       const existing = (v.title || "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -384,11 +471,11 @@ export async function onRequestPost(context) {
       }), { status: 409, headers });
     }
 
-    // ── 8. Upload to R2 ──
+    // ── 12. Upload to R2 ──
     await r2.put(`assets/${resolvedCategory}/${slug}.jpg`, jpegBuffer, { httpMetadata: { contentType: "image/jpeg" } });
     await r2.put(`assets/${resolvedCategory}/${slug}.zip`, zipBuffer, { httpMetadata: { contentType: "application/zip" } });
 
-    // ── 9. Save to KV ──
+    // ── 13. Save to KV ──
     const vectorRecord = {
       name: slug,
       category: resolvedCategory,
@@ -397,13 +484,16 @@ export async function onRequestPost(context) {
       keywords: Array.isArray(keywords) ? keywords : String(keywords).split(",").map(k => k.trim()).filter(Boolean),
       date: new Date().toISOString().split("T")[0],
       downloads: 0,
-      fileSize: `${(zipBuffer.byteLength / (1024 * 1024)).toFixed(1)} MB`
+      fileSize: `${(zipBuffer.byteLength / (1024 * 1024)).toFixed(1)} MB`,
+      imageHash: jpegHash
     };
 
-    allVectors.unshift(vectorRecord);
-    await kv.put("all_vectors", JSON.stringify(allVectors));
+    // Remove any partial/broken record with same slug before inserting
+    const cleanedVectors = allVectors.filter(v => v.name !== slug);
+    cleanedVectors.unshift(vectorRecord);
+    await kv.put("all_vectors", JSON.stringify(cleanedVectors));
 
-    // ── 10. Post-upload verification ──
+    // ── 14. Post-upload verification ──
     const postTests = { slug_in_kv: false, jpg_in_r2: false, zip_in_r2: false };
     try {
       const freshRaw = await kv.get("all_vectors");
@@ -423,7 +513,7 @@ export async function onRequestPost(context) {
       try {
         await r2.delete(`assets/${resolvedCategory}/${slug}.jpg`);
         await r2.delete(`assets/${resolvedCategory}/${slug}.zip`);
-        const rollbackVectors = allVectors.filter(v => v.name !== slug);
+        const rollbackVectors = cleanedVectors.filter(v => v.name !== slug);
         await kv.put("all_vectors", JSON.stringify(rollbackVectors));
       } catch (_) {}
       return new Response(JSON.stringify({
