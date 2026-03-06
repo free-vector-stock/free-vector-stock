@@ -157,6 +157,11 @@ export async function onRequestGet(context) {
       const issues = [];
       const slugsSeen = new Set();
 
+      // URL param: sample=N to limit R2 checks (default 50, max 200)
+      const url2 = new URL(context.request.url);
+      const sampleSize = Math.min(200, Math.max(1, parseInt(url2.searchParams.get("sample") || "50")));
+
+      // Phase 1: KV-only checks (fast, all vectors)
       for (const v of allVectors) {
         // Duplicate slug
         if (slugsSeen.has(v.name)) {
@@ -173,12 +178,21 @@ export async function onRequestGet(context) {
         if (!VALID_CATEGORIES.includes(v.category)) {
           issues.push({ slug: v.name, type: "bad_category", current: v.category, fix: "Re-upload with correct category" });
         }
+      }
 
-        // Missing R2 files (check only a sample to avoid timeout — check all in small sets)
-        if (r2) {
-          const jpgKey = `assets/${v.category}/${v.name}.jpg`;
-          const zipKey = `assets/${v.category}/${v.name}.zip`;
-          const [jpg, zip] = await Promise.all([r2.head(jpgKey), r2.head(zipKey)]);
+      // Phase 2: R2 file existence check (sampled to avoid Worker CPU timeout)
+      // Checks the most recent N vectors (newest first, as stored in KV)
+      if (r2) {
+        const sample = allVectors.slice(0, sampleSize);
+        const r2Checks = await Promise.all(
+          sample.map(async (v) => {
+            const jpgKey = `assets/${v.category}/${v.name}.jpg`;
+            const zipKey = `assets/${v.category}/${v.name}.zip`;
+            const [jpg, zip] = await Promise.all([r2.head(jpgKey), r2.head(zipKey)]);
+            return { v, jpg: !!jpg, zip: !!zip };
+          })
+        );
+        for (const { v, jpg, zip } of r2Checks) {
           if (!jpg) issues.push({ slug: v.name, type: "missing_jpg", fix: "Re-upload JPEG" });
           if (!zip) issues.push({ slug: v.name, type: "missing_zip", fix: "Re-upload ZIP" });
         }
@@ -187,7 +201,9 @@ export async function onRequestGet(context) {
       return new Response(JSON.stringify({
         totalVectors: allVectors.length,
         issueCount: issues.length,
-        issues
+        issues,
+        r2SampleSize: sampleSize,
+        note: `R2 file checks performed on the ${sampleSize} most recent vectors. Use ?sample=200 for a larger sample.`
       }), { status: 200, headers });
     }
 
