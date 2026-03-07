@@ -728,44 +728,53 @@ export async function onRequestPatch(context) {
     const url = new URL(context.request.url);
     const action = url.searchParams.get("action");
 
-    // ── CLEANUP: Remove orphaned records ──
+    // ── CLEANUP: Remove orphaned records (BATCH PROCESSING) ──
     if (action === "cleanup") {
       const allVectorsRaw = await kv.get("all_vectors");
       const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
       
-      const results = { total: allVectors.length, removed: 0, fixed: 0, errors: [] };
+      const results = { total: allVectors.length, removed: 0, fixed: 0, errors: [], processed: 0 };
       const cleaned = [];
+      const BATCH_SIZE = 50; // Process 50 at a time to avoid timeout
 
-      for (const v of allVectors) {
-        try {
-          // Check if R2 files exist
-          const [jpgCheck, zipCheck] = await Promise.all([
-            r2.head(`assets/${v.category}/${v.name}.jpg`),
-            r2.head(`assets/${v.category}/${v.name}.zip`)
-          ]);
+      for (let i = 0; i < allVectors.length; i += BATCH_SIZE) {
+        const batch = allVectors.slice(i, i + BATCH_SIZE);
+        
+        for (const v of batch) {
+          try {
+            // Check if R2 files exist
+            const [jpgCheck, zipCheck] = await Promise.all([
+              r2.head(`assets/${v.category}/${v.name}.jpg`),
+              r2.head(`assets/${v.category}/${v.name}.zip`)
+            ]);
 
-          if (!jpgCheck || !zipCheck) {
-            // Missing files - remove from KV
-            results.removed++;
-            continue;
+            if (!jpgCheck || !zipCheck) {
+              // Missing files - remove from KV
+              results.removed++;
+              results.processed++;
+              continue;
+            }
+
+            // Validate category
+            if (!VALID_CATEGORIES.includes(v.category)) {
+              v.category = normalizeCategory(v.category) || "Miscellaneous";
+              results.fixed++;
+            }
+
+            // Validate title
+            const titleCheck = validateTitle(v.title);
+            if (!titleCheck.valid) {
+              results.removed++;
+              results.processed++;
+              continue;
+            }
+
+            cleaned.push(v);
+            results.processed++;
+          } catch (e) {
+            results.errors.push({ slug: v.name, error: e.message });
+            results.processed++;
           }
-
-          // Validate category
-          if (!VALID_CATEGORIES.includes(v.category)) {
-            v.category = normalizeCategory(v.category) || "Miscellaneous";
-            results.fixed++;
-          }
-
-          // Validate title
-          const titleCheck = validateTitle(v.title);
-          if (!titleCheck.valid) {
-            results.removed++;
-            continue;
-          }
-
-          cleaned.push(v);
-        } catch (e) {
-          results.errors.push({ slug: v.name, error: e.message });
         }
       }
 
