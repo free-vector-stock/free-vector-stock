@@ -180,7 +180,7 @@ function renderManageTable() {
 
     pageItems.forEach(v => {
         const tr = document.createElement('tr');
-        const previewUrl = `/api/asset?key=${encodeURIComponent(v.name)}.jpg`;
+        const previewUrl = `/api/asset?key=${encodeURIComponent(v.name)}.jpg&cat=${encodeURIComponent(v.category || '')}`;
         tr.innerHTML = `
             <td><img src="${previewUrl}" class="preview-img" onerror="this.src='https://placehold.co/400x300/f5f5f5/999999?text=Preview'"></td>
             <td><div style="font-weight:600;">${escHtml(v.title)}</div><div style="font-size:11px;color:#888;">${escHtml(v.name)}</div></td>
