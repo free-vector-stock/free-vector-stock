@@ -14,6 +14,88 @@ const CATEGORIES = [
     'Technology', 'Transportation', 'Vintage'
 ];
 
+const MODAL_CONTENTS = {
+    about: {
+        title: 'About Us',
+        content: `<h2>About Us</h2>
+<p>Frevector.com, grafik tasarım alanında özgün kaynaklara erişim sağlamak amacıyla oluşturulmuş bağımsız bir tasarım platformudur.</p>
+<p>Platform, kendi iç stüdyosunda üretim yapan bir ekip tarafından yürütülmektedir. Sitede yer alan tüm tasarımlar yalnızca Frevector sanatçıları tarafından hazırlanır. İçerikler başka platformlardan alınmaz, kopyalanmaz veya yeniden düzenlenmez. Her çalışma baştan oluşturulur ve özgün bir üretim sürecinden geçer.</p>
+<p>Her tasarım; fikir geliştirme, çizim, vektörel düzenleme, teknik düzenlemeler ve kalite kontrol aşamalarından sonra paylaşılır. Amacımız, zaman içinde büyüyen ve güvenle kullanılabilecek bir grafik arşivi oluşturmaktır.</p>
+<p><strong>Frevector.com'da aşağıdaki içerikler yer alır:</strong></p>
+<ul>
+<li>Vektör illüstrasyonlar</li>
+<li>İkon setleri</li>
+<li>Logo tasarım öğeleri</li>
+<li>Grafik elementler</li>
+<li>Çeşitli tasarım kaynakları</li>
+</ul>
+<p>Tüm dosyalar kişisel ve ticari projelerde kullanılabilir.</p>
+<p>Tek kuralımız şudur: Dosyalar yeniden dağıtılamaz, başka platformlara yüklenemez, satılamaz veya paket halinde tekrar paylaşılamaz.</p>
+<p>Frevector, emeğe, özgün üretime ve etik tasarım anlayışına değer veren bir platformdur.</p>`
+    },
+    privacy: {
+        title: 'Privacy Policy',
+        content: `<h2>Privacy Policy</h2>
+<p>Frevector.com olarak kullanıcı gizliliğine önem veriyoruz. Bu politika, siteyi ziyaret ettiğinizde hangi verilerin toplanabileceğini ve nasıl kullanılabileceğini açıklar.</p>
+<h3>1. Toplanan Veriler</h3>
+<p>Siteyi ziyaret ettiğinizde bazı anonim veriler otomatik olarak toplanabilir. Bu veriler kimliğinizi doğrudan belirlemez.</p>
+<p><strong>Toplanabilecek veriler:</strong></p>
+<ul>
+<li>Çerezler (cookies)</li>
+<li>Tarayıcı ve cihaz bilgileri</li>
+<li>IP adresi (anonim analiz amaçlı)</li>
+<li>Sayfa ziyaret ve etkileşim verileri</li>
+<li>Analitik kullanım bilgileri</li>
+</ul>
+<h3>2. Verilerin Kullanım Amaçları</h3>
+<p>Toplanan veriler şu amaçlarla kullanılabilir:</p>
+<ul>
+<li>Site performansını iyileştirmek</li>
+<li>Kullanıcı deneyimini geliştirmek</li>
+<li>Teknik sorunları tespit etmek</li>
+<li>Güvenliği sağlamak</li>
+<li>İçerik geliştirme sürecini desteklemek</li>
+</ul>
+<h3>3. Kişisel Veriler</h3>
+<p>Kişisel veriler (isim, e-posta vb.) yalnızca kullanıcı tarafından gönüllü olarak paylaşıldığında işlenir. Örneğin iletişim amacıyla gönderilen e-postalar bu kapsamdadır.</p>
+<p>Frevector kullanıcı verilerini üçüncü kişilerle satmaz veya ticari amaçla paylaşmaz.</p>
+<h3>4. Çerez Politikası</h3>
+<p>Sitede çerezler kullanılabilir. Çerezler site işlevlerini desteklemek, kullanıcı tercihlerini hatırlamak ve performansı ölçmek amacıyla kullanılabilir.</p>
+<p>Kullanıcılar tarayıcı ayarlarından çerez kullanımını sınırlandırabilir veya devre dışı bırakabilir.</p>
+<h3>5. Veri Güvenliği</h3>
+<p>Verilerin korunması için gerekli teknik ve idari önlemler alınmaktadır. Ancak internet üzerinden yapılan veri iletiminin tamamen güvenli olduğu garanti edilemez.</p>`
+    },
+    terms: {
+        title: 'Terms of Service',
+        content: `<h2>Terms of Service</h2>
+<p>Frevector.com'u kullanan her ziyaretçi aşağıdaki şartları kabul etmiş sayılır.</p>
+<h3>1. İçerik Sahipliği</h3>
+<p>Sitede yer alan tüm grafik tasarımlar Frevector sanatçıları tarafından hazırlanmış özgün çalışmalardır. Tüm haklar Frevector'a aittir.</p>
+<h3>2. Kullanım Hakkı</h3>
+<p>İndirilen dosyalar kişisel ve ticari projelerde kullanılabilir. Kullanıcı, dosyaları kendi projeleri için düzenleyebilir ve çalışmalarına dahil edebilir.</p>
+<h3>3. Yasaklanan Kullanımlar</h3>
+<p><strong>Aşağıdaki işlemler yasaktır:</strong></p>
+<ul>
+<li>Dosyaların yeniden dağıtılması</li>
+<li>Başka sitelere yüklenmesi</li>
+<li>Dijital veya fiziksel olarak satılması</li>
+<li>Arşiv, paket veya koleksiyon halinde paylaşılması</li>
+<li>Frevector içeriğinin başka platformlarda kaynak olarak sunulması</li>
+</ul>
+<h3>4. Sorumluluk</h3>
+<p>Frevector, içeriklerin kullanımından doğabilecek doğrudan veya dolaylı zararlardan sorumlu tutulamaz. Platformda zaman zaman teknik aksaklıklar veya geçici erişim sorunları yaşanabilir.</p>
+<h3>5. Değişiklik Hakkı</h3>
+<p>Frevector, hizmet şartlarını ve site içeriğini gerektiğinde güncelleme hakkını saklı tutar.</p>`
+    },
+    contact: {
+        title: 'Contact',
+        content: `<h2>Contact</h2>
+<p>Frevector.com ile ilgili sorularınız veya iletmek istediğiniz bir konu varsa bizimle iletişime geçebilirsiniz.</p>
+<p><strong>E-posta:</strong> hakankacar2014@gmail.com</p>
+<p>Frevector, kullanıcılarıyla açık ve anlaşılır bir iletişim kurmaya önem verir.</p>`
+    }
+};
+
 const state = {
     vectors: [],
     currentPage: 1,
@@ -30,6 +112,7 @@ const state = {
 async function init() {
     setupCategories();
     setupEventListeners();
+    setupModalHandlers();
     await fetchVectors();
 }
 
@@ -323,6 +406,35 @@ function setupEventListeners() {
     });
 }
 
+function setupModalHandlers() {
+    const modalTriggers = document.querySelectorAll('.modal-trigger');
+    const infoModal = document.getElementById('infoModal');
+    const infoModalClose = document.getElementById('infoModalClose');
+    const infoModalBody = document.getElementById('infoModalBody');
+
+    modalTriggers.forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modalKey = trigger.dataset.modal;
+            const content = MODAL_CONTENTS[modalKey];
+            if (content && infoModalBody) {
+                infoModalBody.innerHTML = content.content;
+                if (infoModal) infoModal.style.display = 'flex';
+            }
+        });
+    });
+
+    infoModalClose?.addEventListener('click', () => {
+        if (infoModal) infoModal.style.display = 'none';
+    });
+
+    infoModal?.addEventListener('click', (e) => {
+        if (e.target === infoModal) {
+            infoModal.style.display = 'none';
+        }
+    });
+}
+
 function openDownloadPage(vector) {
     const page = document.getElementById('downloadPage');
     if (!page) return;
@@ -449,7 +561,7 @@ function triggerDownload(vector) {
         }, 100);
     } catch (err) {
         console.error('Download error:', err);
-        alert('Download başlatılamadı. Lütfen tekrar deneyin.');
+        alert('Download could not be started. Please try again.');
     }
 }
 

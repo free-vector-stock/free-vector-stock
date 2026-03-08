@@ -294,7 +294,7 @@ export async function onRequestPost(context) {
     };
 
     const title    = getField(metadata, "title");
-    const keywords = getField(metadata, "keywords");
+    let keywords = getField(metadata, "keywords");
     
     // ID comes from the filename (e.g., backgrounds-textures-00000317)
     const id = jsonFile.name.replace(/\.json$/, "");
