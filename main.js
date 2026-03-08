@@ -23,7 +23,8 @@ const state = {
     searchQuery: '',
     isLoading: false,
     openedVector: null,
-    openedCardEl: null
+    openedCardEl: null,
+    countdownInterval: null
 };
 
 async function init() {
@@ -264,32 +265,12 @@ function setupEventListeners() {
     
     document.getElementById('detailDownloadBtn')?.addEventListener('click', () => {
         if (!state.openedVector) return;
-        const btn = document.getElementById('detailDownloadBtn');
-        if (!btn) return;
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = 'Downloading...';
-        
-        setTimeout(() => {
-            try {
-                const a = document.createElement('a');
-                a.href = state.openedVector.zipUrl;
-                a.download = state.openedVector.name + '.zip';
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    try { document.body.removeChild(a); } catch (e) {}
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }, 100);
-            } catch (err) {
-                console.error('Download error:', err);
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }, 500);
+        openDownloadPage(state.openedVector);
     });
+
+    document.getElementById('dpClose')?.addEventListener('click', closeDownloadPage);
+
+    document.getElementById('dpDownloadBtn')?.addEventListener('click', startDownloadCountdown);
 
     document.getElementById('prevBtn')?.addEventListener('click', () => {
         if (state.currentPage > 1) {
@@ -309,6 +290,111 @@ function setupEventListeners() {
         e.preventDefault();
         selectCategory('all');
     });
+}
+
+function openDownloadPage(vector) {
+    const page = document.getElementById('downloadPage');
+    if (!page) return;
+
+    // Set content
+    const titleEl = document.getElementById('dpTitle');
+    const descEl = document.getElementById('dpDescription');
+    const imgEl = document.getElementById('dpImage');
+    const catEl = document.getElementById('dpCategory');
+    const sizeEl = document.getElementById('dpFileSize');
+    const kwContainer = document.getElementById('dpKeywords');
+
+    if (titleEl) titleEl.textContent = vector.title;
+    if (descEl) descEl.textContent = vector.description || '';
+    if (imgEl) {
+        imgEl.src = vector.thumbnail;
+        imgEl.alt = vector.title;
+        imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x300/f5f5f5/999?text=Preview'; };
+    }
+    if (catEl) catEl.textContent = vector.category || '-';
+    if (sizeEl) sizeEl.textContent = vector.fileSize || '-';
+
+    // Keywords
+    if (kwContainer) {
+        kwContainer.innerHTML = '';
+        const allKws = [...EXTRA_KEYWORDS, ...(vector.keywords || [])];
+        allKws.forEach(kw => {
+            const span = document.createElement('span');
+            span.className = 'dp-kw';
+            span.textContent = kw;
+            kwContainer.appendChild(span);
+        });
+    }
+
+    // Reset countdown box
+    const countdownBox = document.getElementById('dpCountdownBox');
+    const countdownNum = document.getElementById('dpCountdown');
+    const downloadBtn = document.getElementById('dpDownloadBtn');
+    if (countdownBox) countdownBox.style.display = 'none';
+    if (countdownNum) countdownNum.textContent = '4';
+    if (downloadBtn) downloadBtn.style.display = 'block';
+
+    // Show download page
+    page.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDownloadPage() {
+    const page = document.getElementById('downloadPage');
+    if (page) page.style.display = 'none';
+    document.body.style.overflow = '';
+    
+    // Stop countdown if running
+    if (state.countdownInterval) {
+        clearInterval(state.countdownInterval);
+        state.countdownInterval = null;
+    }
+}
+
+function startDownloadCountdown() {
+    if (!state.openedVector) return;
+
+    const downloadBtn = document.getElementById('dpDownloadBtn');
+    const countdownBox = document.getElementById('dpCountdownBox');
+    const countdownNum = document.getElementById('dpCountdown');
+
+    if (downloadBtn) downloadBtn.style.display = 'none';
+    if (countdownBox) countdownBox.style.display = 'block';
+
+    let count = 4;
+    if (countdownNum) countdownNum.textContent = count;
+
+    // Stop any existing countdown
+    if (state.countdownInterval) {
+        clearInterval(state.countdownInterval);
+    }
+
+    state.countdownInterval = setInterval(() => {
+        count--;
+        if (countdownNum) countdownNum.textContent = count;
+
+        if (count < 0) {
+            clearInterval(state.countdownInterval);
+            state.countdownInterval = null;
+            triggerDownload(state.openedVector);
+        }
+    }, 1000);
+}
+
+function triggerDownload(vector) {
+    try {
+        const a = document.createElement('a');
+        a.href = vector.zipUrl;
+        a.download = vector.name + '.zip';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            try { document.body.removeChild(a); } catch (e) {}
+        }, 100);
+    } catch (err) {
+        console.error('Download error:', err);
+    }
 }
 
 function showLoader(show) {

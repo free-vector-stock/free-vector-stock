@@ -142,10 +142,6 @@
     <div id="downloadPage" class="download-page" style="display:none;">
         <div class="download-page-header">
             <span class="dp-site">frevector.com</span>
-            <div class="dp-header-info">
-                <strong id="dpHeaderTitle"></strong>
-                <p id="dpHeaderDesc"></p>
-            </div>
             <button id="dpClose" class="dp-close">&#10005;</button>
         </div>
         <div class="download-page-body">
@@ -163,9 +159,10 @@
                     <tr><td class="dp-label">LICENSE</td><td class="dp-value">Free for Personal &amp; Commercial Use</td></tr>
                     <tr><td class="dp-label">FILE SIZE</td><td id="dpFileSize" class="dp-value">-</td></tr>
                 </table>
-                <div class="dp-countdown-box">
-                    <p id="dpCountdownStatus" class="dp-countdown-status">Preparing download...</p>
-                    <div id="dpCountdown" class="dp-countdown-num">3</div>
+                <button id="dpDownloadBtn" class="dp-download-btn">DOWNLOAD</button>
+                <div class="dp-countdown-box" id="dpCountdownBox" style="display:none;">
+                    <p id="dpCountdownStatus" class="dp-countdown-status">Your download will start in</p>
+                    <div id="dpCountdown" class="dp-countdown-num">4</div>
                     <p class="dp-countdown-sub">High-speed secure download from frevector.com</p>
                 </div>
             </div>
