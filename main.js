@@ -148,7 +148,13 @@ function openDetailPanel(v, cardEl) {
     state.openedCardEl = cardEl;
 
     const panel = document.getElementById('detailPanel');
-    if (!panel) return;
+    if (!panel) {
+        console.error('Detail panel element not found');
+        return;
+    }
+    
+    // Close any existing detail panel first
+    closeDetailPanel();
 
     const img = document.getElementById('detailImage');
     if (img) {
@@ -203,26 +209,42 @@ function openDetailPanel(v, cardEl) {
         const cards = Array.from(grid.querySelectorAll('.vector-card'));
         const cardIndex = cards.indexOf(cardEl);
         
-        // Find the last card in the same row
-        const cardTop = cardEl.offsetTop;
-        let lastInRowIndex = cardIndex;
-        for (let i = cardIndex + 1; i < cards.length; i++) {
-            if (cards[i].offsetTop === cardTop) {
-                lastInRowIndex = i;
-            } else {
-                break;
+        if (cardIndex !== -1) {
+            // Find the last card in the same row
+            const cardTop = cardEl.offsetTop;
+            let lastInRowIndex = cardIndex;
+            for (let i = cardIndex + 1; i < cards.length; i++) {
+                if (cards[i].offsetTop === cardTop) {
+                    lastInRowIndex = i;
+                } else {
+                    break;
+                }
             }
+            
+            // Insert panel after the last card in the row
+            if (lastInRowIndex < cards.length) {
+                cards[lastInRowIndex].after(panel);
+            } else {
+                grid.appendChild(panel);
+            }
+        } else {
+            grid.appendChild(panel);
         }
-        
-        // Insert panel after the last card in the row
-        cards[lastInRowIndex].after(panel);
+    } else if (grid) {
+        grid.appendChild(panel);
     }
 
     panel.style.display = 'block';
     document.querySelectorAll('.vector-card').forEach(c => c.classList.remove('card-active'));
-    cardEl.classList.add('card-active');
+    if (cardEl) cardEl.classList.add('card-active');
 
-    setTimeout(() => { panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+    setTimeout(() => { 
+        try {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+        } catch (e) {
+            console.error('Scroll error:', e);
+        }
+    }, 50);
 }
 
 function closeDetailPanel() {
@@ -264,13 +286,22 @@ function setupEventListeners() {
     document.getElementById('detailCloseBtn')?.addEventListener('click', closeDetailPanel);
     
     document.getElementById('detailDownloadBtn')?.addEventListener('click', () => {
-        if (!state.openedVector) return;
+        if (!state.openedVector) {
+            console.error('No vector selected');
+            return;
+        }
         openDownloadPage(state.openedVector);
     });
 
     document.getElementById('dpClose')?.addEventListener('click', closeDownloadPage);
 
-    document.getElementById('dpDownloadBtn')?.addEventListener('click', startDownloadCountdown);
+    document.getElementById('dpDownloadBtn')?.addEventListener('click', () => {
+        if (!state.openedVector) {
+            console.error('No vector selected for download');
+            return;
+        }
+        startDownloadCountdown();
+    });
 
     document.getElementById('prevBtn')?.addEventListener('click', () => {
         if (state.currentPage > 1) {
@@ -352,7 +383,10 @@ function closeDownloadPage() {
 }
 
 function startDownloadCountdown() {
-    if (!state.openedVector) return;
+    if (!state.openedVector) {
+        console.error('No vector for countdown');
+        return;
+    }
 
     const downloadBtn = document.getElementById('dpDownloadBtn');
     const countdownBox = document.getElementById('dpCountdownBox');
@@ -376,24 +410,33 @@ function startDownloadCountdown() {
         if (count < 0) {
             clearInterval(state.countdownInterval);
             state.countdownInterval = null;
-            triggerDownload(state.openedVector);
+            
+            // Trigger download
+            if (state.openedVector) {
+                triggerDownload(state.openedVector);
+            }
         }
     }, 1000);
 }
 
 function triggerDownload(vector) {
     try {
+        // Use the zipUrl which is already set by the API
+        const downloadUrl = vector.zipUrl || `/api/asset?key=${encodeURIComponent(vector.name)}.zip`;
+        
         const a = document.createElement('a');
-        a.href = vector.zipUrl;
-        a.download = vector.name + '.zip';
+        a.href = downloadUrl;
+        a.download = (vector.name || 'vector') + '.zip';
         a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
+        
         setTimeout(() => {
             try { document.body.removeChild(a); } catch (e) {}
         }, 100);
     } catch (err) {
         console.error('Download error:', err);
+        alert('Download başlatılamadı. Lütfen tekrar deneyin.');
     }
 }
 
