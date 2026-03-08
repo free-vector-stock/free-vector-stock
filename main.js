@@ -426,8 +426,8 @@ function startDownloadCountdown() {
 
 function triggerDownload(vector) {
     try {
-        // Use the zipUrl which is already set by the API
-        const downloadUrl = vector.zipUrl || `/api/asset?key=${encodeURIComponent(vector.name)}.zip`;
+        // Use the download API endpoint which increments counter
+        const downloadUrl = `/api/download?slug=${encodeURIComponent(vector.name)}`;
         
         const a = document.createElement('a');
         a.href = downloadUrl;

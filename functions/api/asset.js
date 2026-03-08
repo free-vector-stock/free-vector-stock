@@ -18,24 +18,21 @@ export async function onRequestGet(context) {
         // Decode URL-encoded key
         const decodedKey = decodeURIComponent(key);
 
-        // 1. Try Flat Structure (Primary)
-        let object = await r2.get(decodedKey);
+        // 1. Try Legacy Structure First (assets/Category/filename)
+        let object = null;
+        if (category && !decodedKey.startsWith("assets/")) {
+            const legacyKey = `assets/${category}/${decodedKey}`;
+            object = await r2.get(legacyKey);
+        }
 
-        // 2. Try Legacy Structure (if not found and not already an assets/ path)
+        // 2. Try Flat Structure (Primary) if not found
         if (!object && !decodedKey.startsWith("assets/")) {
-            // We need to know the category to find it in the legacy structure.
-            // If category is provided, try that first.
-            if (category) {
-                const legacyKey = `assets/${category}/${decodedKey}`;
-                object = await r2.get(legacyKey);
-            }
-            
-            // 3. If still not found, we might have to search, but for performance 
-            // we'll just try the common "assets/" prefix if it's missing.
-            if (!object && !decodedKey.startsWith("assets/")) {
-                // If it was already an assets/ path but failed, we don't re-try.
-                // This part is for cases where key is just "filename.jpg"
-            }
+            object = await r2.get(decodedKey);
+        }
+        
+        // 3. If still not found and key already has assets/ prefix, use as-is
+        if (!object && decodedKey.startsWith("assets/")) {
+            object = await r2.get(decodedKey);
         }
 
         if (!object) {
