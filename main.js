@@ -301,7 +301,7 @@ function setupEventListeners() {
             return;
         }
         startDownloadCountdown();
-     });
+    });
 
     document.getElementById('prevBtn')?.addEventListener('click', () => {
         if (state.currentPage > 1) {
@@ -363,7 +363,7 @@ function openDownloadPage(vector) {
     const downloadBtn = document.getElementById('dpDownloadBtn');
     const countdownStatus = document.getElementById('dpCountdownStatus');
     if (countdownBox) countdownBox.style.display = 'none';
-    if (countdownNum) countdownNum.textContent = '5';
+    if (countdownNum) countdownNum.textContent = '4';
     if (countdownStatus) countdownStatus.textContent = 'Your download will start in';
     if (downloadBtn) downloadBtn.style.display = 'block';
 
@@ -400,7 +400,7 @@ function startDownloadCountdown() {
     if (countdownBox) countdownBox.style.display = 'block';
     if (countdownStatus) countdownStatus.textContent = 'Your download will start in';
 
-    let count = 5;
+    let count = 4;
     if (countdownNum) countdownNum.textContent = count;
 
     // Stop any existing countdown
