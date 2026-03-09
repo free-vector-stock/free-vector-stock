@@ -280,16 +280,23 @@ export async function onRequestPatch(context) {
       const allVectorsRaw = await kv.get("all_vectors");
       const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
       const cleaned = [];
+      let orphanCount = 0;
 
       for (const v of allVectors) {
         const jpgCheck = await r2.head(`icon/${v.name}.jpg`);
         const zipCheck = await r2.head(`icon/${v.name}.zip`);
+        const jsonCheck = await r2.head(`icon/${v.name}.json`);
 
-        if (jpgCheck && zipCheck) cleaned.push(v);
+        // Keep only if ALL three files exist
+        if (jpgCheck && zipCheck && jsonCheck) {
+          cleaned.push(v);
+        } else {
+          orphanCount++;
+        }
       }
 
       await kv.put("all_vectors", JSON.stringify(cleaned));
-      return new Response(JSON.stringify({ success: true, count: cleaned.length }), { status: 200, headers });
+      return new Response(JSON.stringify({ success: true, count: cleaned.length, orphansRemoved: orphanCount }), { status: 200, headers });
     }
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers });
   } catch (e) {

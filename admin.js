@@ -453,7 +453,7 @@ async function runCleanup() {
             headers: { 'X-Admin-Key': ADMIN_KEY }
         });
         const data = await res.json();
-        alert(`Cleanup finished. Remaining vectors: ${data.count}`);
+        alert(`Cleanup finished. Orphans removed: ${data.orphansRemoved || 0}. Remaining vectors: ${data.count}`);
         loadDashboard();
         loadManageVectors();
         loadHealthReport();
