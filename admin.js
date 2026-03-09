@@ -5,12 +5,10 @@
 
 const ADMIN_KEY = "vector2026";
 const CATEGORIES = [
-    'Abstract', 'Animals/Wildlife', 'The Arts', 'Backgrounds/Textures', 'Beauty/Fashion',
-    'Buildings/Landmarks', 'Business/Finance', 'Celebrities', 'Drink', 'Education',
-    'Font', 'Food', 'Healthcare/Medical', 'Holidays', 'Icon', 'Industrial',
-    'Interiors', 'Logo', 'Miscellaneous', 'Nature', 'Objects', 'Parks/Outdoor',
-    'People', 'Religion', 'Science', 'Signs/Symbols', 'Sports/Recreation',
-    'Technology', 'Transportation', 'Vintage'
+    'Abstract', 'Animals', 'The Arts', 'Backgrounds', 'Fashion', 'Buildings', 'Business', 'Celebrities',
+    'Education', 'Food', 'Drink', 'Medical', 'Holidays', 'Industrial', 'Interiors', 'Miscellaneous',
+    'Nature', 'Objects', 'Outdoor', 'People', 'Religion', 'Science', 'Symbols', 'Sports',
+    'Technology', 'Transportation', 'Vintage', 'Logo', 'Font', 'Icon'
 ];
 
 const state = {

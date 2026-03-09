@@ -1,6 +1,6 @@
 /**
  * Admin API - Protected endpoints for managing vectors
- * Fixed: Correct R2 folder mapping for category names
+ * Fixed: Flat R2 structure in "icon/" folder for all files.
  */
 
 const ADMIN_PASSWORD = "vector2026";
@@ -8,47 +8,11 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
 const VALID_CATEGORIES = [
-  "Abstract", "Animals/Wildlife", "The Arts", "Backgrounds/Textures", "Beauty/Fashion",
-  "Buildings/Landmarks", "Business/Finance", "Celebrities", "Drink", "Education",
-  "Font", "Food", "Healthcare/Medical", "Holidays", "Icon", "Industrial",
-  "Interiors", "Logo", "Miscellaneous", "Nature", "Objects", "Parks/Outdoor",
-  "People", "Religion", "Science", "Signs/Symbols", "Sports/Recreation",
-  "Technology", "Transportation", "Vintage"
+    'Abstract', 'Animals', 'The Arts', 'Backgrounds', 'Fashion', 'Buildings', 'Business', 'Celebrities',
+    'Education', 'Food', 'Drink', 'Medical', 'Holidays', 'Industrial', 'Interiors', 'Miscellaneous',
+    'Nature', 'Objects', 'Outdoor', 'People', 'Religion', 'Science', 'Symbols', 'Sports',
+    'Technology', 'Transportation', 'Vintage', 'Logo', 'Font', 'Icon'
 ];
-
-// Maps KV category names to R2 folder names
-const CATEGORY_TO_R2_FOLDER = {
-    "Abstract": "Abstract",
-    "Animals/Wildlife": "Animals",
-    "The Arts": "The Arts",
-    "Backgrounds/Textures": "Backgrounds-Textures",
-    "Beauty/Fashion": "Beauty-Fashion",
-    "Buildings/Landmarks": "Buildings-Landmarks",
-    "Business/Finance": "Business",
-    "Celebrities": "Celebrities",
-    "Drink": "Drink",
-    "Education": "Education",
-    "Font": "Font",
-    "Food": "Food",
-    "Healthcare/Medical": "Healthcare",
-    "Holidays": "Holidays",
-    "Icon": "Icon",
-    "Industrial": "Industrial",
-    "Interiors": "Interiors",
-    "Logo": "Logo",
-    "Miscellaneous": "Miscellaneous",
-    "Nature": "Nature",
-    "Objects": "Objects",
-    "Parks/Outdoor": "Parks",
-    "People": "People",
-    "Religion": "Religion",
-    "Science": "Science",
-    "Signs/Symbols": "Signs",
-    "Sports/Recreation": "Sports",
-    "Technology": "Technology",
-    "Transportation": "Transportation",
-    "Vintage": "Vintage"
-};
 
 /**
  * Normalizes strings for better comparison
@@ -62,23 +26,6 @@ function normalizeString(str) {
         .replace(/ş/g, 's')
         .replace(/ö/g, 'o')
         .replace(/ç/g, 'c');
-}
-
-/**
- * Simple Levenshtein distance
- */
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      dp[i][j] = a[i - 1] === b[j - 1]
-        ? dp[i - 1][j - 1]
-        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
-    }
-  }
-  return dp[m][n];
 }
 
 /**
@@ -97,69 +44,9 @@ function resolveCategory(raw) {
     for (const cat of VALID_CATEGORIES) {
         const normCat = normalizeString(cat);
         if (normCat.includes(s) || s.includes(normCat)) return cat;
-        const firstPart = normCat.split('/')[0];
-        if (firstPart.includes(s) || s.includes(firstPart)) return cat;
     }
 
-    // 3. Levenshtein Distance
-    let best = "Miscellaneous", bestDist = 4;
-    for (const cat of VALID_CATEGORIES) {
-        const d = levenshtein(s, normalizeString(cat));
-        if (d < bestDist) {
-            bestDist = d;
-            best = cat;
-        }
-    }
-    
-    return best;
-}
-
-/**
- * Resolve category from filename prefix
- * e.g., "abstract-00000002" → "Abstract"
- * e.g., "backgrounds-textures-00000307" → "Backgrounds/Textures"
- */
-function resolveCategoryFromFilename(filename) {
-    const lower = filename.toLowerCase();
-    
-    const prefixMap = [
-        { prefix: "abstract-", cat: "Abstract" },
-        { prefix: "animals-", cat: "Animals/Wildlife" },
-        { prefix: "the-arts-", cat: "The Arts" },
-        { prefix: "backgrounds-textures-", cat: "Backgrounds/Textures" },
-        { prefix: "beauty-fashion-", cat: "Beauty/Fashion" },
-        { prefix: "buildings-landmarks-", cat: "Buildings/Landmarks" },
-        { prefix: "business-finance-", cat: "Business/Finance" },
-        { prefix: "celebrities-", cat: "Celebrities" },
-        { prefix: "drink-", cat: "Drink" },
-        { prefix: "education-", cat: "Education" },
-        { prefix: "font-", cat: "Font" },
-        { prefix: "food-", cat: "Food" },
-        { prefix: "healthcare-medical-", cat: "Healthcare/Medical" },
-        { prefix: "holidays-", cat: "Holidays" },
-        { prefix: "icon-", cat: "Icon" },
-        { prefix: "industrial-", cat: "Industrial" },
-        { prefix: "interiors-", cat: "Interiors" },
-        { prefix: "logo-", cat: "Logo" },
-        { prefix: "miscellaneous-", cat: "Miscellaneous" },
-        { prefix: "nature-", cat: "Nature" },
-        { prefix: "objects-", cat: "Objects" },
-        { prefix: "parks-outdoor-", cat: "Parks/Outdoor" },
-        { prefix: "people-", cat: "People" },
-        { prefix: "religion-", cat: "Religion" },
-        { prefix: "science-", cat: "Science" },
-        { prefix: "signs-symbols-", cat: "Signs/Symbols" },
-        { prefix: "sports-recreation-", cat: "Sports/Recreation" },
-        { prefix: "technology-", cat: "Technology" },
-        { prefix: "transportation-", cat: "Transportation" },
-        { prefix: "vintage-", cat: "Vintage" },
-    ];
-    
-    for (const { prefix, cat } of prefixMap) {
-        if (lower.startsWith(prefix)) return cat;
-    }
-    
-    return null;
+    return "Miscellaneous";
 }
 
 function authenticate(request) {
@@ -224,24 +111,18 @@ export async function onRequestGet(context) {
       
       const r2Checks = await Promise.all(
         sample.map(async (v) => {
-          const cat = v.category || "Miscellaneous";
-          const r2cat = v.r2_category || CATEGORY_TO_R2_FOLDER[cat] || cat;
+          const jpgCheck = await r2.head(`icon/${v.name}.jpg`);
+          const zipCheck = await r2.head(`icon/${v.name}.zip`);
+          const jsonCheck = await r2.head(`icon/${v.name}.json`);
           
-          // Check nested structure (primary)
-          const jpgNested = await r2.head(`assets/${r2cat}/${v.name}.jpg`);
-          // Check flat structure
-          const jpgFlat = !jpgNested ? await r2.head(`${v.name}.jpg`) : null;
-          
-          const zipNested = await r2.head(`assets/${r2cat}/${v.name}.zip`);
-          const zipFlat = !zipNested ? await r2.head(`${v.name}.zip`) : null;
-          
-          return { v, jpg: !!(jpgNested || jpgFlat), zip: !!(zipNested || zipFlat) };
+          return { v, jpg: !!jpgCheck, zip: !!zipCheck, json: !!jsonCheck };
         })
       );
 
-      for (const { v, jpg, zip } of r2Checks) {
+      for (const { v, jpg, zip, json } of r2Checks) {
         if (!jpg) issues.push({ slug: v.name, type: "missing_jpg", fix: "Re-upload" });
         if (!zip) issues.push({ slug: v.name, type: "missing_zip", fix: "Re-upload" });
+        if (!json) issues.push({ slug: v.name, type: "missing_json", fix: "Re-upload" });
       }
 
       return new Response(JSON.stringify({
@@ -278,12 +159,14 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "Missing required files (JSON, JPEG, ZIP)." }), { status: 400, headers });
     }
 
+    const jsonText = await jsonFile.text();
+    const jsonBuffer = new TextEncoder().encode(jsonText);
     const jpegBuffer = await jpegFile.arrayBuffer();
     const zipBuffer  = await zipFile.arrayBuffer();
     
     let metadata;
     try {
-      metadata = JSON.parse(await jsonFile.text());
+      metadata = JSON.parse(jsonText);
     } catch (e) {
       return new Response(JSON.stringify({ error: "Invalid JSON: " + e.message }), { status: 400, headers });
     }
@@ -296,22 +179,17 @@ export async function onRequestPost(context) {
     const title    = getField(metadata, "title");
     let keywords = getField(metadata, "keywords");
     
-    // ID comes from the filename (e.g., backgrounds-textures-00000317)
+    // ID comes from the filename (e.g., icon-00000001)
     const id = jsonFile.name.replace(/\.json$/, "");
     
-    // Resolve category: first try filename prefix, then JSON field
-    let category = resolveCategoryFromFilename(id);
-    if (!category) {
-        const rawCategory = getField(metadata, "category");
-        category = resolveCategory(rawCategory);
-    }
+    // Resolve category from JSON field
+    const rawCategory = getField(metadata, "category");
+    const category = resolveCategory(rawCategory);
     
-    // Get R2 folder name for this category
-    const r2Folder = CATEGORY_TO_R2_FOLDER[category] || category;
-    
-    // Upload to R2 using nested structure: assets/R2Folder/filename
-    const r2JpgKey = `assets/${r2Folder}/${id}.jpg`;
-    const r2ZipKey = `assets/${r2Folder}/${id}.zip`;
+    // Upload to R2 in "icon/" folder
+    const r2JpgKey = `icon/${id}.jpg`;
+    const r2ZipKey = `icon/${id}.zip`;
+    const r2JsonKey = `icon/${id}.json`;
 
     const jpgUpload = await uploadWithRetry(r2, r2JpgKey, jpegBuffer, { contentType: "image/jpeg" });
     if (!jpgUpload.success) return new Response(JSON.stringify({ error: "JPG upload failed" }), { status: 500, headers });
@@ -322,11 +200,13 @@ export async function onRequestPost(context) {
     });
     if (!zipUpload.success) return new Response(JSON.stringify({ error: "ZIP upload failed" }), { status: 500, headers });
 
+    const jsonUpload = await uploadWithRetry(r2, r2JsonKey, jsonBuffer, { contentType: "application/json" });
+    if (!jsonUpload.success) return new Response(JSON.stringify({ error: "JSON upload failed" }), { status: 500, headers });
+
     // Save to KV
     const vectorRecord = {
       name: id,
       category: category,
-      r2_category: r2Folder,
       title: String(title || id).trim(),
       description: getField(metadata, "description") || "",
       keywords: Array.isArray(keywords) ? keywords : String(keywords || "").split(",").map(k => k.trim()).filter(Boolean),
@@ -345,7 +225,7 @@ export async function onRequestPost(context) {
 
     await kv.put("all_vectors", JSON.stringify(allVectors));
 
-    return new Response(JSON.stringify({ success: true, id, category, r2Folder }), { status: 200, headers });
+    return new Response(JSON.stringify({ success: true, id, category }), { status: 200, headers });
 
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -366,23 +246,14 @@ export async function onRequestDelete(context) {
 
     if (!id) return new Response(JSON.stringify({ error: "Missing ID" }), { status: 400, headers });
 
-    // Get vector info to find R2 folder
-    const allVectorsRaw = await kv.get("all_vectors");
-    let allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
-    const vector = allVectors.find(v => v.name === id);
-    
-    if (vector) {
-        const cat = vector.category || "Miscellaneous";
-        const r2cat = vector.r2_category || CATEGORY_TO_R2_FOLDER[cat] || cat;
-        
-        // Delete from R2 (try both nested and flat)
-        await r2.delete(`assets/${r2cat}/${id}.jpg`).catch(() => {});
-        await r2.delete(`assets/${r2cat}/${id}.zip`).catch(() => {});
-        await r2.delete(`${id}.jpg`).catch(() => {});
-        await r2.delete(`${id}.zip`).catch(() => {});
-    }
+    // Delete from R2 "icon/" folder
+    await r2.delete(`icon/${id}.jpg`).catch(() => {});
+    await r2.delete(`icon/${id}.zip`).catch(() => {});
+    await r2.delete(`icon/${id}.json`).catch(() => {});
 
     // Remove from KV
+    const allVectorsRaw = await kv.get("all_vectors");
+    let allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
     allVectors = allVectors.filter(v => v.name !== id);
     await kv.put("all_vectors", JSON.stringify(allVectors));
 
@@ -410,16 +281,10 @@ export async function onRequestPatch(context) {
       const cleaned = [];
 
       for (const v of allVectors) {
-        const cat = v.category || "Miscellaneous";
-        const r2cat = v.r2_category || CATEGORY_TO_R2_FOLDER[cat] || cat;
-        
-        const jpgNested = await r2.head(`assets/${r2cat}/${v.name}.jpg`);
-        const jpgFlat = !jpgNested ? await r2.head(`${v.name}.jpg`) : null;
-        
-        const zipNested = await r2.head(`assets/${r2cat}/${v.name}.zip`);
-        const zipFlat = !zipNested ? await r2.head(`${v.name}.zip`) : null;
+        const jpgCheck = await r2.head(`icon/${v.name}.jpg`);
+        const zipCheck = await r2.head(`icon/${v.name}.zip`);
 
-        if ((jpgNested || jpgFlat) && (zipNested || zipFlat)) cleaned.push(v);
+        if (jpgCheck && zipCheck) cleaned.push(v);
       }
 
       await kv.put("all_vectors", JSON.stringify(cleaned));

@@ -1,46 +1,12 @@
 /**
  * GET /api/vectors
- * Returns paginated vector list with thumbnails from R2 (supports both flat and nested structure)
+ * Returns paginated vector list with thumbnails from R2.
  */
 
 const CORS_HEADERS = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Cache-Control": "public, max-age=60"
-};
-
-// Maps KV category names to R2 folder names
-const CATEGORY_TO_R2_FOLDER = {
-    "Abstract": "Abstract",
-    "Animals/Wildlife": "Animals",
-    "The Arts": "The Arts",
-    "Backgrounds/Textures": "Backgrounds-Textures",
-    "Beauty/Fashion": "Beauty-Fashion",
-    "Buildings/Landmarks": "Buildings-Landmarks",
-    "Business/Finance": "Business",
-    "Celebrities": "Celebrities",
-    "Drink": "Drink",
-    "Education": "Education",
-    "Font": "Font",
-    "Food": "Food",
-    "Healthcare/Medical": "Healthcare",
-    "Holidays": "Holidays",
-    "Icon": "Icon",
-    "Industrial": "Industrial",
-    "Interiors": "Interiors",
-    "Logo": "Logo",
-    "Miscellaneous": "Miscellaneous",
-    "Nature": "Nature",
-    "Objects": "Objects",
-    "Parks/Outdoor": "Parks",
-    "People": "People",
-    "Religion": "Religion",
-    "Science": "Science",
-    "Signs/Symbols": "Signs",
-    "Sports/Recreation": "Sports",
-    "Technology": "Technology",
-    "Transportation": "Transportation",
-    "Vintage": "Vintage"
 };
 
 export async function onRequestGet(context) {
@@ -112,14 +78,12 @@ export async function onRequestGet(context) {
 }
 
 function enrichVector(v) {
-    const cat = v.category || "Miscellaneous";
-    const r2cat = v.r2_category || CATEGORY_TO_R2_FOLDER[cat] || cat;
-    
     return {
         ...v,
         title: v.title || v.name || "",
-        thumbnail: `/api/asset?key=${encodeURIComponent(v.name)}.jpg&cat=${encodeURIComponent(cat)}&r2cat=${encodeURIComponent(r2cat)}`,
-        zipUrl: `/api/asset?key=${encodeURIComponent(v.name)}.zip&cat=${encodeURIComponent(cat)}&r2cat=${encodeURIComponent(r2cat)}`,
+        // Simplified URL: asset.js handles the "icon/" prefixing and fallback
+        thumbnail: `/api/asset?key=${encodeURIComponent(v.name)}.jpg`,
+        zipUrl: `/api/asset?key=${encodeURIComponent(v.name)}.zip`,
         fileSize: v.fileSize || null
     };
 }

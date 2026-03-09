@@ -1,52 +1,8 @@
 /**
  * GET /api/asset?key=filename.jpg
  * Serves files from R2 bucket.
- * Supports both Flat structure and Legacy Category-nested structure.
- * 
- * R2 folder mapping:
- * Animals/Wildlife → Animals
- * Beauty/Fashion → Beauty-Fashion
- * Business/Finance → Business
- * Healthcare/Medical → Healthcare
- * Parks/Outdoor → Parks
- * Signs/Symbols → Signs
- * Sports/Recreation → Sports
- * The Arts → The Arts (with space)
+ * Optimized for the new "icon/" folder structure.
  */
-
-// Maps KV category names to R2 folder names
-const CATEGORY_TO_R2_FOLDER = {
-    "Abstract": "Abstract",
-    "Animals/Wildlife": "Animals",
-    "The Arts": "The Arts",
-    "Backgrounds/Textures": "Backgrounds-Textures",
-    "Beauty/Fashion": "Beauty-Fashion",
-    "Buildings/Landmarks": "Buildings-Landmarks",
-    "Business/Finance": "Business",
-    "Celebrities": "Celebrities",
-    "Drink": "Drink",
-    "Education": "Education",
-    "Font": "Font",
-    "Food": "Food",
-    "Healthcare/Medical": "Healthcare",
-    "Holidays": "Holidays",
-    "Icon": "Icon",
-    "Industrial": "Industrial",
-    "Interiors": "Interiors",
-    "Logo": "Logo",
-    "Miscellaneous": "Miscellaneous",
-    "Nature": "Nature",
-    "Objects": "Objects",
-    "Parks/Outdoor": "Parks",
-    "People": "People",
-    "Religion": "Religion",
-    "Science": "Science",
-    "Signs/Symbols": "Signs",
-    "Sports/Recreation": "Sports",
-    "Technology": "Technology",
-    "Transportation": "Transportation",
-    "Vintage": "Vintage"
-};
 
 export async function onRequestGet(context) {
     try {
@@ -55,8 +11,6 @@ export async function onRequestGet(context) {
 
         const url = new URL(context.request.url);
         const key = url.searchParams.get("key");
-        const category = url.searchParams.get("cat"); // Optional category hint
-        const r2cat = url.searchParams.get("r2cat"); // Direct R2 folder name
 
         if (!key) return new Response("Missing key parameter", { status: 400 });
 
@@ -64,46 +18,35 @@ export async function onRequestGet(context) {
         const decodedKey = decodeURIComponent(key);
         let object = null;
 
-        // 1. Try with direct R2 folder name if provided
-        if (r2cat && !decodedKey.startsWith("assets/")) {
-            const r2FolderKey = `assets/${r2cat}/${decodedKey}`;
-            object = await r2.get(r2FolderKey);
-        }
-
-        // 2. Try with KV category → R2 folder mapping
-        if (!object && category && !decodedKey.startsWith("assets/")) {
-            const r2Folder = CATEGORY_TO_R2_FOLDER[category];
-            if (r2Folder) {
-                const mappedKey = `assets/${r2Folder}/${decodedKey}`;
-                object = await r2.get(mappedKey);
-            }
-        }
-
-        // 3. Try flat structure (root level)
-        if (!object && !decodedKey.startsWith("assets/")) {
+        // 1. Try with the new "icon/" folder structure (Requirement)
+        if (!decodedKey.startsWith("icon/")) {
+            object = await r2.get(`icon/${decodedKey}`);
+        } else {
             object = await r2.get(decodedKey);
         }
 
-        // 4. Try legacy structure with category as-is
-        if (!object && category && !decodedKey.startsWith("assets/")) {
-            const legacyKey = `assets/${category}/${decodedKey}`;
-            object = await r2.get(legacyKey);
-        }
-
-        // 5. Try all known R2 folders as fallback
+        // 2. Fallback to legacy structure (for existing files)
         if (!object && !decodedKey.startsWith("assets/")) {
-            const r2Folders = Object.values(CATEGORY_TO_R2_FOLDER);
-            const uniqueFolders = [...new Set(r2Folders)];
-            for (const folder of uniqueFolders) {
-                const tryKey = `assets/${folder}/${decodedKey}`;
-                object = await r2.get(tryKey);
+            // Try all possible legacy locations if not found in icon/
+            // This ensures existing site content doesn't break
+            const legacyFolders = [
+                "Abstract", "Animals", "The Arts", "Backgrounds-Textures", "Beauty-Fashion",
+                "Buildings-Landmarks", "Business", "Celebrities", "Drink", "Education",
+                "Font", "Food", "Healthcare", "Holidays", "Icon", "Industrial",
+                "Interiors", "Logo", "Miscellaneous", "Nature", "Objects", "Parks",
+                "People", "Religion", "Science", "Signs", "Sports", "Technology",
+                "Transportation", "Vintage"
+            ];
+            
+            for (const folder of legacyFolders) {
+                object = await r2.get(`assets/${folder}/${decodedKey}`);
                 if (object) break;
             }
-        }
-
-        // 6. If key already has assets/ prefix, use as-is
-        if (!object && decodedKey.startsWith("assets/")) {
-            object = await r2.get(decodedKey);
+            
+            if (!object) {
+                // Try flat root
+                object = await r2.get(decodedKey);
+            }
         }
 
         if (!object) {
@@ -125,11 +68,7 @@ export async function onRequestGet(context) {
         if (isZip) {
             headers["Content-Type"] = "application/zip";
             const downloadName = decodedKey.split('/').pop();
-            try {
-                headers["Content-Disposition"] = `attachment; filename*=UTF-8''${encodeURIComponent(downloadName)}`;
-            } catch (e) {
-                headers["Content-Disposition"] = `attachment; filename="${downloadName}"`;
-            }
+            headers["Content-Disposition"] = `attachment; filename*=UTF-8''${encodeURIComponent(downloadName)}`;
         } else if (isJpeg) {
             headers["Content-Type"] = "image/jpeg";
         } else {
