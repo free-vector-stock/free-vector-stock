@@ -16,7 +16,7 @@ const state = {
     vectors: [],
     filteredVectors: [],
     managePage: 1,
-    manageLimit: 20,
+    manageLimit: 200,
     searchQuery: '',
     filterCat: '',
     selectedVectors: new Set()
@@ -446,18 +446,22 @@ async function runCleanup() {
     if (!confirm('This will remove all KV entries that do not have corresponding files in R2. Continue?')) return;
     const btn = document.getElementById('runCleanupBtn');
     btn.disabled = true;
-    btn.textContent = 'Cleaning...';
+    btn.textContent = 'Cleaning... (Please wait)';
     try {
         const res = await fetch('/api/admin?action=cleanup', {
             method: 'PATCH',
             headers: { 'X-Admin-Key': ADMIN_KEY }
         });
         const data = await res.json();
-        alert(`Cleanup finished. Orphans removed: ${data.orphansRemoved || 0}. Remaining vectors: ${data.count}`);
+        if (data.error) throw new Error(data.error);
+        alert(`Cleanup finished.\nChecked: ${data.totalChecked || 0}\nOrphans removed: ${data.orphansRemoved || 0}\nRemaining: ${data.count}`);
         loadDashboard();
         loadManageVectors();
         loadHealthReport();
-    } catch (e) { alert(e.message); }
+    } catch (e) { 
+        console.error(e);
+        alert('Cleanup failed: ' + e.message + '. If this persists, the database might be too large for a single run.'); 
+    }
     btn.disabled = false;
     btn.textContent = 'Run Cleanup (Remove Orphans)';
 }

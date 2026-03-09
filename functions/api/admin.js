@@ -279,24 +279,44 @@ export async function onRequestPatch(context) {
     if (action === "cleanup") {
       const allVectorsRaw = await kv.get("all_vectors");
       const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
+      
+      // Get all objects in R2 to avoid repeated head requests (optimization)
+      const r2Objects = new Set();
+      let truncated = true;
+      let cursor = undefined;
+      
+      while (truncated) {
+        const list = await r2.list({ prefix: "icon/", cursor });
+        list.objects.forEach(obj => r2Objects.add(obj.key));
+        truncated = list.truncated;
+        cursor = list.cursor;
+      }
+
       const cleaned = [];
       let orphanCount = 0;
 
       for (const v of allVectors) {
-        const jpgCheck = await r2.head(`icon/${v.name}.jpg`);
-        const zipCheck = await r2.head(`icon/${v.name}.zip`);
-        const jsonCheck = await r2.head(`icon/${v.name}.json`);
+        const hasJpg = r2Objects.has(`icon/${v.name}.jpg`);
+        const hasZip = r2Objects.has(`icon/${v.name}.zip`);
+        const hasJson = r2Objects.has(`icon/${v.name}.json`);
 
-        // Keep only if ALL three files exist
-        if (jpgCheck && zipCheck && jsonCheck) {
+        if (hasJpg && hasZip && hasJson) {
           cleaned.push(v);
         } else {
           orphanCount++;
         }
       }
 
-      await kv.put("all_vectors", JSON.stringify(cleaned));
-      return new Response(JSON.stringify({ success: true, count: cleaned.length, orphansRemoved: orphanCount }), { status: 200, headers });
+      if (orphanCount > 0) {
+        await kv.put("all_vectors", JSON.stringify(cleaned));
+      }
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        count: cleaned.length, 
+        orphansRemoved: orphanCount,
+        totalChecked: allVectors.length 
+      }), { status: 200, headers });
     }
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers });
   } catch (e) {
