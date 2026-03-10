@@ -1,6 +1,6 @@
 /**
  * Frevector Admin Panel - Frontend Logic
- * Fixed: Strict R2 structure in "icon/" folder.
+ * Fixed: Strict R2 structure in category folders.
  * Requirement: Category list updated, R2 sync.
  */
 
@@ -405,40 +405,40 @@ async function loadHealthReport() {
         
         // Update Health Cards
         const grid = document.getElementById('healthGrid');
-        grid.innerHTML = `
-            <div class="health-card ${data.issueCount === 0 ? 'ok' : 'error'}">
-                <div class="health-icon">${data.issueCount === 0 ? '✓' : '⚠'}</div>
+        grid.innerHTML = \`
+            <div class="health-card \${data.issueCount === 0 ? 'ok' : 'error'}">
+                <div class="health-icon">\${data.issueCount === 0 ? '✓' : '⚠'}</div>
                 <div class="health-label">Issues Found</div>
-                <div class="health-value">${data.issueCount}</div>
+                <div class="health-value">\${data.issueCount}</div>
             </div>
             <div class="health-card ok">
                 <div class="health-icon">📁</div>
                 <div class="health-label">Sample Size</div>
-                <div class="health-value">${data.r2SampleSize}</div>
+                <div class="health-value">\${data.r2SampleSize}</div>
             </div>
             <div class="health-card ok">
                 <div class="health-icon">📊</div>
                 <div class="health-label">Total Vectors</div>
-                <div class="health-value">${data.totalVectors}</div>
+                <div class="health-value">\${data.totalVectors}</div>
             </div>
-        `;
+        \`;
 
         if (data.issueCount === 0) {
             body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--green);font-weight:600;">✓ All sampled vectors are correctly synced with R2.</td></tr>';
         } else {
             data.issues.forEach(iss => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${escHtml(iss.slug)}</strong></td>
-                    <td><span class="badge badge-red">${escHtml(iss.type)}</span></td>
-                    <td>${escHtml(iss.fix)}</td>
-                    <td><button class="btn-delete" onclick="deleteVector('${escHtml(iss.slug)}')">Delete Record</button></td>
-                `;
+                tr.innerHTML = \`
+                    <td><strong>\${escHtml(iss.slug)}</strong></td>
+                    <td><span class="badge badge-red">\${escHtml(iss.type)}</span></td>
+                    <td>\${escHtml(iss.fix)}</td>
+                    <td><button class="btn-delete" onclick="deleteVector('\${escHtml(iss.slug)}')">Delete Record</button></td>
+                \`;
                 body.appendChild(tr);
             });
         }
     } catch (e) { 
-        body.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--red);">Error: ${e.message}</td></tr>`;
+        body.innerHTML = \`<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--red);">Error: \${e.message}</td></tr>\`;
     }
 }
 
@@ -454,7 +454,7 @@ async function runCleanup() {
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-        alert(`Cleanup finished.\nChecked: ${data.totalChecked || 0}\nOrphans removed: ${data.orphansRemoved || 0}\nRemaining: ${data.count}`);
+        alert(\`Cleanup finished.\\nChecked: \${data.totalChecked || 0}\\nOrphans removed: \${data.orphansRemoved || 0}\\nRemaining: \${data.count}\`);
         loadDashboard();
         loadManageVectors();
         loadHealthReport();
