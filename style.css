@@ -656,8 +656,8 @@ body {
 }
 
 .our-picks-track .vector-card {
-    width: 160px;
-    min-width: 160px;
+    width: 140px;
+    min-width: 140px;
     flex-shrink: 0;
 }
 
