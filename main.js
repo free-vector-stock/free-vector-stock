@@ -1,6 +1,7 @@
 /**
  * frevector.com - Frontend Logic
  * Fixed: Updated category list, strict R2 structure, download page, countdown timer.
+ * Requirement: Keywords visibility (2 lines), Download fix, Real-time search.
  */
 
 const EXTRA_KEYWORDS = ['free vector', 'free svg', 'free svg icon', 'free eps', 'free jpeg', 'free', 'fre', 'vector eps', 'svg', 'jpeg'];
@@ -208,7 +209,7 @@ function renderVectors() {
         card.setAttribute('data-slug', v.name);
 
         const extraKws = EXTRA_KEYWORDS.join(', ');
-        const mainKws = (v.keywords || []).slice(0, 3).join(', ');
+        const mainKws = (v.keywords || []).slice(0, 10).join(', ');
         const displayKws = mainKws ? `${extraKws}, ${mainKws}` : extraKws;
 
         const thumbnail = `/api/asset?key=${encodeURIComponent(v.name)}.jpg`;

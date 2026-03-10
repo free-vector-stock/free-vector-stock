@@ -1,6 +1,6 @@
 /**
  * Admin API - Protected endpoints for managing vectors
- * Fixed: Strict R2 structure in "icon/" folder for all files.
+ * Fixed: Category-specific folder structure in R2.
  * Requirement: No local storage, direct R2 upload, sync delete.
  */
 
@@ -112,9 +112,10 @@ export async function onRequestGet(context) {
       
       const r2Checks = await Promise.all(
         sample.map(async (v) => {
-          const jpgCheck = await r2.head(`icon/${v.name}.jpg`);
-          const zipCheck = await r2.head(`icon/${v.name}.zip`);
-          const jsonCheck = await r2.head(`icon/${v.name}.json`);
+          const categoryFolder = v.category.replace(/\s+/g, '-').toLowerCase();
+          const jpgCheck = await r2.head(`${categoryFolder}/${v.name}.jpg`);
+          const zipCheck = await r2.head(`${categoryFolder}/${v.name}.zip`);
+          const jsonCheck = await r2.head(`${categoryFolder}/${v.name}.json`);
           
           return { v, jpg: !!jpgCheck, zip: !!zipCheck, json: !!jsonCheck };
         })
@@ -187,7 +188,7 @@ export async function onRequestPost(context) {
     const rawCategory = getField(metadata, "category");
     const category = resolveCategory(rawCategory);
     
-    // Upload to R2 in category-specific folder (Requirement: Direct to R2, no local)
+    // Upload to R2 in category-specific folder
     const categoryFolder = category.replace(/\s+/g, '-').toLowerCase();
     const r2JpgKey = `${categoryFolder}/${id}.jpg`;
     const r2ZipKey = `${categoryFolder}/${id}.zip`;
@@ -254,7 +255,7 @@ export async function onRequestDelete(context) {
     const vector = allVectors.find(v => v.name === id);
     const categoryFolder = vector ? vector.category.replace(/\s+/g, '-').toLowerCase() : '*';
     
-    // Delete from R2 category-specific folder (Requirement: Sync delete)
+    // Delete from R2 category-specific folder
     if (categoryFolder !== '*') {
       await r2.delete(`${categoryFolder}/${id}.jpg`).catch(() => {});
       await r2.delete(`${categoryFolder}/${id}.zip`).catch(() => {});
@@ -262,8 +263,6 @@ export async function onRequestDelete(context) {
     }
 
     // Remove from KV
-    const allVectorsRaw = await kv.get("all_vectors");
-    let allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
     allVectors = allVectors.filter(v => v.name !== id);
     await kv.put("all_vectors", JSON.stringify(allVectors));
 

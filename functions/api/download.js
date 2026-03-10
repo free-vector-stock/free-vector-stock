@@ -1,7 +1,7 @@
 /**
  * GET /api/download?slug=xxx
  * Increments download counter and serves ZIP file from R2
- * Requirement: Strict "icon/" folder structure.
+ * Fixed: Search in category-specific folders.
  */
 
 export async function onRequestGet(context) {
@@ -24,8 +24,25 @@ export async function onRequestGet(context) {
         const allVectorsRaw = await kv.get("all_vectors");
         const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
         const vector = allVectors.find(v => v.name === slug);
-        const categoryFolder = vector ? vector.category.replace(/\s+/g, '-').toLowerCase() : 'miscellaneous';
-        const object = await r2.get(`${categoryFolder}/${slug}.zip`);
+        
+        let object = null;
+        if (vector) {
+            const categoryFolder = vector.category.replace(/\s+/g, '-').toLowerCase();
+            object = await r2.get(`${categoryFolder}/${slug}.zip`);
+        }
+        
+        // Fallback: search in all category folders if not found via KV metadata
+        if (!object) {
+            const categories = ['abstract', 'animals', 'the-arts', 'backgrounds', 'fashion', 'buildings', 'business', 'celebrities', 'education', 'food', 'drink', 'medical', 'holidays', 'industrial', 'interiors', 'miscellaneous', 'nature', 'objects', 'outdoor', 'people', 'religion', 'science', 'symbols', 'sports', 'technology', 'transportation', 'vintage', 'logo', 'font', 'icon', 'icon'];
+            for (const cat of categories) {
+                const testKey = `${cat}/${slug}.zip`;
+                const testObj = await r2.get(testKey);
+                if (testObj) {
+                    object = testObj;
+                    break;
+                }
+            }
+        }
         
         if (!object) {
             return new Response("ZIP file not found in storage", { status: 404 });

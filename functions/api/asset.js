@@ -1,7 +1,7 @@
 /**
  * GET /api/asset?key=filename.jpg
  * Serves files from R2 bucket.
- * Requirement: Strict "icon/" folder structure.
+ * Fixed: Search in category-specific folders.
  */
 
 export async function onRequestGet(context) {
@@ -30,6 +30,13 @@ export async function onRequestGet(context) {
                     object = testObj;
                     break;
                 }
+            }
+            
+            // Fallback to old "icon/" folder if not found in category folders
+            if (!object) {
+                const iconKey = `icon/${decodedKey}`;
+                const iconObj = await r2.get(iconKey);
+                if (iconObj) object = iconObj;
             }
         } else {
             object = await r2.get(r2Key);
