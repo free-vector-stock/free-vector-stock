@@ -1,6 +1,6 @@
 /**
  * Frevector Admin Panel - Frontend Logic
- * Fixed: Strict R2 structure in category folders.
+ * Fixed: Admin login logic and R2 structure.
  * Requirement: Category list updated, R2 sync.
  */
 
@@ -23,24 +23,46 @@ const state = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if already logged in
     if (sessionStorage.getItem('fv_admin') === ADMIN_KEY) {
         showApp();
     }
 
-    document.getElementById('loginBtn').addEventListener('click', doLogin);
-    document.getElementById('loginPassword').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') doLogin();
-    });
+    // Login Event Listeners
+    const loginBtn = document.getElementById('loginBtn');
+    const loginPassword = document.getElementById('loginPassword');
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        sessionStorage.removeItem('fv_admin');
-        location.reload();
-    });
+    if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            doLogin();
+        });
+    }
 
+    if (loginPassword) {
+        loginPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                doLogin();
+            }
+        });
+    }
+
+    // Logout Event Listener
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('fv_admin');
+            location.reload();
+        });
+    }
+
+    // Navigation
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', () => switchSection(btn.dataset.section));
     });
 
+    // Bulk Upload Setup
     const dropZone = document.getElementById('drop-zone');
     const bulkInput = document.getElementById('bulkFileInput');
 
@@ -70,13 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bulkAnalyzeBtn')?.addEventListener('click', handleBulkAnalyze);
     document.getElementById('bulkUploadBtn')?.addEventListener('click', handleBulkUpload);
 
-    document.getElementById('searchManage').addEventListener('input', (e) => {
+    // Manage Vectors Filters
+    document.getElementById('searchManage')?.addEventListener('input', (e) => {
         state.searchQuery = e.target.value.toLowerCase();
         state.managePage = 1;
         filterAndRenderManage();
     });
 
-    document.getElementById('filterCategory').addEventListener('change', (e) => {
+    document.getElementById('filterCategory')?.addEventListener('change', (e) => {
         state.filterCat = e.target.value;
         state.managePage = 1;
         filterAndRenderManage();
@@ -98,32 +121,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('bulkDeleteBtn')?.addEventListener('click', bulkDeleteVectors);
 
+    // Populate Categories in Filter
     const filterSel = document.getElementById('filterCategory');
-    CATEGORIES.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        filterSel.appendChild(opt);
-    });
+    if (filterSel) {
+        CATEGORIES.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            filterSel.appendChild(opt);
+        });
+    }
 
+    // Health Check Buttons
     document.getElementById('refreshHealthBtn')?.addEventListener('click', loadHealthReport);
     document.getElementById('verifySyncBtn')?.addEventListener('click', verifySync);
     document.getElementById('runCleanupBtn')?.addEventListener('click', runCleanup);
 });
 
 function doLogin() {
-    const pw = document.getElementById('loginPassword').value;
+    const pwInput = document.getElementById('loginPassword');
+    const errorEl = document.getElementById('loginError');
+    
+    if (!pwInput) return;
+    
+    const pw = pwInput.value.trim();
     if (pw === ADMIN_KEY) {
         sessionStorage.setItem('fv_admin', pw);
+        if (errorEl) errorEl.style.display = 'none';
         showApp();
     } else {
-        document.getElementById('loginError').style.display = 'block';
+        if (errorEl) errorEl.style.display = 'block';
     }
 }
 
 function showApp() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminApp').style.display = 'block';
+    const loginScreen = document.getElementById('loginScreen');
+    const adminApp = document.getElementById('adminApp');
+    
+    if (loginScreen) loginScreen.style.display = 'none';
+    if (adminApp) adminApp.style.display = 'block';
+    
     loadDashboard();
     loadManageVectors();
 }
@@ -131,9 +168,15 @@ function showApp() {
 function switchSection(name) {
     document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(name).classList.add('active');
-    document.querySelector(`[data-section="${name}"]`).classList.add('active');
-    document.getElementById('sectionTitle').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+    
+    const section = document.getElementById(name);
+    const btn = document.querySelector(`[data-section="${name}"]`);
+    const title = document.getElementById('sectionTitle');
+    
+    if (section) section.classList.add('active');
+    if (btn) btn.classList.add('active');
+    if (title) title.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+    
     if (name === 'health') loadHealthReport();
 }
 
@@ -143,16 +186,24 @@ async function loadDashboard() {
             headers: { 'X-Admin-Key': ADMIN_KEY }
         });
         const data = await res.json();
-        document.getElementById('totalVectors').textContent = data.totalVectors || 0;
-        document.getElementById('totalDownloads').textContent = data.totalDownloads || 0;
-        document.getElementById('totalCategories').textContent = (data.categories || []).length;
+        
+        const totalVectors = document.getElementById('totalVectors');
+        const totalDownloads = document.getElementById('totalDownloads');
+        const totalCategories = document.getElementById('totalCategories');
         const tbody = document.getElementById('catTableBody');
-        tbody.innerHTML = '';
-        (data.categories || []).forEach(cat => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${escHtml(cat.name)}</td><td>${cat.count}</td><td>${cat.downloads}</td>`;
-            tbody.appendChild(tr);
-        });
+        
+        if (totalVectors) totalVectors.textContent = data.totalVectors || 0;
+        if (totalDownloads) totalDownloads.textContent = data.totalDownloads || 0;
+        if (totalCategories) totalCategories.textContent = (data.categories || []).length;
+        
+        if (tbody) {
+            tbody.innerHTML = '';
+            (data.categories || []).forEach(cat => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${escHtml(cat.name)}</td><td>${cat.count}</td><td>${cat.downloads}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
     } catch (e) { console.error(e); }
 }
 
@@ -182,6 +233,8 @@ function filterAndRenderManage() {
 function renderManageTable() {
     const tbody = document.getElementById('vectorsTableBody');
     const pag = document.getElementById('managePagination');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
 
     const start = (state.managePage - 1) * state.manageLimit;
@@ -190,7 +243,7 @@ function renderManageTable() {
 
     if (pageItems.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No vectors found</td></tr>';
-        pag.innerHTML = '';
+        if (pag) pag.innerHTML = '';
         return;
     }
 
@@ -225,6 +278,8 @@ function renderManageTable() {
 
 function renderPagination() {
     const pag = document.getElementById('managePagination');
+    if (!pag) return;
+    
     const totalPages = Math.ceil(state.filteredVectors.length / state.manageLimit);
     pag.innerHTML = '';
     if (totalPages <= 1) return;
@@ -321,6 +376,8 @@ let bulkFiles = [];
 
 function handleBulkAnalyze() {
     const input = document.getElementById('bulkFileInput');
+    if (!input) return;
+    
     const files = Array.from(input.files);
     if (files.length === 0) return;
 
@@ -337,9 +394,13 @@ function handleBulkAnalyze() {
     bulkFiles = Object.entries(groups).map(([id, g]) => ({ id, ...g })).filter(g => g.json && g.jpeg && g.zip);
     
     const status = document.getElementById('bulkUploadStatus');
-    status.className = 'status-box info';
-    status.textContent = `Found ${bulkFiles.length} valid vector sets (JSON+JPG+ZIP). Ready to upload.`;
-    document.getElementById('bulkUploadBtn').disabled = bulkFiles.length === 0;
+    const uploadBtn = document.getElementById('bulkUploadBtn');
+    
+    if (status) {
+        status.className = 'status-box info';
+        status.textContent = `Found ${bulkFiles.length} valid vector sets (JSON+JPG+ZIP). Ready to upload.`;
+    }
+    if (uploadBtn) uploadBtn.disabled = bulkFiles.length === 0;
 }
 
 async function handleBulkUpload() {
@@ -351,8 +412,8 @@ async function handleBulkUpload() {
     const progressText = document.getElementById('bulkProgressText');
     const status = document.getElementById('bulkUploadStatus');
 
-    btn.disabled = true;
-    progressWrap.style.display = 'block';
+    if (btn) btn.disabled = true;
+    if (progressWrap) progressWrap.style.display = 'block';
     
     let success = 0;
     let failed = 0;
@@ -360,8 +421,8 @@ async function handleBulkUpload() {
     for (let i = 0; i < bulkFiles.length; i++) {
         const group = bulkFiles[i];
         const percent = Math.round((i / bulkFiles.length) * 100);
-        progressFill.style.width = percent + '%';
-        progressText.textContent = `Uploading ${group.id} (${i+1}/${bulkFiles.length})...`;
+        if (progressFill) progressFill.style.width = percent + '%';
+        if (progressText) progressText.textContent = `Uploading ${group.id} (${i+1}/${bulkFiles.length})...`;
 
         const formData = new FormData();
         formData.append('json', group.json);
@@ -383,70 +444,79 @@ async function handleBulkUpload() {
         }
     }
 
-    progressFill.style.width = '100%';
-    progressText.textContent = 'Upload complete.';
-    status.className = success > 0 ? 'status-box success' : 'status-box error';
-    status.textContent = `Upload finished. Success: ${success}, Failed: ${failed}.`;
+    if (progressFill) progressFill.style.width = '100%';
+    if (progressText) progressText.textContent = 'Upload complete.';
+    if (status) {
+        status.className = success > 0 ? 'status-box success' : 'status-box error';
+        status.textContent = `Upload finished. Success: ${success}, Failed: ${failed}.`;
+    }
     
     loadDashboard();
     loadManageVectors();
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
 }
 
 async function loadHealthReport() {
     const body = document.getElementById('healthIssuesBody');
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">Checking R2 synchronization...</td></tr>';
+    if (body) body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">Checking R2 synchronization...</td></tr>';
+    
     try {
         const res = await fetch('/api/admin?action=health&sample=100', {
             headers: { 'X-Admin-Key': ADMIN_KEY }
         });
         const data = await res.json();
-        body.innerHTML = '';
+        if (body) body.innerHTML = '';
         
         // Update Health Cards
         const grid = document.getElementById('healthGrid');
-        grid.innerHTML = \`
-            <div class="health-card \${data.issueCount === 0 ? 'ok' : 'error'}">
-                <div class="health-icon">\${data.issueCount === 0 ? '✓' : '⚠'}</div>
-                <div class="health-label">Issues Found</div>
-                <div class="health-value">\${data.issueCount}</div>
-            </div>
-            <div class="health-card ok">
-                <div class="health-icon">📁</div>
-                <div class="health-label">Sample Size</div>
-                <div class="health-value">\${data.r2SampleSize}</div>
-            </div>
-            <div class="health-card ok">
-                <div class="health-icon">📊</div>
-                <div class="health-label">Total Vectors</div>
-                <div class="health-value">\${data.totalVectors}</div>
-            </div>
-        \`;
+        if (grid) {
+            grid.innerHTML = `
+                <div class="health-card ${data.issueCount === 0 ? 'ok' : 'error'}">
+                    <div class="health-icon">${data.issueCount === 0 ? '✓' : '⚠'}</div>
+                    <div class="health-label">Issues Found</div>
+                    <div class="health-value">${data.issueCount}</div>
+                </div>
+                <div class="health-card ok">
+                    <div class="health-icon">📁</div>
+                    <div class="health-label">Sample Size</div>
+                    <div class="health-value">${data.r2SampleSize}</div>
+                </div>
+                <div class="health-card ok">
+                    <div class="health-icon">📊</div>
+                    <div class="health-label">Total Vectors</div>
+                    <div class="health-value">${data.totalVectors}</div>
+                </div>
+            `;
+        }
 
-        if (data.issueCount === 0) {
-            body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--green);font-weight:600;">✓ All sampled vectors are correctly synced with R2.</td></tr>';
-        } else {
-            data.issues.forEach(iss => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = \`
-                    <td><strong>\${escHtml(iss.slug)}</strong></td>
-                    <td><span class="badge badge-red">\${escHtml(iss.type)}</span></td>
-                    <td>\${escHtml(iss.fix)}</td>
-                    <td><button class="btn-delete" onclick="deleteVector('\${escHtml(iss.slug)}')">Delete Record</button></td>
-                \`;
-                body.appendChild(tr);
-            });
+        if (body) {
+            if (data.issueCount === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--green);font-weight:600;">✓ All sampled vectors are correctly synced with R2.</td></tr>';
+            } else {
+                data.issues.forEach(iss => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escHtml(iss.slug)}</strong></td>
+                        <td><span class="badge badge-red">${escHtml(iss.type)}</span></td>
+                        <td>${escHtml(iss.fix)}</td>
+                        <td><button class="btn-delete" onclick="deleteVector('${escHtml(iss.slug)}')">Delete Record</button></td>
+                    `;
+                    body.appendChild(tr);
+                });
+            }
         }
     } catch (e) { 
-        body.innerHTML = \`<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--red);">Error: \${e.message}</td></tr>\`;
+        if (body) body.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--red);">Error: ${e.message}</td></tr>`;
     }
 }
 
 async function runCleanup() {
     if (!confirm('This will remove all KV entries that do not have corresponding files in R2. Continue?')) return;
     const btn = document.getElementById('runCleanupBtn');
-    btn.disabled = true;
-    btn.textContent = 'Cleaning... (Please wait)';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Cleaning... (Please wait)';
+    }
     try {
         const res = await fetch('/api/admin?action=cleanup', {
             method: 'PATCH',
@@ -454,7 +524,7 @@ async function runCleanup() {
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-        alert(\`Cleanup finished.\\nChecked: \${data.totalChecked || 0}\\nOrphans removed: \${data.orphansRemoved || 0}\\nRemaining: \${data.count}\`);
+        alert(`Cleanup finished.\nChecked: ${data.totalChecked || 0}\nOrphans removed: ${data.orphansRemoved || 0}\nRemaining: ${data.count}`);
         loadDashboard();
         loadManageVectors();
         loadHealthReport();
@@ -462,8 +532,10 @@ async function runCleanup() {
         console.error(e);
         alert('Cleanup failed: ' + e.message + '. If this persists, the database might be too large for a single run.'); 
     }
-    btn.disabled = false;
-    btn.textContent = 'Run Cleanup (Remove Orphans)';
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Run Cleanup (Remove Orphans)';
+    }
 }
 
 async function verifySync() {
