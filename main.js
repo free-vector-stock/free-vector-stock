@@ -211,7 +211,9 @@ function renderVectors() {
         const mainKws = (v.keywords || []).slice(0, 5).join(', ');
         const displayKws = mainKws || 'vector design';
 
-        const thumbnail = `/api/asset?key=${encodeURIComponent(v.name)}.jpg`;
+        const id = v.name;
+        const category = v.category || "Miscellaneous";
+        const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
 
         card.innerHTML = `
             <div class="vc-img-wrap">
@@ -244,7 +246,9 @@ function openDetailPanel(v, cardEl) {
     panel.style.display = 'none';
     document.querySelectorAll('.vector-card').forEach(c => c.classList.remove('card-active'));
 
-    const thumbnail = `/api/asset?key=${encodeURIComponent(v.name)}.jpg`;
+    const id = v.name;
+    const category = v.category || "Miscellaneous";
+    const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
     const img = document.getElementById('detailImage');
     if (img) {
         img.src = thumbnail;
@@ -312,7 +316,9 @@ function openDownloadPage(v) {
     const downloadPage = document.getElementById('downloadPage');
     if (!downloadPage) return;
 
-    const thumbnail = `/api/asset?key=${encodeURIComponent(v.name)}.jpg`;
+    const id = v.name;
+    const category = v.category || "Miscellaneous";
+    const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
     
     // Set header info
     const dpHeaderTitle = document.getElementById('dpHeaderTitle');

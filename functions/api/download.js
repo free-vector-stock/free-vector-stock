@@ -26,21 +26,48 @@ export async function onRequestGet(context) {
         const vector = allVectors.find(v => v.name === slug);
         
         let object = null;
+        const categories = ['Abstract', 'Animals', 'The Arts', 'Backgrounds', 'Fashion', 'Buildings', 'Business', 'Celebrities', 'Education', 'Food', 'Drink', 'Medical', 'Holidays', 'Industrial', 'Interiors', 'Miscellaneous', 'Nature', 'Objects', 'Outdoor', 'People', 'Religion', 'Science', 'Symbols', 'Sports', 'Technology', 'Transportation', 'Vintage', 'Logo', 'Font', 'Icon'];
+
         if (vector) {
-            const categoryFolder = vector.category.replace(/\s+/g, '-').toLowerCase();
-            object = await r2.get(`${categoryFolder}/${slug}.zip`);
+            const category = vector.category || "Miscellaneous";
+            // 1. Try the new structure: Category/ID/ID.zip
+            object = await r2.get(`${category}/${slug}/${slug}.zip`);
+            
+            // 2. Try the previous structure: category-folder/ID.zip
+            if (!object) {
+                const categoryFolder = category.replace(/\s+/g, '-').toLowerCase();
+                object = await r2.get(`${categoryFolder}/${slug}.zip`);
+            }
         }
         
         // Fallback: search in all category folders if not found via KV metadata
         if (!object) {
-            const categories = ['abstract', 'animals', 'the-arts', 'backgrounds', 'fashion', 'buildings', 'business', 'celebrities', 'education', 'food', 'drink', 'medical', 'holidays', 'industrial', 'interiors', 'miscellaneous', 'nature', 'objects', 'outdoor', 'people', 'religion', 'science', 'symbols', 'sports', 'technology', 'transportation', 'vintage', 'logo', 'font', 'icon', 'icon'];
+            // 1. Try the new structure in all categories: Category/ID/ID.zip
             for (const cat of categories) {
-                const testKey = `${cat}/${slug}.zip`;
+                const testKey = `${cat}/${slug}/${slug}.zip`;
                 const testObj = await r2.get(testKey);
                 if (testObj) {
                     object = testObj;
                     break;
                 }
+            }
+            
+            // 2. Try the previous structure in all categories: category-folder/ID.zip
+            if (!object) {
+                for (const cat of categories) {
+                    const catFolder = cat.replace(/\s+/g, '-').toLowerCase();
+                    const testKey = `${catFolder}/${slug}.zip`;
+                    const testObj = await r2.get(testKey);
+                    if (testObj) {
+                        object = testObj;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Try root
+            if (!object) {
+                object = await r2.get(`${slug}.zip`);
             }
         }
         
