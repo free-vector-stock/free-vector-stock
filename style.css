@@ -842,7 +842,10 @@ body {
 }
 
 .footer-right {
+    flex: 1 !important;
     text-align: right !important;
+    display: flex !important;
+    justify-content: flex-end !important;
 }
 
 .footer-left .copyright {
@@ -854,7 +857,7 @@ body {
 .footer-nav {
     display: flex !important;
     gap: 20px !important;
-    justify-content: flex-end !important;
+    margin-left: auto !important;
 }
 
 .footer-link {
