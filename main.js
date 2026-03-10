@@ -575,13 +575,16 @@ function setupModalHandlers() {
     const closeBtn = document.getElementById('infoModalClose');
 
     if (closeBtn) {
-        closeBtn.onclick = () => { modal.style.display = 'none'; };
+        closeBtn.onclick = (e) => { 
+            e.stopPropagation();
+            modal.style.display = 'none'; 
+        };
     }
 
-    // Modal dışına veya modal'ın kendisine tıklandığında kapat
+    // Modal dışına tıklandığında kapat (arka plan tıklaması)
     if (modal) {
         modal.addEventListener('click', (e) => {
-            // Eğer tıklanan yer modal'ın kendisi (arka plan) ise veya modal içindeki bir eleman değilse kapat
+            // Eğer tıklanan yer modal'ın kendisi (arka plan) ise kapat
             if (e.target === modal) {
                 modal.style.display = 'none';
             }
@@ -598,14 +601,20 @@ function setupModalHandlers() {
     document.querySelectorAll('.modal-trigger').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const type = btn.dataset.modal;
             const content = MODAL_CONTENTS[type];
             if (content && modal) {
                 const body = document.getElementById('infoModalBody');
                 if (body) body.innerHTML = content.content;
                 modal.style.display = 'flex';
-                // Modal açıldığında sayfanın en üstüne odaklanmasını engellemek için scroll'u sabit tutabiliriz
-                // Ama modal zaten fixed olduğu için ortada görünecektir.
+                // Modal'ın üstüne tıklandığında kapanması için event listener ekle
+                const modalBox = document.querySelector('.info-modal-box');
+                if (modalBox) {
+                    // Önceki event listener'ları temizle
+                    const newModalBox = modalBox.cloneNode(true);
+                    modalBox.parentNode.replaceChild(newModalBox, modalBox);
+                }
             }
         });
     });
