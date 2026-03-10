@@ -271,8 +271,9 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.3;
-    max-height: 2.6em;
+    height: 2.6em; /* Fixed height for 2 lines */
     word-break: break-word;
+    margin-top: 2px;
 }
 
 /* ===========================
