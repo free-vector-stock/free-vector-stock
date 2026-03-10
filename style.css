@@ -736,14 +736,28 @@ body {
 }
 
 @media (max-width: 768px) {
+    .footer {
+        padding: 20px 0;
+    }
     .footer-container {
-        flex-direction: column;
-        gap: 10px;
+        flex-direction: column-reverse;
+        gap: 15px;
         text-align: center;
+    }
+    .footer-left, .footer-right {
+        text-align: center;
+        width: 100%;
     }
     .footer-nav {
         justify-content: center;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 15px;
+    }
+    .footer-link {
+        font-size: 13px;
+        padding: 5px;
+    }
+    .footer-left .copyright {
+        font-size: 11px;
     }
 }
