@@ -89,7 +89,7 @@ const MODAL_CONTENTS = {
 <p style="margin-bottom: 30px; font-size: 16px;">If you have any questions about Frevector.com or have something you would like to communicate, you can contact us.</p>
 <div style="background: #f5f5f5; padding: 30px; border-radius: 8px; display: inline-block;">
 <p style="margin: 0 0 15px 0; font-size: 14px; color: #666;"><strong>Email Address:</strong></p>
-<p style="margin: 0;"><a href="mailto:hakankacar2014@gmail.com" style="color: #0066cc; text-decoration: none; font-size: 18px; font-weight: 600;">hakankacar2014@gmail.com</a></p>
+<p style="margin: 0;"><a href="mailto:hakankacar2014@gmail.com" style="color: #0066cc; text-decoration: none; font-size: 18px; font-weight: 600; cursor: pointer;">hakankacar2014@gmail.com</a></p>
 </div>
 <p style="margin-top: 30px; font-size: 14px; color: #666;">Frevector values open and clear communication with its users.</p>
 </div>`
@@ -253,7 +253,7 @@ function renderVectors() {
             </div>
             <div class="vc-info">
                 <div class="vc-title">${escHtml(v.title)}</div>
-                <div class="vc-keywords">${escHtml((v.keywords || []).concat(EXTRA_KEYWORDS).join(', '))}</div>
+                <div class="vc-keywords">${escHtml((v.keywords || []).slice(0, 5).join(', '))}</div>
             </div>
         `;
         card.addEventListener('click', () => openDetailPanel(v, card));
@@ -261,237 +261,253 @@ function renderVectors() {
     });
 }
 
-function openDetailPanel(vector, cardEl) {
+function openDetailPanel(v, card) {
+    if (state.openedCardEl) state.openedCardEl.classList.remove('card-active');
+    state.openedCardEl = card;
+    card.classList.add('card-active');
+    state.openedVector = v;
+    state.detailPanelOpen = true;
+
     const panel = document.getElementById('detailPanel');
     if (!panel) return;
 
-    state.openedVector = vector;
-    state.openedCardEl = cardEl;
-    state.detailPanelOpen = true;
+    const category = v.category || 'Miscellaneous';
+    const id = v.name;
+    const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
 
-    document.querySelectorAll('.vector-card').forEach(el => el.classList.remove('card-active'));
-    cardEl.classList.add('card-active');
+    const breadcrumbCat = document.getElementById('breadcrumbCategory');
+    if (breadcrumbCat) {
+        breadcrumbCat.textContent = category;
+        breadcrumbCat.href = '#';
+        breadcrumbCat.onclick = (e) => { e.preventDefault(); selectCategory(category); };
+    }
 
-    const grid = document.getElementById('vectorsGrid');
-    const cards = Array.from(grid.children);
-    const index = cards.indexOf(cardEl);
-    const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
-    const rowEndIndex = Math.min(Math.ceil((index + 1) / columns) * columns - 1, cards.length - 1);
-    
-    grid.insertBefore(panel, cards[rowEndIndex].nextSibling);
+    const breadcrumbTitle = document.getElementById('breadcrumbTitle');
+    if (breadcrumbTitle) breadcrumbTitle.textContent = v.title;
 
-    document.getElementById('detailTitle').textContent = vector.title;
-    document.getElementById('detailDescription').textContent = vector.description || 'Professional quality vector graphic for your projects.';
-    document.getElementById('detailCategory').textContent = vector.category || 'Miscellaneous';
-    document.getElementById('detailFileSize').textContent = vector.fileSize || 'N/A';
-    
-    const category = vector.category || "Miscellaneous";
-    const id = vector.name;
-    const imageUrl = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
-    document.getElementById('detailImage').src = imageUrl;
+    const img = document.getElementById('detailImage');
+    if (img) img.src = thumbnail;
 
-    const kwContainer = document.getElementById('detailKeywords');
-    kwContainer.innerHTML = '';
-    const keywords = (vector.keywords || []).concat(EXTRA_KEYWORDS);
-    keywords.slice(0, 15).forEach(kw => {
-        const span = document.createElement('span');
-        span.className = 'kw-tag';
-        span.textContent = kw;
-        kwContainer.appendChild(span);
-    });
+    const titleEl = document.getElementById('detailTitle');
+    if (titleEl) titleEl.textContent = v.title;
+
+    const descEl = document.getElementById('detailDescription');
+    if (descEl) descEl.textContent = v.description || '';
+
+    const catEl = document.getElementById('detailCategory');
+    if (catEl) catEl.textContent = category;
+
+    const fileSizeEl = document.getElementById('detailFileSize');
+    if (fileSizeEl) fileSizeEl.textContent = v.fileSize || 'N/A';
+
+    const keywordsEl = document.getElementById('detailKeywords');
+    if (keywordsEl) {
+        keywordsEl.innerHTML = '';
+        (v.keywords || []).forEach(kw => {
+            const tag = document.createElement('span');
+            tag.className = 'kw-tag';
+            tag.textContent = kw;
+            keywordsEl.appendChild(tag);
+        });
+    }
+
+    const downloadBtn = document.getElementById('detailDownloadBtn');
+    if (downloadBtn) {
+        downloadBtn.onclick = () => openDownloadPage(v);
+    }
+
+    const closeBtn = document.getElementById('detailCloseBtn');
+    if (closeBtn) {
+        closeBtn.onclick = closeDetailPanel;
+    }
 
     panel.style.display = 'block';
-    document.getElementById('breadcrumbCategory').textContent = vector.category || 'Miscellaneous';
-    document.getElementById('breadcrumbTitle').textContent = vector.title;
-
-    setTimeout(() => {
-        const offset = panel.offsetTop - 120;
-        window.scrollTo({ top: offset, behavior: 'smooth' });
-    }, 100);
-
-    renderRelatedVectors(vector);
-
-    document.getElementById('detailCloseBtn').onclick = closeDetailPanel;
-    document.getElementById('detailDownloadBtn').onclick = () => openDownloadPage(vector);
+    const grid = document.getElementById('vectorsGrid');
+    if (grid) {
+        const rect = card.getBoundingClientRect();
+        const gridRect = grid.getBoundingClientRect();
+        const scrollTop = window.pageYOffset;
+        const panelTop = gridRect.top + scrollTop + (rect.top - gridRect.top) + rect.height + 12;
+        panel.style.marginTop = '12px';
+        setTimeout(() => {
+            window.scrollTo({ top: panelTop - 100, behavior: 'smooth' });
+        }, 50);
+    }
 }
 
 function closeDetailPanel() {
     const panel = document.getElementById('detailPanel');
     if (panel) panel.style.display = 'none';
-    document.querySelectorAll('.vector-card').forEach(el => el.classList.remove('card-active'));
+    if (state.openedCardEl) state.openedCardEl.classList.remove('card-active');
     state.detailPanelOpen = false;
     state.openedVector = null;
     state.openedCardEl = null;
 }
 
-function renderRelatedVectors(currentVector) {
-    const section = document.getElementById('relatedVectorsSection');
-    const grid = document.getElementById('relatedVectorsGrid');
-    if (!section || !grid) return;
+function updatePagination() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageNum = document.getElementById('pageNumber');
+    const pageTotal = document.getElementById('pageTotal');
 
-    const related = state.vectors
-        .filter(v => v.name !== currentVector.name && v.category === currentVector.category)
-        .slice(0, 4);
-
-    if (related.length === 0) {
-        section.style.display = 'none';
-        return;
-    }
-
-    grid.innerHTML = '';
-    related.forEach(v => {
-        const card = document.createElement('div');
-        card.className = 'vector-card';
-        const id = v.name;
-        const category = v.category || "Miscellaneous";
-        const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
-
-        card.innerHTML = `
-            <div class="vc-img-wrap">
-                <img class="vc-img" src="${thumbnail}" alt="${escHtml(v.title)}" loading="lazy">
-            </div>
-            <div class="vc-info">
-                <div class="vc-title">${escHtml(v.title)}</div>
-            </div>
-        `;
-        card.addEventListener('click', () => openDetailPanel(v, card));
-        grid.appendChild(card);
-    });
-    section.style.display = 'block';
-}
-
-function openDownloadPage(vector) {
-    const dp = document.getElementById('downloadPage');
-    if (!dp) return;
-
-    document.getElementById('dpTitle').textContent = vector.title;
-    document.getElementById('dpHeaderTitle').textContent = vector.title;
-    document.getElementById('dpDescription').textContent = vector.description || 'Professional quality vector graphic.';
-    document.getElementById('dpCategory').textContent = vector.category || 'Miscellaneous';
-    document.getElementById('dpFileSize').textContent = vector.fileSize || 'N/A';
-    
-    const category = vector.category || "Miscellaneous";
-    const id = vector.name;
-    const imageUrl = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
-    document.getElementById('dpImage').src = imageUrl;
-
-    const kwContainer = document.getElementById('dpKeywords');
-    kwContainer.innerHTML = '';
-    const keywords = (vector.keywords || []).concat(EXTRA_KEYWORDS);
-    keywords.slice(0, 15).forEach(kw => {
-        const span = document.createElement('span');
-        span.className = 'kw-tag';
-        span.textContent = kw;
-        kwContainer.appendChild(span);
-    });
-
-    dp.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-
-    const downloadBtn = document.getElementById('dpDownloadBtn');
-    const countdownBox = document.getElementById('dpCountdownBox');
-    const countdownNum = document.getElementById('dpCountdown');
-
-    downloadBtn.style.display = 'block';
-    downloadBtn.disabled = false;
-    countdownBox.style.display = 'none';
-
-    downloadBtn.onclick = () => {
-        downloadBtn.disabled = true;
-        countdownBox.style.display = 'block';
-        let count = 4;
-        countdownNum.textContent = count;
-
-        if (state.countdownInterval) clearInterval(state.countdownInterval);
-        state.countdownInterval = setInterval(() => {
-            count--;
-            countdownNum.textContent = count;
-            if (count <= 0) {
-                clearInterval(state.countdownInterval);
-                triggerDownload(vector);
-                countdownBox.innerHTML = '<p style="color:green; font-weight:bold;">Download Started!</p>';
-            }
-        }, 1000);
-    };
-
-    document.getElementById('dpClose').onclick = () => {
-        dp.style.display = 'none';
-        document.body.style.overflow = '';
-        if (state.countdownInterval) clearInterval(state.countdownInterval);
-    };
-}
-
-async function triggerDownload(vector) {
-    const category = vector.category || "Miscellaneous";
-    const id = vector.name;
-    const key = `${category}/${id}/${id}.zip`;
-    window.location.href = `/api/asset?key=${encodeURIComponent(key)}&download=1`;
+    if (prevBtn) prevBtn.disabled = state.currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = state.currentPage >= state.totalPages;
+    if (pageNum) pageNum.textContent = state.currentPage;
+    if (pageTotal) pageTotal.textContent = `/ ${state.totalPages}`;
 }
 
 function setupEventListeners() {
     const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const sortFilter = document.getElementById('sortFilter');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
     if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            state.searchQuery = e.target.value.trim();
-            state.currentPage = 1;
-            if (state.searchTimeout) clearTimeout(state.searchTimeout);
-            if (state.searchQuery.length === 0) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                state.searchQuery = searchInput.value.trim();
+                state.currentPage = 1;
                 fetchVectors();
-            } else {
-                state.searchTimeout = setTimeout(() => fetchVectors(), 200);
             }
         });
     }
 
-    const sortFilter = document.getElementById('sortFilter');
-    if (sortFilter) {
-        sortFilter.addEventListener('change', (e) => {
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            state.searchQuery = searchInput ? searchInput.value.trim() : '';
             state.currentPage = 1;
             fetchVectors();
         });
     }
 
-    document.addEventListener('click', (e) => {
-        if (state.detailPanelOpen && !e.target.closest('.vector-card') && !e.target.closest('#detailPanel')) {
-            closeDetailPanel();
-        }
-    });
-
-    window.addEventListener('resize', () => {
-        if (state.detailPanelOpen && state.openedVector && state.openedCardEl) {
-            openDetailPanel(state.openedVector, state.openedCardEl);
-        }
-    });
-}
-
-function updatePagination() {
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const pageNumber = document.getElementById('pageNumber');
-    const pageTotal = document.getElementById('pageTotal');
-
-    if (pageNumber) pageNumber.textContent = state.currentPage;
-    if (pageTotal) pageTotal.textContent = `/ ${state.totalPages}`;
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            const sortValue = e.target.value;
+            state.currentPage = 1;
+            if (sortValue === 'newest') {
+                state.vectors.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
+            } else if (sortValue === 'oldest') {
+                state.vectors.sort((a, b) => new Date(a.uploadDate) - new Date(b.uploadDate));
+            }
+            renderVectors();
+        });
+    }
 
     if (prevBtn) {
-        prevBtn.disabled = state.currentPage === 1;
-        prevBtn.onclick = () => {
+        prevBtn.addEventListener('click', () => {
             if (state.currentPage > 1) {
                 state.currentPage--;
                 fetchVectors();
             }
-        };
+        });
     }
 
     if (nextBtn) {
-        nextBtn.disabled = state.currentPage === state.totalPages;
-        nextBtn.onclick = () => {
+        nextBtn.addEventListener('click', () => {
             if (state.currentPage < state.totalPages) {
                 state.currentPage++;
                 fetchVectors();
             }
+        });
+    }
+}
+
+function openDownloadPage(v) {
+    if (state.downloadInProgress) return;
+    state.downloadInProgress = true;
+
+    const downloadPage = document.getElementById('downloadPage');
+    if (!downloadPage) return;
+
+    const category = v.category || 'Miscellaneous';
+    const id = v.name;
+    const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
+
+    const dpTitle = document.getElementById('dpTitle');
+    if (dpTitle) dpTitle.textContent = v.title;
+
+    const dpDesc = document.getElementById('dpDescription');
+    if (dpDesc) dpDesc.textContent = v.description || '';
+
+    const dpCategory = document.getElementById('dpCategory');
+    if (dpCategory) dpCategory.textContent = category;
+
+    const dpFileSize = document.getElementById('dpFileSize');
+    if (dpFileSize) dpFileSize.textContent = v.fileSize || 'N/A';
+
+    const dpImage = document.getElementById('dpImage');
+    if (dpImage) dpImage.src = thumbnail;
+
+    const dpKeywords = document.getElementById('dpKeywords');
+    if (dpKeywords) {
+        dpKeywords.innerHTML = '';
+        (v.keywords || []).forEach(kw => {
+            const tag = document.createElement('span');
+            tag.className = 'kw-tag';
+            tag.textContent = kw;
+            tag.style.cursor = 'pointer';
+            tag.addEventListener('click', () => {
+                state.searchQuery = kw;
+                state.currentPage = 1;
+                downloadPage.style.display = 'none';
+                document.body.style.overflow = '';
+                state.downloadInProgress = false;
+                fetchVectors();
+            });
+            dpKeywords.appendChild(tag);
+        });
+    }
+
+    const dpHeaderTitle = document.getElementById('dpHeaderTitle');
+    if (dpHeaderTitle) dpHeaderTitle.textContent = v.title;
+
+    const dpHeaderDesc = document.getElementById('dpHeaderDesc');
+    if (dpHeaderDesc) dpHeaderDesc.textContent = v.description || '';
+
+    const dpDownloadBtn = document.getElementById('dpDownloadBtn');
+    if (dpDownloadBtn) {
+        dpDownloadBtn.onclick = () => {
+            const countdownBox = document.getElementById('dpCountdownBox');
+            if (countdownBox) countdownBox.style.display = 'block';
+            dpDownloadBtn.style.display = 'none';
+
+            let countdown = 4;
+            const countdownNum = document.getElementById('dpCountdown');
+            if (countdownNum) countdownNum.textContent = countdown;
+
+            if (state.countdownInterval) clearInterval(state.countdownInterval);
+            state.countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdownNum) countdownNum.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(state.countdownInterval);
+                    const downloadUrl = `/api/download?key=${encodeURIComponent(category + '/' + id + '/' + id + '.zip')}`;
+                    window.location.href = downloadUrl;
+                    setTimeout(() => {
+                        downloadPage.style.display = 'none';
+                        document.body.style.overflow = '';
+                        state.downloadInProgress = false;
+                        dpDownloadBtn.style.display = 'block';
+                        if (countdownBox) countdownBox.style.display = 'none';
+                    }, 1000);
+                }
+            }, 1000);
         };
     }
+
+    const dpClose = document.getElementById('dpClose');
+    if (dpClose) {
+        dpClose.onclick = () => {
+            downloadPage.style.display = 'none';
+            document.body.style.overflow = '';
+            if (state.countdownInterval) clearInterval(state.countdownInterval);
+            state.downloadInProgress = false;
+        };
+    }
+
+    downloadPage.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
 }
 
 function setupDownloadPageHandlers() {
@@ -503,6 +519,7 @@ function setupDownloadPageHandlers() {
             downloadPage.style.display = 'none';
             document.body.style.overflow = '';
             if (state.countdownInterval) clearInterval(state.countdownInterval);
+            state.downloadInProgress = false;
         }
     });
 }
@@ -514,23 +531,21 @@ function setupModalHandlers() {
     if (closeBtn) {
         closeBtn.onclick = (e) => { 
             e.stopPropagation();
-            modal.style.display = 'none'; 
+            if (modal) modal.style.display = 'none'; 
         };
     }
 
     if (modal) {
         modal.addEventListener('click', (e) => {
-            modal.style.display = 'none';
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
         });
         
         const modalBox = document.querySelector('.info-modal-box');
         if (modalBox) {
             modalBox.addEventListener('click', (e) => {
-                if (e.target.tagName !== 'A') {
-                    // Modal kapansın
-                } else {
-                    e.stopPropagation();
-                }
+                e.stopPropagation();
             });
         }
     }
