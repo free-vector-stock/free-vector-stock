@@ -47,7 +47,7 @@ export async function onRequestGet(context) {
             if (decodedKey.endsWith(".jpg") || decodedKey.endsWith(".jpeg") || decodedKey.endsWith(".png")) {
                 return Response.redirect("https://placehold.co/400x300/f5f5f5/999?text=Preview", 302);
             }
-            return new Response("File not found", { status: 404 });
+            return new Response(JSON.stringify({ error: "File not found" }), { status: 404, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
         }
 
         const isZip = decodedKey.endsWith(".zip");
@@ -83,7 +83,8 @@ export async function onRequestOptions() {
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
+            "Access-Control-Allow-Headers": "Content-Type, Range",
+            "Access-Control-Max-Age": "86400"
         }
     });
 }

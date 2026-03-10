@@ -51,33 +51,43 @@ export async function onRequestGet(context) {
                     const title = (v.title || "").toLowerCase();
                     const keywords = (v.keywords || []).map(k => k.toLowerCase());
                     const description = (v.description || "").toLowerCase();
+                    const name = (v.name || "").toLowerCase();
                     
                     let score = 0;
                     let matchCount = 0;
                     
                     for (const term of terms) {
                         let termMatched = false;
+                        // Title match (highest priority)
                         if (title.includes(term)) {
+                            score += 15;
+                            termMatched = true;
+                        }
+                        // Name match
+                        if (name.includes(term)) {
                             score += 10;
                             termMatched = true;
                         }
+                        // Keywords match
                         for (const kw of keywords) {
                             if (kw === term) {
-                                score += 5;
+                                score += 8;
                                 termMatched = true;
                             } else if (kw.includes(term)) {
-                                score += 2;
+                                score += 4;
                                 termMatched = true;
                             }
                         }
+                        // Description match
                         if (description.includes(term)) {
-                            score += 1;
+                            score += 2;
                             termMatched = true;
                         }
                         if (termMatched) matchCount++;
                     }
                     
-                    if (matchCount === terms.length) {
+                    // Allow partial matches (at least one term matched)
+                    if (matchCount > 0) {
                         return { ...v, _score: score };
                     }
                     return null;

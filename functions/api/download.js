@@ -67,9 +67,11 @@ export async function onRequestGet(context) {
 
         const headers = {
             "Content-Type": "application/zip",
-            "Content-Disposition": `attachment; filename="${slug}.zip"`,
-            "Cache-Control": "no-store",
-            "Access-Control-Allow-Origin": "*"
+            "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(slug)}.zip`,
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
         };
 
         if (object.size) {
@@ -90,7 +92,8 @@ export async function onRequestOptions() {
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Max-Age": "86400"
         }
     });
 }

@@ -208,9 +208,8 @@ function renderVectors() {
         card.className = 'vector-card';
         card.setAttribute('data-slug', v.name);
 
-        const extraKws = EXTRA_KEYWORDS.join(', ');
-        const mainKws = (v.keywords || []).slice(0, 10).join(', ');
-        const displayKws = mainKws ? `${extraKws}, ${mainKws}` : extraKws;
+        const mainKws = (v.keywords || []).slice(0, 5).join(', ');
+        const displayKws = mainKws || 'vector design';
 
         const thumbnail = `/api/asset?key=${encodeURIComponent(v.name)}.jpg`;
 
@@ -405,9 +404,11 @@ function startCountdown(v) {
     
     state.countdownInterval = setInterval(() => {
         count--;
-        dpCountdown.textContent = count;
+        if (count >= 0) {
+            dpCountdown.textContent = count;
+        }
         
-        if (count < 0) {
+        if (count <= 0) {
             clearInterval(state.countdownInterval);
             dpCountdownBox.style.display = 'none';
             executeDownload(v);
