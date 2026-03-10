@@ -169,14 +169,6 @@ async function fetchVectors() {
     state.isLoading = true;
     showLoader(true);
 
-    // Ensure the loader is hidden even if the API call fails or is empty
-    setTimeout(() => {
-        if (state.isLoading) {
-            showLoader(false);
-            state.isLoading = false;
-        }
-    }, 8000); // 8-second timeout as a safeguard
-
     try {
         const url = new URL('/api/vectors', window.location.origin);
         url.searchParams.set('page', state.currentPage);
@@ -185,6 +177,8 @@ async function fetchVectors() {
         if (state.searchQuery) url.searchParams.set('search', state.searchQuery);
         
         const res = await fetch(url);
+        if (!res.ok) throw new Error('API request failed');
+        
         const data = await res.json();
 
         state.vectors = data.vectors || [];
@@ -197,6 +191,8 @@ async function fetchVectors() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
         console.error('Fetch error:', err);
+        const grid = document.getElementById('vectorsGrid');
+        if (grid) grid.innerHTML = '<div class="no-results">Error loading vectors. Please try again.</div>';
     } finally {
         state.isLoading = false;
         showLoader(false);
