@@ -28,13 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check if already logged in
     const savedKey = sessionStorage.getItem('fv_admin');
     if (savedKey === ADMIN_KEY) {
-        const isValid = await verifyLogin(savedKey);
-        if (isValid) {
-            showApp();
-        } else {
-            sessionStorage.removeItem('fv_admin');
-            showLogin();
-        }
+        showApp();
     } else {
         showLogin();
     }
