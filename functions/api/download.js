@@ -20,8 +20,12 @@ export async function onRequestGet(context) {
             return new Response("Missing slug parameter", { status: 400 });
         }
 
-        // Requirement: Files must be in "icon/" folder
-        const object = await r2.get(`icon/${slug}.zip`);
+        // Find ZIP file in category-specific folder
+        const allVectorsRaw = await kv.get("all_vectors");
+        const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
+        const vector = allVectors.find(v => v.name === slug);
+        const categoryFolder = vector ? vector.category.replace(/\s+/g, '-').toLowerCase() : 'miscellaneous';
+        const object = await r2.get(`${categoryFolder}/${slug}.zip`);
         
         if (!object) {
             return new Response("ZIP file not found in storage", { status: 404 });

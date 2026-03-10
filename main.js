@@ -1,6 +1,6 @@
 /**
  * frevector.com - Frontend Logic
- * Fixed: Updated category list, strict R2 structure.
+ * Fixed: Updated category list, strict R2 structure, download page, countdown timer.
  */
 
 const EXTRA_KEYWORDS = ['free vector', 'free svg', 'free svg icon', 'free eps', 'free jpeg', 'free', 'fre', 'vector eps', 'svg', 'jpeg'];
@@ -105,13 +105,15 @@ const state = {
     openedVector: null,
     openedCardEl: null,
     countdownInterval: null,
-    detailPanelOpen: false
+    detailPanelOpen: false,
+    downloadInProgress: false
 };
 
 async function init() {
     setupCategories();
     setupEventListeners();
     setupModalHandlers();
+    setupDownloadPageHandlers();
     await fetchVectors();
 }
 
@@ -209,7 +211,6 @@ function renderVectors() {
         const mainKws = (v.keywords || []).slice(0, 3).join(', ');
         const displayKws = mainKws ? `${extraKws}, ${mainKws}` : extraKws;
 
-        // Requirement: Strict "icon/" folder structure
         const thumbnail = `/api/asset?key=${encodeURIComponent(v.name)}.jpg`;
 
         card.innerHTML = `
@@ -261,34 +262,42 @@ function openDetailPanel(v, cardEl) {
     if (catEl) catEl.textContent = v.category || '-';
     if (sizeEl) sizeEl.textContent = v.fileSize || '-';
 
-    const tagsWrap = document.getElementById('detailTags');
+    const tagsWrap = document.getElementById('detailKeywords');
     if (tagsWrap) {
         tagsWrap.innerHTML = '';
-        (v.keywords || []).forEach(kw => {
+        const allKws = [...EXTRA_KEYWORDS, ...(v.keywords || [])];
+        allKws.forEach(kw => {
             const span = document.createElement('span');
-            span.className = 'tag';
+            span.className = 'kw-tag';
             span.textContent = kw;
+            span.style.cursor = 'pointer';
+            span.addEventListener('click', () => {
+                state.searchQuery = kw;
+                state.currentPage = 1;
+                state.selectedCategory = 'all';
+                document.getElementById('searchInput').value = kw;
+                document.querySelectorAll('.category-item').forEach(el => {
+                    el.classList.toggle('active', el.dataset.cat === 'all');
+                });
+                closeDetailPanel();
+                fetchVectors();
+            });
             tagsWrap.appendChild(span);
         });
     }
 
-    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadBtn = document.getElementById('detailDownloadBtn');
     if (downloadBtn) {
-        downloadBtn.onclick = () => startDownload(v);
+        downloadBtn.onclick = () => openDownloadPage(v);
+    }
+
+    const closeBtn = document.getElementById('detailCloseBtn');
+    if (closeBtn) {
+        closeBtn.onclick = closeDetailPanel;
     }
 
     cardEl.classList.add('card-active');
     panel.style.display = 'block';
-    
-    const rect = cardEl.getBoundingClientRect();
-    const panelHeight = panel.offsetHeight;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    
-    if (spaceBelow < panelHeight + 20) {
-        panel.style.top = (rect.top + window.scrollY - panelHeight - 10) + 'px';
-    } else {
-        panel.style.top = (rect.bottom + window.scrollY + 10) + 'px';
-    }
 }
 
 function closeDetailPanel() {
@@ -299,41 +308,105 @@ function closeDetailPanel() {
     state.openedVector = null;
 }
 
-function startDownload(v) {
-    const modal = document.getElementById('downloadModal');
-    const counter = document.getElementById('downloadCounter');
-    const loader = document.getElementById('downloadLoader');
-    const success = document.getElementById('downloadSuccess');
-    const fileName = document.getElementById('downloadFileName');
+function openDownloadPage(v) {
+    const downloadPage = document.getElementById('downloadPage');
+    if (!downloadPage) return;
+
+    const thumbnail = `/api/asset?key=${encodeURIComponent(v.name)}.jpg`;
     
-    if (!modal) return;
+    // Set header info
+    const dpHeaderTitle = document.getElementById('dpHeaderTitle');
+    const dpHeaderDesc = document.getElementById('dpHeaderDesc');
+    if (dpHeaderTitle) dpHeaderTitle.textContent = v.title;
+    if (dpHeaderDesc) dpHeaderDesc.textContent = v.description || '';
+
+    // Set main content
+    const dpImage = document.getElementById('dpImage');
+    if (dpImage) {
+        dpImage.src = thumbnail;
+        dpImage.alt = v.title;
+        dpImage.onerror = () => { dpImage.src = 'https://placehold.co/400x300/f5f5f5/999?text=Preview'; };
+    }
+
+    const dpTitle = document.getElementById('dpTitle');
+    const dpDesc = document.getElementById('dpDescription');
+    const dpCategory = document.getElementById('dpCategory');
+    const dpFileSize = document.getElementById('dpFileSize');
     
-    modal.style.display = 'flex';
-    counter.style.display = 'block';
-    loader.style.display = 'none';
-    success.style.display = 'none';
-    fileName.textContent = `${v.name}.zip`;
+    if (dpTitle) dpTitle.textContent = v.title;
+    if (dpDesc) dpDesc.textContent = v.description || '';
+    if (dpCategory) dpCategory.textContent = v.category || '-';
+    if (dpFileSize) dpFileSize.textContent = v.fileSize || '-';
+
+    // Set keywords
+    const dpKeywords = document.getElementById('dpKeywords');
+    if (dpKeywords) {
+        dpKeywords.innerHTML = '';
+        const allKws = [...EXTRA_KEYWORDS, ...(v.keywords || [])];
+        allKws.forEach(kw => {
+            const span = document.createElement('span');
+            span.className = 'kw-tag';
+            span.textContent = kw;
+            dpKeywords.appendChild(span);
+        });
+    }
+
+    // Setup download button
+    const dpDownloadBtn = document.getElementById('dpDownloadBtn');
+    if (dpDownloadBtn) {
+        dpDownloadBtn.onclick = () => startCountdown(v);
+    }
+
+    // Setup close button
+    const dpClose = document.getElementById('dpClose');
+    if (dpClose) {
+        dpClose.onclick = () => {
+            downloadPage.style.display = 'none';
+            if (state.countdownInterval) clearInterval(state.countdownInterval);
+        };
+    }
+
+    // Reset countdown box
+    const dpCountdownBox = document.getElementById('dpCountdownBox');
+    if (dpCountdownBox) dpCountdownBox.style.display = 'none';
+
+    downloadPage.style.display = 'flex';
+    closeDetailPanel();
+}
+
+function startCountdown(v) {
+    const dpCountdownBox = document.getElementById('dpCountdownBox');
+    const dpCountdown = document.getElementById('dpCountdown');
+    const dpDownloadBtn = document.getElementById('dpDownloadBtn');
     
-    let seconds = 5;
-    counter.textContent = seconds;
+    if (!dpCountdownBox || !dpCountdown) return;
+
+    dpDownloadBtn.disabled = true;
+    dpCountdownBox.style.display = 'block';
+    
+    let count = 4;
+    dpCountdown.textContent = count;
     
     if (state.countdownInterval) clearInterval(state.countdownInterval);
     
     state.countdownInterval = setInterval(() => {
-        seconds--;
-        counter.textContent = seconds;
-        if (seconds <= 0) {
+        count--;
+        dpCountdown.textContent = count;
+        
+        if (count < 0) {
             clearInterval(state.countdownInterval);
-            counter.style.display = 'none';
-            loader.style.display = 'block';
+            dpCountdownBox.style.display = 'none';
             executeDownload(v);
+            dpDownloadBtn.disabled = false;
         }
     }, 1000);
 }
 
 async function executeDownload(v) {
     try {
-        const res = await fetch(`/api/download?slug=${v.name}`);
+        state.downloadInProgress = true;
+        const res = await fetch(`/api/download?slug=${encodeURIComponent(v.name)}`);
+        
         if (res.ok) {
             const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
@@ -344,20 +417,14 @@ async function executeDownload(v) {
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            
-            document.getElementById('downloadLoader').style.display = 'none';
-            document.getElementById('downloadSuccess').style.display = 'block';
-            
-            setTimeout(() => {
-                document.getElementById('downloadModal').style.display = 'none';
-            }, 2000);
         } else {
             alert('Download failed. Please try again.');
-            document.getElementById('downloadModal').style.display = 'none';
         }
     } catch (err) {
-        console.error(err);
-        document.getElementById('downloadModal').style.display = 'none';
+        console.error('Download error:', err);
+        alert('Download error. Please try again.');
+    } finally {
+        state.downloadInProgress = false;
     }
 }
 
@@ -367,9 +434,16 @@ function setupEventListeners() {
         searchInput.addEventListener('input', (e) => {
             state.searchQuery = e.target.value.toLowerCase();
             state.currentPage = 1;
-            // Debounce search
             clearTimeout(state.searchTimeout);
-            state.searchTimeout = setTimeout(() => fetchVectors(), 400);
+            state.searchTimeout = setTimeout(() => fetchVectors(), 300);
+        });
+    }
+
+    const sortFilter = document.getElementById('sortFilter');
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            state.currentPage = 1;
+            fetchVectors();
         });
     }
 
@@ -387,44 +461,50 @@ function setupEventListeners() {
 }
 
 function updatePagination() {
-    const wrap = document.getElementById('pagination');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-    
-    if (state.totalPages <= 1) return;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageNumber = document.getElementById('pageNumber');
+    const pageTotal = document.getElementById('pageTotal');
 
-    const createBtn = (text, page, active = false, disabled = false) => {
-        const btn = document.createElement('button');
-        btn.className = `pag-btn ${active ? 'active' : ''}`;
-        btn.textContent = text;
-        btn.disabled = disabled;
-        if (!disabled && !active) {
-            btn.onclick = () => {
-                state.currentPage = page;
+    if (pageNumber) pageNumber.textContent = state.currentPage;
+    if (pageTotal) pageTotal.textContent = `/ ${state.totalPages}`;
+
+    if (prevBtn) {
+        prevBtn.disabled = state.currentPage === 1;
+        prevBtn.onclick = () => {
+            if (state.currentPage > 1) {
+                state.currentPage--;
                 fetchVectors();
-            };
-        }
-        return btn;
-    };
-
-    wrap.appendChild(createBtn('Prev', state.currentPage - 1, false, state.currentPage === 1));
-
-    let start = Math.max(1, state.currentPage - 2);
-    let end = Math.min(state.totalPages, start + 4);
-    if (end - start < 4) start = Math.max(1, end - 4);
-
-    for (let i = start; i <= end; i++) {
-        wrap.appendChild(createBtn(i, i, i === state.currentPage));
+            }
+        };
     }
 
-    wrap.appendChild(createBtn('Next', state.currentPage + 1, false, state.currentPage === state.totalPages));
+    if (nextBtn) {
+        nextBtn.disabled = state.currentPage === state.totalPages;
+        nextBtn.onclick = () => {
+            if (state.currentPage < state.totalPages) {
+                state.currentPage++;
+                fetchVectors();
+            }
+        };
+    }
+}
+
+function setupDownloadPageHandlers() {
+    const downloadPage = document.getElementById('downloadPage');
+    if (!downloadPage) return;
+
+    window.addEventListener('click', (e) => {
+        if (e.target === downloadPage) {
+            downloadPage.style.display = 'none';
+            if (state.countdownInterval) clearInterval(state.countdownInterval);
+        }
+    });
 }
 
 function setupModalHandlers() {
     const modal = document.getElementById('infoModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-    const closeBtn = modal?.querySelector('.modal-close');
+    const closeBtn = document.getElementById('infoModalClose');
 
     if (closeBtn) {
         closeBtn.onclick = () => { modal.style.display = 'none'; };
@@ -432,28 +512,28 @@ function setupModalHandlers() {
 
     window.onclick = (e) => {
         if (e.target === modal) modal.style.display = 'none';
-        if (e.target === document.getElementById('downloadModal')) {
-            clearInterval(state.countdownInterval);
-            document.getElementById('downloadModal').style.display = 'none';
+        if (e.target === document.getElementById('downloadPage')) {
+            document.getElementById('downloadPage').style.display = 'none';
+            if (state.countdownInterval) clearInterval(state.countdownInterval);
         }
     };
 
-    document.querySelectorAll('[data-modal]').forEach(btn => {
-        btn.onclick = (e) => {
+    document.querySelectorAll('.modal-trigger').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
             const type = btn.dataset.modal;
             const content = MODAL_CONTENTS[type];
-            if (content) {
-                modalTitle.textContent = content.title;
-                modalBody.innerHTML = content.content;
+            if (content && modal) {
+                const body = document.getElementById('infoModalBody');
+                if (body) body.innerHTML = content.content;
                 modal.style.display = 'flex';
             }
-        };
+        });
     });
 }
 
 function showLoader(show) {
-    const loader = document.getElementById('mainLoader');
+    const loader = document.getElementById('loader');
     if (loader) loader.style.display = show ? 'flex' : 'none';
 }
 

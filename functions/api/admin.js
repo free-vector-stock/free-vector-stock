@@ -187,10 +187,11 @@ export async function onRequestPost(context) {
     const rawCategory = getField(metadata, "category");
     const category = resolveCategory(rawCategory);
     
-    // Upload to R2 in "icon/" folder (Requirement: Direct to R2, no local)
-    const r2JpgKey = `icon/${id}.jpg`;
-    const r2ZipKey = `icon/${id}.zip`;
-    const r2JsonKey = `icon/${id}.json`;
+    // Upload to R2 in category-specific folder (Requirement: Direct to R2, no local)
+    const categoryFolder = category.replace(/\s+/g, '-').toLowerCase();
+    const r2JpgKey = `${categoryFolder}/${id}.jpg`;
+    const r2ZipKey = `${categoryFolder}/${id}.zip`;
+    const r2JsonKey = `${categoryFolder}/${id}.json`;
 
     const jpgUpload = await uploadWithRetry(r2, r2JpgKey, jpegBuffer, { contentType: "image/jpeg" });
     if (!jpgUpload.success) return new Response(JSON.stringify({ error: "JPG upload failed" }), { status: 500, headers });
@@ -247,10 +248,18 @@ export async function onRequestDelete(context) {
 
     if (!id) return new Response(JSON.stringify({ error: "Missing ID" }), { status: 400, headers });
 
-    // Delete from R2 "icon/" folder (Requirement: Sync delete)
-    await r2.delete(`icon/${id}.jpg`).catch(() => {});
-    await r2.delete(`icon/${id}.zip`).catch(() => {});
-    await r2.delete(`icon/${id}.json`).catch(() => {});
+    // Get the vector to find its category folder
+    const allVectorsRaw = await kv.get("all_vectors");
+    let allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
+    const vector = allVectors.find(v => v.name === id);
+    const categoryFolder = vector ? vector.category.replace(/\s+/g, '-').toLowerCase() : '*';
+    
+    // Delete from R2 category-specific folder (Requirement: Sync delete)
+    if (categoryFolder !== '*') {
+      await r2.delete(`${categoryFolder}/${id}.jpg`).catch(() => {});
+      await r2.delete(`${categoryFolder}/${id}.zip`).catch(() => {});
+      await r2.delete(`${categoryFolder}/${id}.json`).catch(() => {});
+    }
 
     // Remove from KV
     const allVectorsRaw = await kv.get("all_vectors");
@@ -286,7 +295,7 @@ export async function onRequestPatch(context) {
       let cursor = undefined;
       
       while (truncated) {
-        const list = await r2.list({ prefix: "icon/", cursor });
+        const list = await r2.list({ cursor });
         list.objects.forEach(obj => r2Objects.add(obj.key));
         truncated = list.truncated;
         cursor = list.cursor;
@@ -296,9 +305,10 @@ export async function onRequestPatch(context) {
       let orphanCount = 0;
 
       for (const v of allVectors) {
-        const hasJpg = r2Objects.has(`icon/${v.name}.jpg`);
-        const hasZip = r2Objects.has(`icon/${v.name}.zip`);
-        const hasJson = r2Objects.has(`icon/${v.name}.json`);
+        const categoryFolder = v.category.replace(/\s+/g, '-').toLowerCase();
+        const hasJpg = r2Objects.has(`${categoryFolder}/${v.name}.jpg`);
+        const hasZip = r2Objects.has(`${categoryFolder}/${v.name}.zip`);
+        const hasJson = r2Objects.has(`${categoryFolder}/${v.name}.json`);
 
         if (hasJpg && hasZip && hasJson) {
           cleaned.push(v);

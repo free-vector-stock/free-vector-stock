@@ -18,9 +18,22 @@ export async function onRequestGet(context) {
         const decodedKey = decodeURIComponent(key);
         let object = null;
 
-        // Requirement: Files must be in "icon/" folder
-        const r2Key = decodedKey.startsWith("icon/") ? decodedKey : `icon/${decodedKey}`;
-        object = await r2.get(r2Key);
+        // Try to find file in any category folder
+        let r2Key = decodedKey;
+        if (!decodedKey.includes('/')) {
+            // If no folder specified, search in all category folders
+            const categories = ['abstract', 'animals', 'the-arts', 'backgrounds', 'fashion', 'buildings', 'business', 'celebrities', 'education', 'food', 'drink', 'medical', 'holidays', 'industrial', 'interiors', 'miscellaneous', 'nature', 'objects', 'outdoor', 'people', 'religion', 'science', 'symbols', 'sports', 'technology', 'transportation', 'vintage', 'logo', 'font', 'icon'];
+            for (const cat of categories) {
+                const testKey = `${cat}/${decodedKey}`;
+                const testObj = await r2.get(testKey);
+                if (testObj) {
+                    object = testObj;
+                    break;
+                }
+            }
+        } else {
+            object = await r2.get(r2Key);
+        }
 
         if (!object) {
             // Placeholder for missing images
