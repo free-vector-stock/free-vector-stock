@@ -212,7 +212,7 @@ function renderOurPicks() {
         card.className = 'vector-card';
         const id = v.name;
         const category = v.category || "Miscellaneous";
-        const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
+        const thumbnail = v.thumbnail || `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
 
         card.innerHTML = `
             <div class="vc-img-wrap">
@@ -249,11 +249,13 @@ function renderVectors() {
         card.className = 'vector-card';
         const id = v.name;
         const category = v.category || "Miscellaneous";
-        const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
+        const thumbnail = v.thumbnail || `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
+        const typeLabel = v.isJpegOnly ? '<span class="vc-type-badge jpeg">JPEG</span>' : '<span class="vc-type-badge vector">VECTOR</span>';
 
         card.innerHTML = `
             <div class="vc-img-wrap">
                 <img class="vc-img" src="${thumbnail}" alt="${escHtml(v.title)}" loading="lazy">
+                ${typeLabel}
             </div>
             <div class="vc-info">
                 <div class="vc-title">${escHtml(v.title)}</div>
@@ -277,7 +279,7 @@ function openDetailPanel(v, card) {
 
     const category = v.category || 'Miscellaneous';
     const id = v.name;
-    const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
+    const thumbnail = v.thumbnail || `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
 
     const breadcrumbCat = document.getElementById('breadcrumbCategory');
     if (breadcrumbCat) {
@@ -307,7 +309,8 @@ function openDetailPanel(v, card) {
     const keywordsEl = document.getElementById('detailKeywords');
     if (keywordsEl) {
         keywordsEl.innerHTML = '';
-        (v.keywords || []).forEach(kw => {
+        const allKws = [...EXTRA_KEYWORDS, ...(v.keywords || []).filter(k => !EXTRA_KEYWORDS.includes(k))];
+        allKws.forEach(kw => {
             const tag = document.createElement('span');
             tag.className = 'kw-tag';
             tag.textContent = kw;
@@ -426,7 +429,7 @@ function openDownloadPage(v) {
 
     const category = v.category || 'Miscellaneous';
     const id = v.name;
-    const thumbnail = `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
+    const thumbnail = v.thumbnail || `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
 
     const dpTitle = document.getElementById('dpTitle');
     if (dpTitle) dpTitle.textContent = v.title;
@@ -446,13 +449,16 @@ function openDownloadPage(v) {
     const dpKeywords = document.getElementById('dpKeywords');
     if (dpKeywords) {
         dpKeywords.innerHTML = '';
-        (v.keywords || []).forEach(kw => {
+        const dpAllKws = [...EXTRA_KEYWORDS, ...(v.keywords || []).filter(k => !EXTRA_KEYWORDS.includes(k))];
+        dpAllKws.forEach(kw => {
             const tag = document.createElement('span');
             tag.className = 'kw-tag';
             tag.textContent = kw;
             tag.style.cursor = 'pointer';
             tag.addEventListener('click', () => {
                 state.searchQuery = kw;
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = kw;
                 state.currentPage = 1;
                 downloadPage.style.display = 'none';
                 document.body.style.overflow = '';
@@ -468,6 +474,10 @@ function openDownloadPage(v) {
 
     const dpHeaderDesc = document.getElementById('dpHeaderDesc');
     if (dpHeaderDesc) dpHeaderDesc.textContent = v.description || '';
+
+    // Update format based on content type
+    const dpFormatEl = document.querySelector('#downloadPage .dp-table tr:first-child .dp-value');
+    if (dpFormatEl) dpFormatEl.textContent = v.isJpegOnly ? 'JPEG' : 'EPS, SVG, JPEG';
 
     const dpDownloadBtn = document.getElementById('dpDownloadBtn');
     if (dpDownloadBtn) {
@@ -486,7 +496,7 @@ function openDownloadPage(v) {
                 if (countdownNum) countdownNum.textContent = countdown;
                 if (countdown <= 0) {
                     clearInterval(state.countdownInterval);
-                    const downloadUrl = `/api/download?key=${encodeURIComponent(category + '/' + id + '/' + id + '.zip')}`;
+                    const downloadUrl = `/api/download?slug=${encodeURIComponent(id)}`;
                     window.location.href = downloadUrl;
                     setTimeout(() => {
                         downloadPage.style.display = 'none';

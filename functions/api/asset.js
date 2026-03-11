@@ -66,6 +66,15 @@ export async function onRequestGet(context) {
         }
 
         if (!object) {
+            // Try fallback key if provided (e.g., original jpg when thumb not found)
+            const fallbackKey = url.searchParams.get("fallback");
+            if (fallbackKey) {
+                const decodedFallback = decodeURIComponent(fallbackKey);
+                object = await r2.get(decodedFallback);
+            }
+        }
+
+        if (!object) {
             // Placeholder for missing images
             if (decodedKey.endsWith(".jpg") || decodedKey.endsWith(".jpeg") || decodedKey.endsWith(".png")) {
                 return Response.redirect("https://placehold.co/400x300/f5f5f5/999?text=Preview", 302);

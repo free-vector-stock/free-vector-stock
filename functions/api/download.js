@@ -1,7 +1,6 @@
 /**
  * GET /api/download?slug=xxx
- * Increments download counter and serves ZIP file from R2
- * Fixed: Search in category-specific folders.
+ * Increments download counter and serves ZIP (vector) or JPEG (jpeg-only) file from R2
  */
 
 export async function onRequestGet(context) {
@@ -20,59 +19,78 @@ export async function onRequestGet(context) {
             return new Response("Missing slug parameter", { status: 400 });
         }
 
-        // Find ZIP file in category-specific folder
+        // Find vector in KV
         const allVectorsRaw = await kv.get("all_vectors");
         const allVectors = allVectorsRaw ? JSON.parse(allVectorsRaw) : [];
         const vector = allVectors.find(v => v.name === slug);
         
         let object = null;
+        let filename = slug;
+        let contentType = "application/zip";
+        let isJpeg = false;
+
         const categories = ['Abstract', 'Animals', 'The Arts', 'Backgrounds', 'Fashion', 'Buildings', 'Business', 'Celebrities', 'Education', 'Food', 'Drink', 'Medical', 'Holidays', 'Industrial', 'Interiors', 'Miscellaneous', 'Nature', 'Objects', 'Outdoor', 'People', 'Religion', 'Science', 'Symbols', 'Sports', 'Technology', 'Transportation', 'Vintage', 'Logo', 'Font', 'Icon'];
 
         if (vector) {
             const category = vector.category || "Miscellaneous";
-            // 1. Try the new structure: Category/ID/ID.zip
+            // Try ZIP first (vector content)
             object = await r2.get(`${category}/${slug}/${slug}.zip`);
             
-            // 2. Try the previous structure: category-folder/ID.zip
+            // If no ZIP, try JPEG (jpeg-only content)
+            if (!object) {
+                object = await r2.get(`${category}/${slug}/${slug}.jpg`);
+                if (object) {
+                    isJpeg = true;
+                    contentType = "image/jpeg";
+                    filename = slug + ".jpg";
+                }
+            }
+            
+            // Fallback: old folder structure
             if (!object) {
                 const categoryFolder = category.replace(/\s+/g, '-').toLowerCase();
                 object = await r2.get(`${categoryFolder}/${slug}.zip`);
-            }
-        }
-        
-        // Fallback: search in all category folders if not found via KV metadata
-        if (!object) {
-            // 1. Try the new structure in all categories: Category/ID/ID.zip
-            for (const cat of categories) {
-                const testKey = `${cat}/${slug}/${slug}.zip`;
-                const testObj = await r2.get(testKey);
-                if (testObj) {
-                    object = testObj;
-                    break;
-                }
-            }
-            
-            // 2. Try the previous structure in all categories: category-folder/ID.zip
-            if (!object) {
-                for (const cat of categories) {
-                    const catFolder = cat.replace(/\s+/g, '-').toLowerCase();
-                    const testKey = `${catFolder}/${slug}.zip`;
-                    const testObj = await r2.get(testKey);
-                    if (testObj) {
-                        object = testObj;
-                        break;
+                if (!object) {
+                    object = await r2.get(`${categoryFolder}/${slug}.jpg`);
+                    if (object) {
+                        isJpeg = true;
+                        contentType = "image/jpeg";
+                        filename = slug + ".jpg";
                     }
                 }
             }
+        }
+        
+        // Fallback: search all categories
+        if (!object) {
+            for (const cat of categories) {
+                const zipObj = await r2.get(`${cat}/${slug}/${slug}.zip`);
+                if (zipObj) { object = zipObj; break; }
+                const jpgObj = await r2.get(`${cat}/${slug}/${slug}.jpg`);
+                if (jpgObj) { 
+                    object = jpgObj; 
+                    isJpeg = true;
+                    contentType = "image/jpeg";
+                    filename = slug + ".jpg";
+                    break; 
+                }
+            }
+            
+            if (!object) {
+                for (const cat of categories) {
+                    const catFolder = cat.replace(/\s+/g, '-').toLowerCase();
+                    const zipObj = await r2.get(`${catFolder}/${slug}.zip`);
+                    if (zipObj) { object = zipObj; break; }
+                }
+            }
 
-            // 3. Try root
             if (!object) {
                 object = await r2.get(`${slug}.zip`);
             }
         }
         
         if (!object) {
-            return new Response("ZIP file not found in storage", { status: 404 });
+            return new Response("File not found in storage", { status: 404 });
         }
 
         // Increment download counter
@@ -92,9 +110,13 @@ export async function onRequestGet(context) {
             }
         })());
 
+        const disposition = isJpeg 
+            ? `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`
+            : `attachment; filename*=UTF-8''${encodeURIComponent(slug)}.zip`;
+
         const headers = {
-            "Content-Type": "application/zip",
-            "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(slug)}.zip`,
+            "Content-Type": contentType,
+            "Content-Disposition": disposition,
             "Cache-Control": "no-store, no-cache, must-revalidate",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, OPTIONS",

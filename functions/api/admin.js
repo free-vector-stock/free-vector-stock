@@ -134,18 +134,28 @@ export async function onRequestGet(context) {
       
       const r2Checks = await Promise.all(
         sample.map(async (v) => {
-          const categoryFolder = v.category.replace(/\s+/g, '-').toLowerCase();
-          const jpgCheck = await r2.head(`${categoryFolder}/${v.name}.jpg`);
-          const zipCheck = await r2.head(`${categoryFolder}/${v.name}.zip`);
-          const jsonCheck = await r2.head(`${categoryFolder}/${v.name}.json`);
-          
-          return { v, jpg: !!jpgCheck, zip: !!zipCheck, json: !!jsonCheck };
+          const category = v.category || 'Miscellaneous';
+          // Try new structure: Category/ID/ID.ext
+          let jpgCheck = await r2.head(`${category}/${v.name}/${v.name}.jpg`);
+          let zipCheck = await r2.head(`${category}/${v.name}/${v.name}.zip`);
+          let jsonCheck = await r2.head(`${category}/${v.name}/${v.name}.json`);
+          // Fallback: old structure
+          if (!jpgCheck) {
+            const cf = category.replace(/\s+/g, '-').toLowerCase();
+            jpgCheck = await r2.head(`${cf}/${v.name}.jpg`);
+            if (!zipCheck) zipCheck = await r2.head(`${cf}/${v.name}.zip`);
+            if (!jsonCheck) jsonCheck = await r2.head(`${cf}/${v.name}.json`);
+          }
+          // JPEG-only content: no zip is normal
+          const isJpegOnly = v.contentType === 'jpeg' || (!zipCheck && !!jpgCheck);
+          return { v, jpg: !!jpgCheck, zip: !!zipCheck, json: !!jsonCheck, isJpegOnly };
         })
       );
 
-      for (const { v, jpg, zip, json } of r2Checks) {
+      for (const { v, jpg, zip, json, isJpegOnly } of r2Checks) {
         if (!jpg) issues.push({ slug: v.name, type: "missing_jpg", fix: "Re-upload" });
-        if (!zip) issues.push({ slug: v.name, type: "missing_zip", fix: "Re-upload" });
+        // Only report missing_zip for vector content (not jpeg-only)
+        if (!zip && !isJpegOnly) issues.push({ slug: v.name, type: "missing_zip", fix: "Re-upload" });
         if (!json) issues.push({ slug: v.name, type: "missing_json", fix: "Re-upload" });
       }
 
@@ -186,16 +196,16 @@ export async function onRequestPost(context) {
 
     const jsonFile = formData.get("json");
     const jpegFile = formData.get("jpeg");
-    const zipFile  = formData.get("zip");
+    const zipFile  = formData.get("zip"); // Optional for JPEG-only content
 
-    if (!jsonFile || !jpegFile || !zipFile) {
-      return new Response(JSON.stringify({ error: "Missing required files (JSON, JPEG, ZIP)." }), { status: 400, headers });
+    if (!jsonFile || !jpegFile) {
+      return new Response(JSON.stringify({ error: "Missing required files (JSON, JPEG)." }), { status: 400, headers });
     }
 
     const jsonText = await jsonFile.text();
     const jsonBuffer = new TextEncoder().encode(jsonText);
     const jpegBuffer = await jpegFile.arrayBuffer();
-    const zipBuffer  = await zipFile.arrayBuffer();
+    const zipBuffer  = zipFile ? await zipFile.arrayBuffer() : null;
     
     let metadata;
     try {
@@ -228,11 +238,27 @@ export async function onRequestPost(context) {
     const jpgUpload = await uploadWithRetry(r2, r2JpgKey, jpegBuffer, { contentType: "image/jpeg" });
     if (!jpgUpload.success) return new Response(JSON.stringify({ error: "JPG upload failed" }), { status: 500, headers });
 
-    const zipUpload = await uploadWithRetry(r2, r2ZipKey, zipBuffer, { 
-      contentType: "application/zip",
-      contentDisposition: `attachment; filename="${id}.zip"`
-    });
-    if (!zipUpload.success) return new Response(JSON.stringify({ error: "ZIP upload failed" }), { status: 500, headers });
+    // Create thumbnail (max 400px wide)
+    const thumbKey = `${category}/${id}/${id}-thumb.jpg`;
+    // Store original as thumbnail too (browser will resize via CSS; server-side resize not available in Workers)
+    // For proper thumbnail, we just upload the same JPEG - it will be served via asset API
+    // Thumbnail generation note: Cloudflare Workers don't have canvas/sharp, so we store original
+    // and rely on CSS max-width for display optimization
+    await r2.put(thumbKey, jpegBuffer, { httpMetadata: { contentType: "image/jpeg" } }).catch(() => {});
+
+    // ZIP upload (only for vector content)
+    let fileSizeStr = 'N/A';
+    const isJpegOnly = !zipBuffer;
+    if (zipBuffer) {
+      const zipUpload = await uploadWithRetry(r2, r2ZipKey, zipBuffer, { 
+        contentType: "application/zip",
+        contentDisposition: `attachment; filename="${id}.zip"`
+      });
+      if (!zipUpload.success) return new Response(JSON.stringify({ error: "ZIP upload failed" }), { status: 500, headers });
+      fileSizeStr = `${(zipBuffer.byteLength / (1024 * 1024)).toFixed(1)} MB`;
+    } else {
+      fileSizeStr = `${(jpegBuffer.byteLength / (1024 * 1024)).toFixed(1)} MB`;
+    }
 
     const jsonUpload = await uploadWithRetry(r2, r2JsonKey, jsonBuffer, { contentType: "application/json" });
     if (!jsonUpload.success) return new Response(JSON.stringify({ error: "JSON upload failed" }), { status: 500, headers });
@@ -246,7 +272,8 @@ export async function onRequestPost(context) {
       keywords: Array.isArray(keywords) ? keywords : String(keywords || "").split(",").map(k => k.trim()).filter(Boolean),
       date: new Date().toISOString().split("T")[0],
       downloads: 0,
-      fileSize: `${(zipBuffer.byteLength / (1024 * 1024)).toFixed(1)} MB`
+      fileSize: fileSizeStr,
+      contentType: isJpegOnly ? 'jpeg' : 'vector'
     };
 
     const allVectorsRaw = await kv.get("all_vectors");

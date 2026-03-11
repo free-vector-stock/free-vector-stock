@@ -130,16 +130,19 @@ function enrichVector(v) {
     const category = v.category || "Miscellaneous";
     
     // New structure: Category/ID/ID.ext
-    // We pass the full path as the key to /api/asset
+    const thumbKey = `${category}/${id}/${id}-thumb.jpg`;
     const jpgKey = `${category}/${id}/${id}.jpg`;
     const zipKey = `${category}/${id}/${id}.zip`;
+    const isJpegOnly = v.contentType === 'jpeg';
 
     return {
         ...v,
         title: v.title || v.name || "",
-        thumbnail: `/api/asset?key=${encodeURIComponent(jpgKey)}`,
-        zipUrl: `/api/asset?key=${encodeURIComponent(zipKey)}`,
-        fileSize: v.fileSize || null
+        // Use thumbnail if available, fallback to original jpg
+        thumbnail: `/api/asset?key=${encodeURIComponent(thumbKey)}&fallback=${encodeURIComponent(jpgKey)}`,
+        zipUrl: isJpegOnly ? `/api/asset?key=${encodeURIComponent(jpgKey)}` : `/api/asset?key=${encodeURIComponent(zipKey)}`,
+        fileSize: v.fileSize || null,
+        isJpegOnly: isJpegOnly
     };
 }
 

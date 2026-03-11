@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.getElementById('bulkDeleteBtn')?.addEventListener('click', bulkDeleteVectors);
+    document.getElementById('bulkDownloadBtn')?.addEventListener('click', bulkDownloadVectors);
 
     // Populate Categories in Filter
     const filterSel = document.getElementById('filterCategory');
@@ -376,6 +377,12 @@ function updateBulkDeleteUI() {
     btn.style.display = count > 0 ? 'inline-block' : 'none';
     btn.textContent = `Delete Selected (${count})`;
     
+    const dlBtn = document.getElementById('bulkDownloadBtn');
+    if (dlBtn) {
+        dlBtn.style.display = count > 0 ? 'inline-block' : 'none';
+        dlBtn.textContent = `Download Selected (${count})`;
+    }
+    
     const countSpan = document.getElementById('selectedCount');
     if (countSpan) {
         countSpan.style.display = count > 0 ? 'inline' : 'none';
@@ -418,6 +425,32 @@ async function bulkDeleteVectors() {
     updateBulkDeleteUI();
 }
 
+async function bulkDownloadVectors() {
+    const key = sessionStorage.getItem('fv_admin');
+    const slugs = Array.from(state.selectedVectors);
+    if (slugs.length === 0) return;
+
+    const btn = document.getElementById('bulkDownloadBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Preparing...'; }
+
+    for (const slug of slugs) {
+        const v = state.vectors.find(x => x.name === slug);
+        if (!v) continue;
+        try {
+            const a = document.createElement('a');
+            a.href = `/api/download?slug=${encodeURIComponent(slug)}`;
+            a.download = slug;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            // Small delay to avoid browser blocking multiple downloads
+            await new Promise(r => setTimeout(r, 600));
+        } catch (e) { console.error('Download failed for', slug, e); }
+    }
+
+    if (btn) { btn.disabled = false; updateBulkDeleteUI(); }
+}
+
 // BULK UPLOAD LOGIC
 let bulkFiles = [];
 
@@ -438,14 +471,17 @@ function handleBulkAnalyze() {
         else if (ext === 'zip') groups[name].zip = f;
     });
 
-    bulkFiles = Object.entries(groups).map(([id, g]) => ({ id, ...g })).filter(g => g.json && g.jpeg && g.zip);
+    // ZIP is optional for JPEG-only content
+    bulkFiles = Object.entries(groups).map(([id, g]) => ({ id, ...g })).filter(g => g.json && g.jpeg);
     
     const status = document.getElementById('bulkUploadStatus');
     const uploadBtn = document.getElementById('bulkUploadBtn');
+    const jpegOnlyCount = bulkFiles.filter(g => !g.zip).length;
+    const vectorCount = bulkFiles.filter(g => g.zip).length;
     
     if (status) {
         status.className = 'status-box info';
-        status.textContent = `Found ${bulkFiles.length} valid vector sets (JSON+JPG+ZIP). Ready to upload.`;
+        status.textContent = `Found ${bulkFiles.length} valid sets: ${vectorCount} vector (JSON+JPG+ZIP), ${jpegOnlyCount} JPEG-only (JSON+JPG). Ready to upload.`;
     }
     if (uploadBtn) uploadBtn.disabled = bulkFiles.length === 0;
 }
@@ -475,7 +511,7 @@ async function handleBulkUpload() {
         const formData = new FormData();
         formData.append('json', group.json);
         formData.append('jpeg', group.jpeg);
-        formData.append('zip', group.zip);
+        if (group.zip) formData.append('zip', group.zip);
 
         try {
             const res = await fetch('/api/admin', {

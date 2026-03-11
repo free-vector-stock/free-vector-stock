@@ -471,23 +471,23 @@
             <!-- UPLOAD -->
             <section id="upload" class="admin-section">
                 <div class="upload-card">
-                    <h2>Toplu Vektör Yükleme</h2>
-                    <p class="upload-subtitle">Birden fazla vektör paketini aynı anda yükleyin. Sistem otomatik olarak dosyaları eşleştirir, metadataları doğrular ve önizlemeleri normalize eder.</p>
+                    <h2>Bulk Vector Upload</h2>
+                    <p class="upload-subtitle">Upload multiple vector packages at once. The system automatically matches files, validates metadata, and normalizes previews.</p>
                     
                     <div id="drop-zone">
-                        <p style="font-size: 18px; color: #333; font-weight: 600;">Dosyaları buraya sürükleyip bırakın veya seçmek için tıklayın</p>
-                        <p style="font-size: 13px; color: #888; margin-top: 10px;">JSON, JPEG ve ZIP dosyalarını aynı anda seçebilirsiniz.</p>
+                        <p style="font-size: 18px; color: #333; font-weight: 600;">Drag and drop files here or click to select</p>
+                        <p style="font-size: 13px; color: #888; margin-top: 10px;">You can select JSON, JPEG and ZIP files at once. ZIP is optional for JPEG-only content.</p>
                         <input type="file" id="bulkFileInput" multiple accept=".json,.jpg,.jpeg,.zip" style="display: none;">
                     </div>
 
                     <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                        <button type="button" class="btn-upload" id="bulkAnalyzeBtn" style="flex: 1;">Analiz Et</button>
-                        <button type="button" class="btn-upload" id="bulkUploadBtn" style="flex: 1; background: var(--green);" disabled>Tümünü Yükle</button>
+                        <button type="button" class="btn-upload" id="bulkAnalyzeBtn" style="flex: 1;">Analyze</button>
+                        <button type="button" class="btn-upload" id="bulkUploadBtn" style="flex: 1; background: var(--green);" disabled>Upload All</button>
                     </div>
 
                     <!-- BULK ANALYSIS RESULTS -->
                     <div id="bulkAnalysisResults" style="display: none; margin-top: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px;">Analiz Sonuçları</h3>
+                        <h3 style="font-size: 15px; margin-bottom: 12px;">Analysis Results</h3>
                         <div id="bulkPackagesList" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--gray);">
                         </div>
                         <div id="bulkSummary" style="margin-top: 16px; padding: 12px; background: var(--gray); border-radius: 4px; font-size: 13px;">
@@ -499,12 +499,12 @@
                         <div class="progress-bar">
                             <div class="progress-fill" id="bulkProgressFill" style="width:0%"></div>
                         </div>
-                        <div class="progress-text" id="bulkProgressText">Yükleniyor...</div>
+                        <div class="progress-text" id="bulkProgressText">Uploading...</div>
                     </div>
 
                     <!-- UPLOAD REPORT -->
                     <div id="bulkUploadReport" style="display: none; margin-top: 20px; padding: 16px; background: var(--gray); border-radius: 4px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px;">Yükleme Raporu</h3>
+                        <h3 style="font-size: 15px; margin-bottom: 12px;">Upload Report</h3>
                         <div id="reportContent" style="font-size: 13px; line-height: 1.6;"></div>
                     </div>
                 </div>
@@ -518,6 +518,7 @@
                         <option value="">All Categories</option>
                     </select>
                     <button id="bulkDeleteBtn" class="btn-delete" style="display:none;" title="Delete selected vectors">Delete Selected</button>
+                    <button id="bulkDownloadBtn" class="btn-upload" style="display:none; background:#2b6cb0;" title="Download selected vectors">Download Selected</button>
                     <span id="selectedCount" style="font-size:13px;color:#666;display:none;">0 selected</span>
                 </div>
                 <div class="vectors-table-wrap">
@@ -544,9 +545,10 @@
             <!-- SYSTEM HEALTH -->
             <section id="health" class="admin-section">
                 <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
-                    <button class="btn-refresh" id="refreshHealthBtn" style="margin-bottom:0;">&#8635; Refresh Health Report</button                    <button class="btn-refresh" id="verifySyncBtn" style="margin-bottom:0;background:var(--blue);">&#10003; Verify R2 Sync</button>
+                    <button class="btn-refresh" id="refreshHealthBtn" style="margin-bottom:0;">&#8635; Refresh Health Report</button>
+                    <button class="btn-refresh" id="verifySyncBtn" style="margin-bottom:0;background:var(--blue);">&#10003; Verify R2 Sync</button>
                     <button class="btn-refresh" id="fixCategoriesBtn" style="margin-bottom:0;background:var(--green);">&#9881; Fix Categories (ID-based)</button>
-                    <button class="btn-refresh" id="runCleanupBtn" style="margin-bottom:0;background:var(--orange);">&#9888; Run Cleanup</button> Orphans)</button>
+                    <button class="btn-refresh" id="runCleanupBtn" style="margin-bottom:0;background:var(--orange);">&#9888; Run Cleanup (Remove Orphans)</button>
                 </div>
                 <div class="health-grid" id="healthGrid">
                     <div class="health-card">
