@@ -37,6 +37,7 @@ const state = {
     totalPages: 1,
     total: 0,
     selectedCategory: 'all',
+    selectedType: 'all',
     searchQuery: '',
     isLoading: false,
     openedVector: null,
@@ -58,6 +59,43 @@ function setupCategories() {
     const list = document.getElementById('categoriesList');
     if (!list) return;
     list.innerHTML = '';
+
+    // Type selector (Vector / JPEG)
+    const typeContainer = document.createElement('div');
+    typeContainer.style.marginBottom = '16px';
+    typeContainer.style.paddingBottom = '12px';
+    typeContainer.style.borderBottom = '1px solid #ddd';
+    
+    const typeLabel = document.createElement('div');
+    typeLabel.style.fontSize = '11px';
+    typeLabel.style.fontWeight = '600';
+    typeLabel.style.color = '#666';
+    typeLabel.style.marginBottom = '8px';
+    typeLabel.textContent = 'TYPE';
+    typeContainer.appendChild(typeLabel);
+    
+    const typeAll = document.createElement('a');
+    typeAll.href = '#';
+    typeAll.className = 'category-item' + (state.selectedType === 'all' ? ' active' : '');
+    typeAll.textContent = 'All';
+    typeAll.onclick = (e) => { e.preventDefault(); selectType('all'); };
+    typeContainer.appendChild(typeAll);
+    
+    const typeVector = document.createElement('a');
+    typeVector.href = '#';
+    typeVector.className = 'category-item' + (state.selectedType === 'vector' ? ' active' : '');
+    typeVector.textContent = 'Vector';
+    typeVector.onclick = (e) => { e.preventDefault(); selectType('vector'); };
+    typeContainer.appendChild(typeVector);
+    
+    const typeJpeg = document.createElement('a');
+    typeJpeg.href = '#';
+    typeJpeg.className = 'category-item' + (state.selectedType === 'jpeg' ? ' active' : '');
+    typeJpeg.textContent = 'JPEG';
+    typeJpeg.onclick = (e) => { e.preventDefault(); selectType('jpeg'); };
+    typeContainer.appendChild(typeJpeg);
+    
+    list.appendChild(typeContainer);
 
     const allLink = document.createElement('a');
     allLink.href = '#';
@@ -90,6 +128,18 @@ function selectCategory(cat) {
     fetchVectors();
 }
 
+function selectType(type) {
+    state.selectedType = type;
+    state.currentPage = 1;
+    state.searchQuery = '';
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+    closeDetailPanel();
+    setupCategories();
+    updateCategoryTitle();
+    fetchVectors();
+}
+
 function updateCategoryTitle() {
     const el = document.getElementById('categoryTitle');
     if (!el) return;
@@ -107,6 +157,8 @@ async function fetchVectors() {
         url.searchParams.set('page', state.currentPage);
         url.searchParams.set('limit', '24');
         if (state.selectedCategory !== 'all') url.searchParams.set('category', state.selectedCategory);
+        if (state.selectedType === 'vector') url.searchParams.set('type', 'vector');
+        if (state.selectedType === 'jpeg') url.searchParams.set('type', 'jpeg');
         if (state.searchQuery) url.searchParams.set('search', state.searchQuery);
         
         const res = await fetch(url);
