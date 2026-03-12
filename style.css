@@ -278,16 +278,31 @@ body {
     word-break: break-word;
 }
 
-.vc-keywords {
-    font-size: 10px;
+.vc-description {
+    font-size: 9px;
     color: var(--gray-text);
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.3;
-    height: 2.6em; /* Fixed height for 2 lines */
+    height: 1.3em;
+    word-break: break-word;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.vc-keywords {
+    font-size: 9px;
+    color: var(--gray-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    height: 1.3em;
     word-break: break-word;
     margin-top: 2px;
 }

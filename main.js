@@ -213,10 +213,12 @@ function renderOurPicks() {
         const id = v.name;
         const category = v.category || "Miscellaneous";
         const thumbnail = v.thumbnail || `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
+        const typeLabel = v.isJpegOnly ? '<span class="vc-type-badge jpeg">JPEG</span>' : '<span class="vc-type-badge vector">VECTOR</span>';
 
         card.innerHTML = `
             <div class="vc-img-wrap">
                 <img class="vc-img" src="${thumbnail}" alt="${escHtml(v.title)}" loading="lazy">
+                ${typeLabel}
             </div>
             <div class="vc-info">
                 <div class="vc-title">${escHtml(v.title)}</div>
@@ -252,6 +254,8 @@ function renderVectors() {
         const thumbnail = v.thumbnail || `/api/asset?key=${encodeURIComponent(category + '/' + id + '/' + id + '.jpg')}`;
         const typeLabel = v.isJpegOnly ? '<span class="vc-type-badge jpeg">JPEG</span>' : '<span class="vc-type-badge vector">VECTOR</span>';
 
+        const descriptionText = v.description || '';
+        const keywordsText = (v.keywords || []).slice(0, 5).join(', ');
         card.innerHTML = `
             <div class="vc-img-wrap">
                 <img class="vc-img" src="${thumbnail}" alt="${escHtml(v.title)}" loading="lazy">
@@ -259,7 +263,8 @@ function renderVectors() {
             </div>
             <div class="vc-info">
                 <div class="vc-title">${escHtml(v.title)}</div>
-                <div class="vc-keywords">${escHtml((v.keywords || []).slice(0, 5).join(', '))}</div>
+                <div class="vc-description">${escHtml(descriptionText)}</div>
+                <div class="vc-keywords">${escHtml(keywordsText)}</div>
             </div>
         `;
         card.addEventListener('click', () => openDetailPanel(v, card));

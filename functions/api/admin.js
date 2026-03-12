@@ -4,6 +4,8 @@
  * Requirement: No local storage, direct R2 upload, sync delete.
  */
 
+import { generateThumbnail } from './thumbnail-gen.js';
+
 const ADMIN_PASSWORD = "vector2026";
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
@@ -240,11 +242,14 @@ export async function onRequestPost(context) {
 
     // Create thumbnail (max 400px wide)
     const thumbKey = `${category}/${id}/${id}-thumb.jpg`;
-    // Store original as thumbnail too (browser will resize via CSS; server-side resize not available in Workers)
-    // For proper thumbnail, we just upload the same JPEG - it will be served via asset API
-    // Thumbnail generation note: Cloudflare Workers don't have canvas/sharp, so we store original
-    // and rely on CSS max-width for display optimization
-    await r2.put(thumbKey, jpegBuffer, { httpMetadata: { contentType: "image/jpeg" } }).catch(() => {});
+    try {
+        const thumbnailBuffer = await generateThumbnail(jpegBuffer, 400);
+        await r2.put(thumbKey, thumbnailBuffer, { httpMetadata: { contentType: "image/jpeg" } });
+    } catch (e) {
+        console.error('Thumbnail generation error:', e);
+        // Fallback: upload original as thumbnail
+        await r2.put(thumbKey, jpegBuffer, { httpMetadata: { contentType: "image/jpeg" } }).catch(() => {});
+    }
 
     // ZIP upload (only for vector content)
     let fileSizeStr = 'N/A';
