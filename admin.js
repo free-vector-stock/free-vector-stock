@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupDropZone('drop-zone', 'bulkFileInput', 'vector');
     setupDropZone('drop-zone-jpeg', 'bulkFileInputJpeg', 'jpeg');
 
+    document.getElementById('bulkAnalyzeBtn')?.addEventListener('click', () => handleBulkAnalyze('vector'));
+    document.getElementById('bulkAnalyzeBtnJpeg')?.addEventListener('click', () => handleBulkAnalyze('jpeg'));
     document.getElementById('bulkUploadBtn')?.addEventListener('click', () => handleBulkUpload('vector'));
     document.getElementById('bulkUploadBtnJpeg')?.addEventListener('click', () => handleBulkUpload('jpeg'));
 
@@ -105,8 +107,23 @@ function showApp() {
 }
 
 function switchSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (!section) {
+        console.error('Section not found:', sectionId);
+        return;
+    }
     document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-    document.getElementById(sectionId + 'Section').classList.add('active');
+    section.classList.add('active');
+    
+    const titleMap = {
+        'dashboard': 'Dashboard',
+        'upload': 'Upload Vector',
+        'manage': 'Manage Vectors',
+        'health': 'System Health'
+    };
+    const titleEl = document.getElementById('sectionTitle');
+    if (titleEl) titleEl.textContent = titleMap[sectionId] || 'Admin';
+
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === sectionId));
 }
 
