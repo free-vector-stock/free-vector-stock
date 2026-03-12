@@ -1,8 +1,10 @@
 /**
  * Admin Bulk Upload API Handler
  * Enhanced: Retry system, upload logging, hash-based duplicate detection
- * Processes bulk vector uploads with advanced analysis and validation
+ * Updated: Uses new folder structure (Category/ID/ID.jpg) and generates thumbnails
  */
+
+import { generateThumbnail } from './thumbnail-gen.js';
 
 const ADMIN_PASSWORD = "vector2026";
 const MAX_RETRIES = 3;
@@ -10,35 +12,35 @@ const RETRY_DELAY_MS = 1000;
 
 const VALID_CATEGORIES = [
   "Abstract",
-  "Animals/Wildlife",
+  "Animals",
   "The Arts",
-  "Backgrounds/Textures",
-  "Beauty/Fashion",
-  "Buildings/Landmarks",
-  "Business/Finance",
+  "Backgrounds",
+  "Fashion",
+  "Buildings",
+  "Business",
   "Celebrities",
-  "Drink",
   "Education",
-  "Font",
   "Food",
-  "Healthcare/Medical",
+  "Drink",
+  "Medical",
   "Holidays",
-  "Icon",
   "Industrial",
   "Interiors",
-  "Logo",
   "Miscellaneous",
   "Nature",
   "Objects",
-  "Parks/Outdoor",
+  "Outdoor",
   "People",
   "Religion",
   "Science",
-  "Signs/Symbols",
-  "Sports/Recreation",
+  "Symbols",
+  "Sports",
   "Technology",
   "Transportation",
-  "Vintage"
+  "Vintage",
+  "Logo",
+  "Font",
+  "Icon"
 ];
 
 function authenticate(request) {
@@ -281,7 +283,14 @@ export async function onRequestPost(context) {
         return new Response(JSON.stringify({ error: "DUPLICATE" }), { status: 409, headers });
       }
 
-      const jpgUpload = await uploadWithRetry(r2, `assets/${resolvedCategory}/${slug}.jpg`, jpegBuffer, { contentType: "image/jpeg" });
+      // Use new folder structure: Category/ID/ID.jpg
+      const r2JpgKey = `${resolvedCategory}/${slug}/${slug}.jpg`;
+      const r2ThumbKey = `${resolvedCategory}/${slug}/${slug}-thumb.jpg`;
+      const r2ZipKey = `${resolvedCategory}/${slug}/${slug}.zip`;
+      const r2JsonKey = `${resolvedCategory}/${slug}/${slug}.json`;
+
+      // Upload original JPEG
+      const jpgUpload = await uploadWithRetry(r2, r2JpgKey, jpegBuffer, { contentType: "image/jpeg" });
       if (!jpgUpload.success) {
         await logUploadEvent(kv, {
           file_name: jsonFile.name,
@@ -294,10 +303,30 @@ export async function onRequestPost(context) {
         return new Response(JSON.stringify({ error: "JPEG upload failed: " + jpgUpload.error }), { status: 500, headers });
       }
 
-      const zipUpload = await uploadWithRetry(r2, `assets/${resolvedCategory}/${slug}.zip`, zipBuffer, { contentType: "application/zip" });
+      // Generate and upload thumbnail
+      const thumbBuffer = await generateThumbnail(jpegBuffer, 400);
+      const thumbUpload = await uploadWithRetry(r2, r2ThumbKey, thumbBuffer, { contentType: "image/jpeg" });
+      if (!thumbUpload.success) {
+        try {
+          await r2.delete(r2JpgKey);
+        } catch (_) {}
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          slug,
+          category: resolvedCategory,
+          status: "error",
+          reason: "thumbnail_upload_failed",
+          error: thumbUpload.error
+        });
+        return new Response(JSON.stringify({ error: "Thumbnail upload failed: " + thumbUpload.error }), { status: 500, headers });
+      }
+
+      // Upload ZIP
+      const zipUpload = await uploadWithRetry(r2, r2ZipKey, zipBuffer, { contentType: "application/zip" });
       if (!zipUpload.success) {
         try {
-          await r2.delete(`assets/${resolvedCategory}/${slug}.jpg`);
+          await r2.delete(r2JpgKey);
+          await r2.delete(r2ThumbKey);
         } catch (_) {}
         await logUploadEvent(kv, {
           file_name: jsonFile.name,
@@ -310,16 +339,36 @@ export async function onRequestPost(context) {
         return new Response(JSON.stringify({ error: "ZIP upload failed: " + zipUpload.error }), { status: 500, headers });
       }
 
+      // Upload JSON metadata
+      const jsonUpload = await uploadWithRetry(r2, r2JsonKey, JSON.stringify(metadata), { contentType: "application/json" });
+      if (!jsonUpload.success) {
+        try {
+          await r2.delete(r2JpgKey);
+          await r2.delete(r2ThumbKey);
+          await r2.delete(r2ZipKey);
+        } catch (_) {}
+        await logUploadEvent(kv, {
+          file_name: jsonFile.name,
+          slug,
+          category: resolvedCategory,
+          status: "error",
+          reason: "json_upload_failed",
+          error: jsonUpload.error
+        });
+        return new Response(JSON.stringify({ error: "JSON upload failed: " + jsonUpload.error }), { status: 500, headers });
+      }
+
       const vectorRecord = {
         name: slug,
         category: resolvedCategory,
         title: String(title).trim(),
         description: getField(metadata, "description") || "",
         keywords: Array.isArray(keywords) ? keywords : String(keywords).split(",").map(k => k.trim()).filter(Boolean),
-        date: new Date().toISOString().split("T")[0],
+        date: new Date().toISOString(),
         downloads: 0,
         fileSize: `${(zipBuffer.byteLength / (1024 * 1024)).toFixed(1)} MB`,
-        imageHash: jpegHash
+        imageHash: jpegHash,
+        contentType: 'vector'
       };
 
       allVectors.unshift(vectorRecord);
