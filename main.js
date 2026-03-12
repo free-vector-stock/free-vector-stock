@@ -2,7 +2,7 @@
  * frevector.com - Frontend Logic
  */
 
-const EXTRA_KEYWORDS = ['free vector', 'free svg', 'free svg icon', 'free eps', 'free jpeg', 'free', 'fre', 'vector eps', 'svg', 'jpeg'];
+const EXTRA_KEYWORDS = ['free jpeg', 'free', 'jpeg', 'fre', 'free vector', 'free svg', 'free svg icon', 'free eps', 'vector eps', 'svg'];
 
 const CATEGORIES = [
     'Abstract', 'Animals', 'The Arts', 'Backgrounds', 'Fashion', 'Buildings', 'Business', 'Celebrities',
