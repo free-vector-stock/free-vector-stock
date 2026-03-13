@@ -1,5 +1,6 @@
 /**
  * frevector.com - Frontend Logic
+ * v2026031301
  */
 
 const EXTRA_KEYWORDS = ['free jpeg', 'free', 'jpeg', 'fre'];
@@ -15,19 +16,124 @@ const CATEGORIES = [
 const MODAL_CONTENTS = {
     about: {
         title: 'About Us',
-        content: `<h2>ABOUT US</h2><p>Frevector.com is an independent design platform...</p>`
+        content: `
+            <h2 style="margin-bottom:16px;">About Us</h2>
+            <p style="margin-bottom:12px;">Frevector.com is an independent design platform established to provide access to original resources in the field of graphic design.</p>
+            <p style="margin-bottom:12px;">The platform is managed by a team producing within its own in-house studio. All designs on the site are created exclusively by Frevector artists. Content is never sourced, copied, or rearranged from other platforms. Each work is built from scratch and undergoes an original production process.</p>
+            <p style="margin-bottom:12px;">Every design is shared only after passing through a quality review process. The goal is to provide designers, developers, and creative professionals with high-quality, ready-to-use resources.</p>
+            <p style="margin-bottom:12px;">Frevector.com includes the following content:</p>
+            <ul style="margin-left:20px;margin-bottom:12px;">
+                <li>Vector illustrations</li>
+                <li>Icon sets</li>
+                <li>Logo design elements</li>
+                <li>Graphic elements</li>
+                <li>Various design resources</li>
+            </ul>
+            <p style="margin-bottom:12px;">All files can be used in both personal and commercial projects.</p>
+            <p style="margin-bottom:12px;"><strong>Our only rule is this:</strong> Files cannot be redistributed, uploaded to other platforms, sold, or reshared as part of a package.</p>
+            <p>Frevector is a platform that values labor, original production, and an ethical approach to design.</p>
+        `
     },
     privacy: {
         title: 'Privacy Policy',
-        content: `<h2>PRIVACY POLICY</h2><p>As Frevector.com, we prioritize user privacy...</p>`
+        content: `
+            <h2 style="margin-bottom:16px;">Privacy Policy</h2>
+            <p style="margin-bottom:12px;">As Frevector.com, we prioritize user privacy. This policy explains what data may be collected and how it may be used when you visit the site.</p>
+            <h3 style="margin-bottom:8px;margin-top:16px;">1. Data Collected</h3>
+            <p style="margin-bottom:8px;">When you visit the site, certain anonymous data may be collected automatically. This data does not directly identify you.</p>
+            <p style="margin-bottom:8px;">Collected data may include:</p>
+            <ul style="margin-left:20px;margin-bottom:12px;">
+                <li>Cookies</li>
+                <li>Browser and device information</li>
+                <li>IP address (for anonymous analytical purposes)</li>
+                <li>Page visit and interaction data</li>
+                <li>Analytical usage information</li>
+            </ul>
+            <h3 style="margin-bottom:8px;margin-top:16px;">2. Purposes of Data Use</h3>
+            <p style="margin-bottom:8px;">The collected data may be used for the following purposes:</p>
+            <ul style="margin-left:20px;margin-bottom:12px;">
+                <li>Improving site performance</li>
+                <li>Enhancing user experience</li>
+                <li>Detecting technical issues</li>
+                <li>Ensuring security</li>
+                <li>Supporting the content development process</li>
+            </ul>
+            <h3 style="margin-bottom:8px;margin-top:16px;">3. Personal Data</h3>
+            <p style="margin-bottom:12px;">Personal data (name, email, etc.) is only processed when voluntarily shared by the user—for example, via emails sent for communication purposes. Frevector does not sell user data to third parties or share it for commercial purposes.</p>
+            <h3 style="margin-bottom:8px;margin-top:16px;">4. Cookie Policy</h3>
+            <p style="margin-bottom:12px;">Cookies may be used on the site to support site functions, remember user preferences, and measure performance. Users can limit or disable the use of cookies through their browser settings.</p>
+            <h3 style="margin-bottom:8px;margin-top:16px;">5. Data Security</h3>
+            <p>Necessary technical and administrative measures are taken to protect data. However, it cannot be guaranteed that data transmission over the internet is completely secure.</p>
+        `
     },
     terms: {
         title: 'Terms of Service',
-        content: `<h2>TERMS OF SERVICE</h2><p>Every visitor using Frevector.com is deemed to have accepted the following terms...</p>`
+        content: `
+            <h2 style="margin-bottom:16px;">Terms of Service</h2>
+            <p style="margin-bottom:12px;">Every visitor using Frevector.com is deemed to have accepted the following terms.</p>
+            <h3 style="margin-bottom:8px;margin-top:16px;">1. Content Ownership</h3>
+            <p style="margin-bottom:12px;">All graphic designs on the site are original works prepared by Frevector artists. All rights belong to Frevector.</p>
+            <h3 style="margin-bottom:8px;margin-top:16px;">2. Right of Use</h3>
+            <p style="margin-bottom:12px;">Downloaded files can be used in personal and commercial projects. The user may edit the files for their own projects and incorporate them into their work.</p>
+            <h3 style="margin-bottom:8px;margin-top:16px;">3. Prohibited Uses</h3>
+            <p style="margin-bottom:8px;">The following actions are prohibited:</p>
+            <ul style="margin-left:20px;margin-bottom:12px;">
+                <li>Redistributing files</li>
+                <li>Uploading to other sites</li>
+                <li>Selling files digitally or physically</li>
+                <li>Sharing as an archive, package, or collection</li>
+                <li>Presenting Frevector content as a resource on other platforms</li>
+            </ul>
+            <h3 style="margin-bottom:8px;margin-top:16px;">4. Liability</h3>
+            <p style="margin-bottom:12px;">Frevector cannot be held responsible for any direct or indirect damages arising from the use of the content. Technical malfunctions or temporary access issues may occur on the platform from time to time.</p>
+            <h3 style="margin-bottom:8px;margin-top:16px;">5. Right to Change</h3>
+            <p style="margin-bottom:16px;">Frevector reserves the right to update the terms of service and site content as necessary.</p>
+            <hr style="border:none;border-top:1px solid #eee;margin:16px 0;">
+            <h3 style="margin-bottom:8px;">License Description</h3>
+            <p style="margin-bottom:8px;">All designs on Frevector are original works prepared by Frevector artists.</p>
+            <p style="margin-bottom:8px;"><strong>Usage Permission:</strong></p>
+            <ul style="margin-left:20px;margin-bottom:12px;">
+                <li>Can be used in personal projects</li>
+                <li>Can be used in commercial projects</li>
+                <li>Can be edited and integrated into projects</li>
+            </ul>
+            <p style="margin-bottom:8px;"><strong>Prohibitions:</strong></p>
+            <ul style="margin-left:20px;margin-bottom:12px;">
+                <li>Sharing files as-is</li>
+                <li>Redistribution</li>
+                <li>Selling</li>
+                <li>Presenting as a resource on other sites</li>
+                <li>Sharing within bulk content archives</li>
+            </ul>
+            <p>The Frevector license allows designs to be used in end-user projects. It does not allow the sharing of the file itself.</p>
+        `
     },
     contact: {
         title: 'Contact',
-        content: `<h2>Contact Us</h2><p>Email: hakankacar2014@gmail.com</p>`
+        content: `
+            <h2 style="margin-bottom:16px;">Contact</h2>
+            <p style="margin-bottom:12px;">If you have any questions or feedback regarding Frevector.com, please get in touch with us.</p>
+            <p style="margin-bottom:16px;"><strong>Email:</strong> <a href="mailto:hakankacar2014@gmail.com" style="color:#000;text-decoration:underline;">hakankacar2014@gmail.com</a></p>
+            <p style="margin-bottom:16px;">Frevector prioritizes clear and transparent communication with its users.</p>
+            <hr style="border:none;border-top:1px solid #eee;margin:16px 0;">
+            <h3 style="margin-bottom:8px;">Copyright Notice</h3>
+            <p style="margin-bottom:12px;">Frevector values original production and respects copyrights. The content on the site has been prepared by Frevector artists. Nevertheless, if you believe that any content infringes your copyright, please contact us.</p>
+            <p style="margin-bottom:8px;">The notification must include the following:</p>
+            <ul style="margin-left:20px;margin-bottom:12px;">
+                <li>Information proving you are the copyright owner</li>
+                <li>A link to the content you believe is infringing</li>
+                <li>Your contact information</li>
+                <li>A statement regarding the accuracy of your claim</li>
+            </ul>
+            <p style="margin-bottom:12px;">Upon review, if deemed appropriate, the relevant content will be removed.</p>
+            <p><strong>Contact:</strong> <a href="mailto:hakankacar2014@gmail.com" style="color:#000;text-decoration:underline;">hakankacar2014@gmail.com</a></p>
+            <hr style="border:none;border-top:1px solid #eee;margin:16px 0;">
+            <h3 style="margin-bottom:8px;">Frequently Asked Questions</h3>
+            <p style="margin-bottom:6px;"><strong>1. Are the files free?</strong><br>Yes. Files can be used for free in personal and commercial projects.</p>
+            <p style="margin-bottom:6px;"><strong>2. Can I sell the files?</strong><br>No. Selling or redistributing the files is prohibited.</p>
+            <p style="margin-bottom:6px;"><strong>3. Can I use the files for my clients?</strong><br>Yes. They can be used in commercial projects. However, the file itself cannot be provided as a separate product.</p>
+            <p><strong>4. Can I upload the files to another site?</strong><br>No. Redistribution is not permitted.</p>
+        `
     }
 };
 
@@ -144,7 +250,8 @@ function updateCategoryTitle() {
     const el = document.getElementById('categoryTitle');
     if (!el) return;
     const cat = state.selectedCategory === 'all' ? '' : state.selectedCategory;
-    el.textContent = cat || "Vector";
+    const typeStr = state.selectedType === 'all' ? '' : (state.selectedType === 'jpeg' ? ' JPEG' : ' Vector');
+    el.textContent = (cat || 'All') + typeStr || 'Vector';
 }
 
 async function fetchVectors() {
@@ -196,7 +303,7 @@ function renderVectors() {
         card.className = 'vector-card';
         if (state.openedVector && state.openedVector.name === v.name) card.classList.add('card-active');
         
-        const typeLabel = v.isJpegOnly ? '<span class="vc-type-badge jpeg">JPEG</span>' : '<span class="vc-type-badge vector">VECTOR</span>';
+        const typeLabel = v.isJpegOnly ? '<span class="vc-type-badge jpeg">JPEG</span>' : '';
 
         card.innerHTML = `
             <div class="vc-img-wrap">
@@ -247,13 +354,14 @@ function openDetailPanel(v, cardEl) {
     panel.className = 'detail-panel';
     
     const keywords = [...new Set([...EXTRA_KEYWORDS, ...(v.keywords || [])])];
+    const fileFormat = v.isJpegOnly ? 'JPEG' : 'EPS, SVG, JPEG';
 
     panel.innerHTML = `
         <div class="detail-inner">
             <div class="detail-left">
                 <img class="detail-img" src="${v.thumbnail}" alt="${escHtml(v.title)}">
                 <table class="detail-table">
-                    <tr><td class="dt-label">FILE FORMAT</td><td class="dt-value">${v.isJpegOnly ? 'JPEG' : 'EPS, SVG, JPEG'}</td></tr>
+                    <tr><td class="dt-label">FILE FORMAT</td><td class="dt-value">${fileFormat}</td></tr>
                     <tr><td class="dt-label">CATEGORY</td><td class="dt-value">${escHtml(v.category)}</td></tr>
                     <tr><td class="dt-label">RESOLUTION</td><td class="dt-value">High Quality / Fully Scalable</td></tr>
                     <tr><td class="dt-label">LICENSE</td><td class="dt-value">Free for Personal & Commercial Use</td></tr>
@@ -303,6 +411,10 @@ function showDownloadPage(v) {
     document.getElementById('dpImage').src = v.thumbnail;
     document.getElementById('dpCategory').textContent = v.category;
     document.getElementById('dpFileSize').textContent = v.fileSize || 'N/A';
+    
+    // Update file format in download page
+    const dpFormatCell = document.getElementById('dpFileFormat');
+    if (dpFormatCell) dpFormatCell.textContent = v.isJpegOnly ? 'JPEG' : 'EPS, SVG, JPEG';
 
     const kwBox = document.getElementById('dpKeywords');
     const keywords = [...new Set([...EXTRA_KEYWORDS, ...(v.keywords || [])])];
@@ -348,12 +460,19 @@ function setupModalHandlers() {
         btn.onclick = (e) => {
             e.preventDefault();
             const content = MODAL_CONTENTS[btn.dataset.modal];
+            if (!content) return;
             document.getElementById('infoModalBody').innerHTML = content.content;
             document.getElementById('infoModal').style.display = 'flex';
         };
     });
     document.getElementById('infoModalClose').onclick = () => {
         document.getElementById('infoModal').style.display = 'none';
+    };
+    // Close modal on backdrop click
+    document.getElementById('infoModal').onclick = (e) => {
+        if (e.target === document.getElementById('infoModal')) {
+            document.getElementById('infoModal').style.display = 'none';
+        }
     };
 }
 
