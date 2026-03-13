@@ -23,23 +23,24 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
 .sort-filter { border: 1px solid var(--border); padding: 7px 10px; border-radius: 3px; font-size: 12px; cursor: pointer; background: var(--white); color: #1a1a1a; white-space: nowrap; flex-shrink: 0; }
 
 .main-container { display: flex; flex: 1; padding-bottom: 200px; }
-.sidebar { width: 160px; min-width: 160px; padding: 12px 0; border-right: 1px solid var(--border); background: var(--white); position: fixed; top: 53px; left: 0; height: calc(100vh - 53px - 200px); overflow-y: hidden; flex-shrink: 0; z-index: 100; }
-.sidebar-title { font-size: 10px; font-weight: 700; color: var(--gray-text); letter-spacing: 1.5px; padding: 0 16px 6px; }
+.sidebar { width: 160px; min-width: 160px; padding: 8px 0; border-right: 1px solid var(--border); background: var(--white); position: fixed; top: 53px; left: 0; height: calc(100vh - 53px - 200px); overflow: hidden; flex-shrink: 0; z-index: 100; }
+.sidebar-title { font-size: 10px; font-weight: 700; color: var(--gray-text); letter-spacing: 1.5px; padding: 0 16px 4px; }
 
-/* KATEGORİLER - Boşluklar azaltıldı, kaydırma çubuğu kaldırıldı */
-.categories-list { display: flex; flex-direction: column; gap: 0; overflow: hidden; }
+/* KATEGORİLER - Çok sıkı boşluklar, kaydırma yok */
+.categories-list { display: flex; flex-direction: column; gap: 0; overflow: hidden; height: 100%; }
 .category-item { 
     text-decoration: none; 
     color: #1a1a1a; 
-    font-size: 12px; 
-    padding: 4px 16px; 
+    font-size: 11px; 
+    padding: 2px 16px; 
     cursor: pointer; 
     border-left: 3px solid transparent; 
     transition: background 0.15s; 
     display: block; 
-    line-height: 1.2;
+    line-height: 1.1;
     font-weight: 500;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 .category-item:hover { background: var(--gray-light); }
 .category-item.active { background: var(--black); color: var(--white); font-weight: 600; border-left-color: var(--black); }
@@ -76,7 +77,7 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
 .download-btn { background: var(--black); color: var(--white); border: none; padding: 12px 32px; font-size: 14px; font-weight: 800; cursor: pointer; border-radius: 3px; }
 .detail-close-btn { background: none; border: 1px solid var(--border); padding: 12px 20px; font-size: 13px; cursor: pointer; border-radius: 3px; color: var(--gray-text); }
 
-/* BOTTOM FIXED CONTAINER - Our Picks, Sayfalama, Footer */
+/* BOTTOM FIXED CONTAINER */
 .bottom-fixed-container {
     position: fixed;
     bottom: 0;
@@ -91,12 +92,13 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     overflow-y: auto;
 }
 
-/* OUR PICKS - TAM GENİŞLİK, OKLAR YANLARDA */
+/* OUR PICKS - TAM GENİŞLİK, OKLAR YANLARDA DAİRE İÇİNDE */
 .our-picks-section {
-    padding: 12px 0;
+    padding: 10px 0;
     border-bottom: 1px solid var(--border);
     background: var(--white);
     width: 100%;
+    position: relative;
     margin-left: 160px;
 }
 
@@ -106,35 +108,46 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     justify-content: space-between;
     padding: 0 20px;
     margin-bottom: 8px;
+    position: relative;
 }
 
 .our-picks-label { 
     font-weight: 800; 
-    font-size: 10px; 
+    font-size: 9px; 
     text-transform: uppercase; 
     color: var(--gray-text); 
     letter-spacing: 0.5px; 
+    flex: 1;
+    text-align: center;
 }
 
-.our-picks-nav { display: flex; gap: 8px; }
+.our-picks-nav { 
+    display: flex; 
+    gap: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    justify-content: space-between;
+    padding: 0 10px;
+    z-index: 10;
+}
 
 .our-picks-arrow {
     background: var(--white);
-    border: 1px solid var(--border);
-    width: 28px;
-    height: 28px;
+    border: 2px solid var(--border);
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--black);
     font-weight: bold;
-    z-index: 5;
     transition: all 0.2s;
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .our-picks-arrow:hover { 
@@ -149,7 +162,7 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     overflow: hidden; 
     position: relative; 
     width: 100%;
-    padding: 0 20px;
+    padding: 0 60px 0 20px;
 }
 
 .our-picks-track { 
@@ -181,7 +194,7 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
 }
 
 .pagination-wrapper { 
-    padding: 12px 0; 
+    padding: 10px 0; 
     border-bottom: 1px solid var(--border); 
     display: flex; 
     justify-content: center;
@@ -197,13 +210,13 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
 .footer { 
     background: #000; 
     color: #fff; 
-    padding: 12px 24px; 
+    padding: 10px 24px; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     width: 100%;
     font-size: 11px;
-    margin-left: 160px;
+    margin-left: 0;
 }
 
 .footer-nav { display: flex; gap: 16px; }
@@ -223,23 +236,25 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
         height: auto; 
         border-right: none; 
         border-bottom: 1px solid var(--border);
-        padding: 12px 0;
+        padding: 8px 0;
+        overflow: visible;
     }
     
-    .sidebar-title { padding: 0 16px 6px; font-size: 9px; }
+    .sidebar-title { padding: 0 16px 4px; font-size: 9px; }
     
     .categories-list { 
         display: flex; 
         flex-direction: column; 
         width: 100%;
         gap: 0;
+        height: auto;
     }
     
     .category-item { 
-        padding: 4px 16px; 
-        font-size: 12px;
+        padding: 2px 16px; 
+        font-size: 11px;
         font-weight: 500;
-        line-height: 1.2;
+        line-height: 1.1;
     }
     
     .content { padding: 16px; width: 100%; margin-left: 0; }
