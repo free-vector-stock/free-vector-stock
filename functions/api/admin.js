@@ -71,8 +71,12 @@ export async function onRequestPost(context) {
     const description = metadata.description || "";
     const keywords = Array.isArray(metadata.keywords) ? metadata.keywords : (metadata.keywords || "").split(",").map(k => k.trim()).filter(Boolean);
 
+    // Auto-detect content type from filename: if filename contains "-jpeg-", it's JPEG-only
+    const isJpegFromFilename = id.toLowerCase().includes('-jpeg-');
+    const contentTypeToSet = isJpegFromFilename ? 'jpeg' : 'vector';
+
     // Forbidden words check for JPEG-only
-    if (isJpegOnly) {
+    if (isJpegFromFilename || isJpegOnly) {
         const fullText = (title + " " + description + " " + keywords.join(" ")).toLowerCase();
         for (const word of FORBIDDEN_WORDS_JPEG) {
             if (fullText.includes(word)) return new Response(JSON.stringify({ error: `Forbidden word: ${word}` }), { status: 400, headers });
@@ -111,7 +115,7 @@ export async function onRequestPost(context) {
       date: new Date().toISOString(),
       downloads: 0,
       fileSize: fileSizeStr,
-      contentType: isJpegOnly ? 'jpeg' : 'vector'
+      contentType: contentTypeToSet
     };
 
     const allVectorsRaw = await kv.get("all_vectors");

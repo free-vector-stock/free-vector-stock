@@ -304,7 +304,7 @@ function renderVectors() {
         card.className = 'vector-card';
         if (state.openedVector && state.openedVector.name === v.name) card.classList.add('card-active');
         
-        const typeLabel = v.isJpegOnly ? '<span class="vc-type-badge jpeg">JPEG</span>' : '';
+        const typeLabel = v.isJpegOnly ? '<span class="vc-type-badge jpeg">JPEG</span>' : '<span class="vc-type-badge vector">VECTOR</span>';
 
         card.innerHTML = `
             <div class="vc-img-wrap">
@@ -329,9 +329,11 @@ function renderOurPicks() {
     state.vectors.slice(0, 10).forEach(v => {
         const card = document.createElement('div');
         card.className = 'vector-card';
+        const typeLabel = v.isJpegOnly ? '<span class="vc-type-badge jpeg">JPEG</span>' : '<span class="vc-type-badge vector">VECTOR</span>';
         card.innerHTML = `
             <div class="vc-img-wrap">
                 <img class="vc-img" src="${v.thumbnail}" alt="${escHtml(v.title)}" loading="lazy">
+                ${typeLabel}
             </div>
         `;
         card.onclick = () => openDetailPanel(v, card);
