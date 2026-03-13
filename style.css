@@ -327,16 +327,37 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     
     .categories-list { 
         display: flex; 
-        flex-direction: column; 
+        flex-direction: row; 
         width: 100%;
         gap: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 8px 0;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gray-mid) transparent;
     }
     
+    .categories-list::-webkit-scrollbar { height: 4px; }
+    .categories-list::-webkit-scrollbar-track { background: transparent; }
+    .categories-list::-webkit-scrollbar-thumb { background: var(--gray-mid); border-radius: 2px; }
+    
     .category-item { 
-        padding: 4px 16px; 
+        padding: 6px 12px; 
         font-size: 12px;
         font-weight: 500;
         line-height: 1.2;
+        white-space: nowrap;
+        flex-shrink: 0;
+        border-radius: 16px;
+        background: var(--gray-light);
+        border: 1px solid var(--border);
+        margin: 0 4px;
+    }
+    
+    .category-item.active {
+        background: var(--black);
+        color: var(--white);
+        border-color: var(--black);
     }
     
     .content { padding: 16px; width: 100%; margin-left: 0; overflow-y: auto; }
