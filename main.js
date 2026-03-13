@@ -1,6 +1,6 @@
 /**
  * frevector.com - Frontend Logic
- * v2026031301
+ * v2026031302
  */
 
 const EXTRA_KEYWORDS = ['free jpeg', 'free', 'jpeg', 'fre'];
@@ -168,7 +168,8 @@ function setupCategories() {
 
     // Type selector (Vector / JPEG)
     const typeContainer = document.createElement('div');
-    typeContainer.style.marginBottom = '16px';
+    typeContainer.style.padding = '0 16px 16px';
+    typeContainer.style.marginBottom = '12px';
     typeContainer.style.paddingBottom = '12px';
     typeContainer.style.borderBottom = '1px solid #ddd';
     
@@ -448,11 +449,14 @@ function showDownloadPage(v) {
 }
 
 function setupDownloadPageHandlers() {
-    document.getElementById('dpClose').onclick = () => {
-        document.getElementById('downloadPage').style.display = 'none';
-        document.body.style.overflow = '';
-        clearInterval(state.countdownInterval);
-    };
+    const dpClose = document.getElementById('dpClose');
+    if (dpClose) {
+        dpClose.onclick = () => {
+            document.getElementById('downloadPage').style.display = 'none';
+            document.body.style.overflow = '';
+            clearInterval(state.countdownInterval);
+        };
+    }
 }
 
 function setupModalHandlers() {
@@ -465,34 +469,57 @@ function setupModalHandlers() {
             document.getElementById('infoModal').style.display = 'flex';
         };
     });
-    document.getElementById('infoModalClose').onclick = () => {
-        document.getElementById('infoModal').style.display = 'none';
-    };
-    // Close modal on backdrop click
-    document.getElementById('infoModal').onclick = (e) => {
-        if (e.target === document.getElementById('infoModal')) {
+    const infoModalClose = document.getElementById('infoModalClose');
+    if (infoModalClose) {
+        infoModalClose.onclick = () => {
             document.getElementById('infoModal').style.display = 'none';
-        }
-    };
+        };
+    }
+    // Close modal on backdrop click
+    const infoModal = document.getElementById('infoModal');
+    if (infoModal) {
+        infoModal.onclick = (e) => {
+            if (e.target === infoModal) {
+                infoModal.style.display = 'none';
+            }
+        };
+    }
 }
 
 function setupEventListeners() {
     const input = document.getElementById('searchInput');
-    input.onkeydown = (e) => { if (e.key === 'Enter') { state.searchQuery = input.value; state.currentPage = 1; fetchVectors(); } };
-    document.getElementById('searchBtn').onclick = () => { state.searchQuery = input.value; state.currentPage = 1; fetchVectors(); };
-    document.getElementById('sortFilter').onchange = () => { state.currentPage = 1; fetchVectors(); };
+    if (input) {
+        input.onkeydown = (e) => { if (e.key === 'Enter') { state.searchQuery = input.value; state.currentPage = 1; fetchVectors(); } };
+    }
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.onclick = () => { state.searchQuery = input.value; state.currentPage = 1; fetchVectors(); };
+    }
+    const sortFilter = document.getElementById('sortFilter');
+    if (sortFilter) {
+        sortFilter.onchange = () => { state.currentPage = 1; fetchVectors(); };
+    }
     
-    document.getElementById('prevBtn').onclick = () => { if (state.currentPage > 1) { state.currentPage--; fetchVectors(); } };
-    document.getElementById('nextBtn').onclick = () => { if (state.currentPage < state.totalPages) { state.currentPage++; fetchVectors(); } };
+    const prevBtn = document.getElementById('prevBtn');
+    if (prevBtn) {
+        prevBtn.onclick = () => { if (state.currentPage > 1) { state.currentPage--; fetchVectors(); } };
+    }
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) {
+        nextBtn.onclick = () => { if (state.currentPage < state.totalPages) { state.currentPage++; fetchVectors(); } };
+    }
 }
 
 function updatePagination() {
-    document.getElementById('pageNumber').textContent = state.currentPage;
-    document.getElementById('pageTotal').textContent = `/ ${state.totalPages}`;
+    const pageNumber = document.getElementById('pageNumber');
+    if (pageNumber) pageNumber.textContent = state.currentPage;
+    const pageTotal = document.getElementById('pageTotal');
+    if (pageTotal) pageTotal.textContent = `/ ${state.totalPages}`;
 }
 
 function showLoader(show) {
-    document.getElementById('loader').style.display = show ? 'flex' : 'none';
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = show ? 'flex' : 'none';
 }
 
 function escHtml(str) {

@@ -300,20 +300,18 @@
         }
         .btn-delete:hover { background: var(--red); color: #fff; }
         
-        #bulkDeleteBtn {
+        #bulkDeleteBtn, #bulkDeleteBtnJpeg {
             background: var(--red) !important;
             color: #fff !important;
             border-color: var(--red) !important;
             padding: 9px 16px !important;
             font-size: 13px !important;
             font-weight: 600 !important;
-            display: inline-block !important;
-            transition: all 0.15s;
         }
-        #bulkDeleteBtn:hover:not(:disabled) {
+        #bulkDeleteBtn:hover:not(:disabled), #bulkDeleteBtnJpeg:hover:not(:disabled) {
             opacity: 0.85;
         }
-        #bulkDeleteBtn:disabled {
+        #bulkDeleteBtn:disabled, #bulkDeleteBtnJpeg:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
@@ -444,7 +442,7 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="totalVectors">0</div>
-                        <div class="stat-label">Total Vectors</div>
+                        <div class="stat-label">Total Content</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="totalDownloads">0</div>
@@ -591,33 +589,47 @@
                 </div>
             </section>
 
-            <!-- SYSTEM HEALTH -->
+            <!-- HEALTH -->
             <section id="health" class="admin-section">
-                <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
-                    <button class="btn-refresh" id="refreshHealthBtn" style="margin-bottom:0;">&#8635; Refresh Health Report</button>
-                    <button class="btn-refresh" id="verifySyncBtn" style="margin-bottom:0;background:var(--blue);">&#10003; Verify R2 Sync</button>
-                    <button class="btn-refresh" id="fixCategoriesBtn" style="margin-bottom:0;background:var(--green);">&#9881; Fix Categories (ID-based)</button>
-
-                </div>
-                <div class="health-grid" id="healthGrid">
-                    <div class="health-card">
-                        <div class="health-icon">&#9203;</div>
-                        <div class="health-label">Loading...</div>
-                        <div class="health-value">-</div>
+                <button class="btn-refresh" id="refreshHealthBtn">Refresh Status</button>
+                
+                <div class="health-grid">
+                    <div class="health-card ok" id="kvStatus">
+                        <div class="health-icon">📦</div>
+                        <div class="health-label">KV Database</div>
+                        <div class="health-value" id="kvCount">0</div>
+                    </div>
+                    <div class="health-card ok" id="r2Status">
+                        <div class="health-icon">☁️</div>
+                        <div class="health-label">R2 Assets</div>
+                        <div class="health-value" id="r2Count">0</div>
+                    </div>
+                    <div class="health-card ok" id="syncStatus">
+                        <div class="health-icon">🔄</div>
+                        <div class="health-label">Sync Issues</div>
+                        <div class="health-value" id="issueCount">0</div>
                     </div>
                 </div>
-                <h3 style="margin-bottom:12px; font-size:15px;">Issues Detected</h3>
+
+                <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                    <button class="btn-upload" id="verifySyncBtn" style="background: var(--blue);">Verify Full Sync</button>
+                    <button class="btn-upload" id="fixCategoriesBtn" style="background: var(--orange);">Fix Category Paths</button>
+                </div>
+
+                <div class="status-box" id="healthStatus"></div>
+
+                <h3 style="margin-bottom:16px; font-size:16px;">Sync Issues</h3>
                 <table class="health-issues-table">
                     <thead>
                         <tr>
-                            <th>Vector Slug</th>
-                            <th>Problem Type</th>
-                            <th>Suggested Fix</th>
+                            <th>Slug</th>
+                            <th>Category</th>
+                            <th>Issue</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="healthIssuesBody">
-                        <tr><td colspan="4" style="text-align:center;padding:20px;color:#666;">Run health check to see results.</td></tr>
+                        <tr><td colspan="4" style="text-align:center;padding:20px;color:#666;">No issues detected</td></tr>
                     </tbody>
                 </table>
             </section>
@@ -625,6 +637,6 @@
     </div>
 </div>
 
-<script src="admin.js?v=2026031301"></script>
+<script src="admin.js?v=2026031302"></script>
 </body>
 </html>
