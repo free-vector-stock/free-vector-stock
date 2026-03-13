@@ -45,7 +45,7 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     gap: 12px; 
     height: 52px;
 }
-.header-center { flex: 1; margin-left: 160px; }
+.header-center { flex: 1; margin-left: 0; }
 .search-container { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 3px; padding: 7px 12px; background: var(--white); }
 .search-input { border: none; outline: none; width: 100%; font-size: 13px; color: #1a1a1a; background: transparent; }
 .search-icon-btn { background: none; border: none; cursor: pointer; padding: 0; margin-right: 8px; display: flex; align-items: center; color: var(--black); flex-shrink: 0; }
@@ -92,7 +92,7 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     text-decoration: none; 
     color: #1a1a1a; 
     font-size: 12px; 
-    padding: 10px 16px; 
+    padding: 6px 16px; 
     cursor: pointer; 
     border-left: 3px solid transparent; 
     transition: background 0.15s; 
@@ -164,7 +164,7 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     display: flex;
     flex-direction: column;
     height: 200px;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
 /* OUR PICKS - TAM GENİŞLİK, OKLAR YANLARDA */
@@ -174,7 +174,7 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     background: var(--white);
     width: 100%;
     position: relative;
-    margin-left: 160px;
+    margin-left: 0;
     flex-shrink: 0;
 }
 
@@ -274,7 +274,7 @@ body { font-family: var(--font); background: var(--white); color: #1a1a1a; line-
     display: flex; 
     justify-content: center;
     background: var(--white);
-    margin-left: 160px;
+    margin-left: 0;
     flex-shrink: 0;
 }
 
