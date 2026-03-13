@@ -1,26 +1,16 @@
 /**
- * Thumbnail Generation Utility using Sharp
- * Generates real JPEG thumbnails with max width of 400-512px
+ * Thumbnail Generation Utility
+ * Cloudflare Workers compatible - no external dependencies
+ * Returns original JPEG buffer as thumbnail (resizing not available in CF Workers without sharp)
  */
-
-import sharp from "sharp";
 
 export async function generateThumbnail(jpegBuffer, maxWidth = 400) {
     try {
-        // Use sharp to resize the image to thumbnail size
-        // Preserve aspect ratio, quality 80
-        const thumbBuffer = await sharp(jpegBuffer)
-            .resize(maxWidth, maxWidth, {
-                fit: 'inside',
-                withoutEnlargement: true
-            })
-            .jpeg({ quality: 80, progressive: true })
-            .toBuffer();
-        
-        return thumbBuffer;
+        // Cloudflare Workers does not support sharp or canvas
+        // Return original buffer as-is; thumbnail is served directly
+        return jpegBuffer;
     } catch (e) {
         console.error('Thumbnail generation failed:', e);
-        // Fallback: return original buffer if generation fails
         return jpegBuffer;
     }
 }

@@ -1,6 +1,5 @@
 {
 	"dependencies": {
-		"sharp": "^0.34.5",
 		"wrangler": "^4.71.0"
 	}
 }

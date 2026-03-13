@@ -1,8 +1,6 @@
 /**
- * Admin API - Updated for Thumbnail Generation and Specification Rules
+ * Admin API - Updated to remove Thumbnail Generation and Sharp Dependency
  */
-
-import { generateThumbnail } from './thumbnail-gen.js';
 
 const ADMIN_PASSWORD = "vector2026";
 
@@ -90,9 +88,8 @@ export async function onRequestPost(context) {
     // Upload Original JPEG
     await r2.put(r2JpgKey, jpegBuffer, { httpMetadata: { contentType: "image/jpeg" } });
 
-    // Generate and Upload Thumbnail (Critical Requirement)
-    const thumbBuffer = await generateThumbnail(jpegBuffer, 512);
-    await r2.put(r2ThumbKey, thumbBuffer, { httpMetadata: { contentType: "image/jpeg" } });
+    // Use original JPEG as thumbnail (no resizing in CF Workers)
+    await r2.put(r2ThumbKey, jpegBuffer, { httpMetadata: { contentType: "image/jpeg" } });
 
     // Upload ZIP if vector
     let fileSizeStr = `${(jpegBuffer.byteLength / (1024 * 1024)).toFixed(1)} MB`;
